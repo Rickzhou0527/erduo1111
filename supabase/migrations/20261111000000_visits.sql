@@ -1,4 +1,4 @@
--- 在 Supabase 控制台 → SQL Editor 里整段粘贴运行一次即可
+-- 由 GitHub Actions（.github/workflows/backend.yml）自动执行；也可以手动在 SQL Editor 里运行
 
 -- 每个 IP 一行：访问次数、第一次和最近一次访问时间
 create table if not exists public.visits (

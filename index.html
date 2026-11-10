@@ -165,9 +165,10 @@ const CONFIG = {
     "希望你今天也像乌萨奇一样，",
     "元气满满，呀哈！",
   ],
-  // 访问次数（按 IP 统计）：填 Supabase 项目的 URL 和 anon key，留空则不统计
-  supabaseUrl: "",       // 例如 "https://xxxx.supabase.co"
-  supabaseAnonKey: "",   // Project Settings → API → anon public
+  // 访问次数（按 IP 统计）：部署时由 GitHub Actions 用仓库变量 SUPABASE_URL / SUPABASE_ANON_KEY 替换
+  // 本地预览时保持占位符即可（不会统计）
+  supabaseUrl: "__SUPABASE_URL__",
+  supabaseAnonKey: "__SUPABASE_ANON_KEY__",
 };
 /* ======================================================= */
 
@@ -228,7 +229,7 @@ function setBunny(el, mood){
 
 /* ---------- 访问次数 ---------- */
 (async function recordVisit(){
-  if(!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) return;
+  if(!/^https:\/\//.test(CONFIG.supabaseUrl) || !CONFIG.supabaseAnonKey || CONFIG.supabaseAnonKey.startsWith('__')) return;
   try{
     const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),6000);
     const res=await fetch(CONFIG.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/record_visit',{
