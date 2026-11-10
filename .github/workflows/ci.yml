@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: JavaScript syntax
+        run: |
+          sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/page.js
+          node --check /tmp/page.js
+          echo "JS syntax ok"
+
+      - name: Supabase placeholders present
+        run: |
+          grep -q '__SUPABASE_URL__' index.html
+          grep -q '__SUPABASE_ANON_KEY__' index.html
+          echo "placeholders ok (deploy will inject repo variables)"
+
+      - name: Referenced images exist
+        run: |
+          missing=0
+          for f in $(grep -oE 'bunnyImage(Yaha)?: *"[^"]+"' index.html | sed -E 's/.*"([^"]+)"/\1/'); do
+            if [ ! -f "$f" ]; then echo "::warning::index.html references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
+          done
+          [ "$missing" = 0 ] && echo "images ok" || true
+
+      - name: No secret keys committed
+        run: |
+          if grep -rnE 'sb_secret_|service_role|postgresql://[^ ]+:[^@ ]+@' --include='*.html' --include='*.js' --include='*.sql' --include='*.yml' --exclude=ci.yml . ; then
+            echo "::error::Possible secret found in the repo"; exit 1
+          fi
+          echo "no secrets found"
+
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare Supabase-like roles
+        run: psql -v ON_ERROR_STOP=1 -c "create role anon nologin;"
+
+      - name: Apply migrations (twice, to check they are re-runnable)
+        run: |
+          for pass in 1 2; do
+            for f in supabase/migrations/*.sql; do
+              echo "pass $pass: $f"
+              psql -v ON_ERROR_STOP=1 -q -f "$f"
+            done
+          done
+
+      - name: Mimic Supabase default grants
+        run: psql -v ON_ERROR_STOP=1 -c "grant usage on schema public to anon; grant select, insert, update, delete on all tables in schema public to anon;"
+
+      - name: Run tests
+        run: psql -v ON_ERROR_STOP=1 -At -f supabase/tests/visits_test.sql
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - name: Preview migrations on production (dry run)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::warning::SUPABASE_DB_URL not available, skipping production dry run"
+            exit 0
+          fi
+          supabase db push --remote="$SUPABASE_DB_URL" --skip-vault --dry-run
