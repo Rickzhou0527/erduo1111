@@ -22,6 +22,8 @@
   @keyframes up{to{transform:translateY(-115vh) rotate(30deg)}}
 
   main{position:relative;height:100%;max-width:480px;margin:0 auto}
+  /* 手机 Safari：100% 会把底部工具栏算进去，用 dvh 取实际可见高度 */
+  @supports (height:100dvh){ html,body,main{height:100dvh} }
   .scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px 16px;text-align:center}
   .scene.active{display:flex;animation:fade .5s ease}
   @keyframes fade{from{opacity:0;transform:translateY(12px)}}
@@ -73,12 +75,24 @@
   .chip i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid var(--ink)}
 
   /* game */
-  #s-game{justify-content:flex-start;padding:16px 0 0}
+  #s-game{justify-content:flex-start;padding:12px 0 0;gap:6px}
   .hud{display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 16px;font-weight:800;font-size:18px}
   .bar{flex:1;height:16px;margin:0 12px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
   .bar div{height:100%;width:0;background:var(--pink);transition:width .25s}
-  canvas{flex:1;width:100%;touch-action:none;display:block}
-  .tip{position:absolute;top:70px;left:0;right:0;font-size:15px;opacity:.75;pointer-events:none;transition:opacity .5s}
+  canvas{flex:1;width:100%;min-height:0;touch-action:none;display:block}
+  .mini-stick{display:inline-block;width:8px;height:26px;border:2px solid var(--ink);border-radius:4px;background:linear-gradient(var(--choco) 0 66%,var(--biscuit) 66%);transform:rotate(18deg)}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(255,248,231,.88);z-index:5}
+  .overlay.off{display:none}
+  .howto-card{background:#fff;border:4px solid var(--ink);border-radius:22px;box-shadow:0 8px 0 var(--ink);padding:20px 18px;width:100%;max-width:340px;text-align:left;display:flex;flex-direction:column;gap:12px}
+  .howto-card h3{text-align:center;font-size:20px;color:var(--choco)}
+  .rule{display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.4}
+  .rule>i{flex:none;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:22px;font-style:normal;background:var(--yellow);border:2px solid var(--ink);border-radius:50%}
+  .small{font-size:13px;opacity:.7;text-align:center}
+  .howto-card .btn{align-self:center;margin-top:4px}
+  .big{position:absolute;left:0;right:0;top:36%;text-align:center;font-size:42px;font-weight:900;color:var(--pink);-webkit-text-stroke:2px var(--ink);pointer-events:none;opacity:0;z-index:4}
+  .big.show{animation:bigpop .9s ease forwards}
+  @keyframes bigpop{0%{opacity:0;transform:scale(.5)}20%{opacity:1;transform:scale(1.15)}35%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1)}}
+  body.playing #bg{display:none}
 
   /* letter */
   .card{
@@ -129,9 +143,20 @@
 
   <!-- 3. 小游戏 -->
   <section id="s-game" class="scene">
-    <div class="hud"><span>🥢</span><div class="bar"><div id="barFill"></div></div><span id="score">0/11</span></div>
-    <div class="tip" id="gameTip">左右拖动乌萨奇，接住 11 根 Pepero！</div>
+    <div class="hud"><span class="mini-stick"></span><div class="bar"><div id="barFill"></div></div><span id="score">0/11</span></div>
     <canvas id="cv"></canvas>
+    <div class="big" id="bigText"></div>
+    <div class="overlay" id="howto">
+      <div class="howto-card">
+        <h3>🎮 接 Pepero 小游戏</h3>
+        <div class="rule"><i>👆</i><span>手指<b>按住屏幕左右滑动</b>，乌萨奇会跟着走</span></div>
+        <div class="rule"><i><span class="mini-stick"></span></i><span>接住一根 Pepero <b>+1</b></span></div>
+        <div class="rule"><i>💗</i><span>接住爱心 <b>+2</b></span></div>
+        <div class="rule"><i>💌</i><span>集齐 <b>11 根</b>就能打开信</span></div>
+        <p class="small">漏接了也没关系，不会扣分～</p>
+        <button class="btn" id="startGame">开始！</button>
+      </div>
+    </div>
   </section>
 
   <!-- 4. 信 -->
@@ -294,7 +319,7 @@ chips($('#sprinkles'),SPRINKLES,s=>{
   $('#makeHint').textContent='好看！这根是你的 ✨';
   $('#toGame').classList.remove('hidden');
 },s=>s.c[0]);
-$('#toGame').onclick=()=>{ show('#s-game'); startGame(); };
+$('#toGame').onclick=()=>{ show('#s-game'); startGame(false); };
 
 /* ---------- 3. 接 Pepero 小游戏 ---------- */
 const GOAL=11;
@@ -314,13 +339,28 @@ function resize(){
   const r=cv.getBoundingClientRect(); W=r.width; H=r.height;
   cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
 }
-function startGame(){
-  resize(); bx=W/2; items=[]; score=0; spawnT=0; last=performance.now(); pops=[];
-  updateHud(); $('#gameTip').style.opacity=.75;
-  cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+// phase: howto（看规则）→ countdown（3-2-1，可以先练习拖动）→ play → done
+let phase='howto', moved=false, idle=0, hintT=0, milestones={}, cdTimer;
+function startGame(skipHowto){
+  resize(); bx=W/2; items=[]; score=0; spawnT=0; pops=[]; moved=false; idle=0; milestones={};
+  updateHud(); document.body.classList.add('playing');
+  phase='howto'; clearInterval(cdTimer);
+  $('#howto').classList.toggle('off', !!skipHowto);
+  last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+  if(skipHowto) countdown();
+}
+$('#startGame').onclick=()=>{ $('#howto').classList.add('off'); countdown(); };
+function bigText(txt){ const el=$('#bigText'); el.textContent=txt; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
+function countdown(){
+  phase='countdown'; let n=3; bigText(n);
+  cdTimer=setInterval(()=>{ n--; if(n>0) bigText(n); else { clearInterval(cdTimer); bigText('开始！'); phase='play'; } },800);
 }
 function updateHud(){ $('#score').textContent=`${score}/${GOAL}`; $('#barFill').style.width=(score/GOAL*100)+'%'; }
-function move(e){ const r=cv.getBoundingClientRect(); bx=Math.max(40,Math.min(W-40,e.clientX-r.left)); $('#gameTip').style.opacity=0; }
+function move(e){
+  if(phase==='howto') return;
+  const r=cv.getBoundingClientRect(); bx=Math.max(40,Math.min(W-40,e.clientX-r.left));
+  moved=true; idle=0;
+}
 cv.addEventListener('pointerdown',move); cv.addEventListener('pointermove',move);
 window.addEventListener('resize',()=>{ if($('#s-game').classList.contains('active')) resize(); });
 
@@ -342,9 +382,10 @@ function drawHeart(it){
 function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
 function loop(t){
+  if(!$('#s-game').classList.contains('active')) return;
   const dt=Math.min((t-last)/1000,.05); last=t;
   ctx.clearRect(0,0,W,H);
-  spawnT-=dt; if(spawnT<=0){ spawn(); spawnT=.55+Math.random()*.45; }
+  if(phase==='play'){ spawnT-=dt; if(spawnT<=0){ spawn(); spawnT=.55+Math.random()*.45; } }
   const ref=imgs.happy, ratio=(ref.naturalWidth&&ref.naturalHeight)?ref.naturalHeight/ref.naturalWidth:1.11;
   const bw=96, bh=bw*ratio, by=H-bh-14;
   for(const it of items){
@@ -352,6 +393,11 @@ function loop(t){
     if(!it.done && it.y>by+20 && it.y<by+80 && Math.abs(it.x-bx)<bw*.55){
       it.done=true; score=Math.min(GOAL,score+(it.heart?2:1)); yahaT=.35; updateHud();
       pops.push({x:bx,y:by,t:0,txt:it.heart?'+2 💕':['呀哈！','乌拉！','哈！'][Math.floor(Math.random()*3)]});
+      if(score<GOAL){
+        if(!milestones.first){ milestones.first=1; bigText('接到啦！'); }
+        else if(score>=6 && !milestones.half){ milestones.half=1; bigText('过半啦！'); }
+        else if(score===GOAL-1 && !milestones.last){ milestones.last=1; bigText('还差 1 根！'); }
+      }
     }
   }
   items=items.filter(it=>!it.done && it.y<H+80);
@@ -362,11 +408,29 @@ function loop(t){
   const hop=yahaT>0?Math.sin((.35-yahaT)/.35*Math.PI)*14:0;
   if(im.complete) ctx.drawImage(im,bx-bw/2,by-hop,bw,bh);
 
+  // 拖动提示：还没滑动过，或者停下超过 4 秒
+  if(phase==='play') idle+=dt;
+  if(phase!=='howto' && phase!=='done' && (!moved || idle>4)){
+    hintT+=dt; const off=Math.abs(Math.sin(hintT*4))*10;
+    const label='按住屏幕左右滑动', ty=by-hop-30;
+    ctx.font='800 15px sans-serif'; const tw=ctx.measureText(label).width;
+    const lx=Math.max(tw/2+18,Math.min(W-tw/2-18,bx));
+    ctx.fillStyle='#fff'; ctx.strokeStyle='#4a3426'; ctx.lineWidth=2.5;
+    rr(lx-tw/2-12,ty-15,tw+24,30,15); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#4a3426'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,lx,ty);
+    ctx.font='28px sans-serif';
+    ctx.fillText('👈',bx-bw/2-20-off,by+bh*.45); ctx.fillText('👉',bx+bw/2+20+off,by+bh*.45);
+    ctx.textBaseline='alphabetic';
+  }
+
   ctx.textAlign='center'; ctx.font='900 20px sans-serif';
   pops.forEach(p=>{ p.t+=dt; ctx.globalAlpha=Math.max(0,1-p.t); ctx.fillStyle='#FF6F94'; ctx.fillText(p.txt,p.x,p.y-20-p.t*50); });
   ctx.globalAlpha=1; pops=pops.filter(p=>p.t<1);
 
-  if(score>=GOAL){ setTimeout(()=>{ show('#s-letter'); typeLetter(); },500); return; }
+  if(score>=GOAL && phase==='play'){
+    phase='done'; bigText('🎉 集齐 11 根！');
+    setTimeout(()=>{ document.body.classList.remove('playing'); show('#s-letter'); typeLetter(); },1400);
+  }
   raf=requestAnimationFrame(loop);
 }
 
@@ -396,7 +460,7 @@ $('#accept').onclick=()=>{
   }
   $('#letterBunny').classList.remove('jump'); void $('#letterBunny').offsetWidth; $('#letterBunny').classList.add('jump');
 };
-$('#replay').onclick=()=>{ show('#s-game'); startGame(); };
+$('#replay').onclick=()=>{ show('#s-game'); startGame(true); };
 </script>
 </body>
 </html>
