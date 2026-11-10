@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>11.11 빼빼로 데이</title>
+<style>
+  :root{
+    --cream:#FFF8E7; --pink:#FF8FAB; --pink2:#FFC2D1; --choco:#6B3E26;
+    --biscuit:#E9B872; --ink:#4a3426; --yellow:#FFF1BF;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(circle at 50% 0%,#FFE3EC 0%,var(--cream) 60%);
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Apple SD Gothic Neo","Noto Sans KR","Microsoft YaHei",system-ui,sans-serif;
+    overflow:hidden; user-select:none;
+  }
+  #bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+  .float{position:absolute;bottom:-40px;font-size:20px;opacity:.55;animation:up linear infinite}
+  @keyframes up{to{transform:translateY(-115vh) rotate(30deg)}}
+
+  main{position:relative;height:100%;max-width:480px;margin:0 auto}
+  .scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px 16px;text-align:center}
+  .scene.active{display:flex;animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}}
+
+  .date{font-size:72px;font-weight:900;letter-spacing:4px;color:var(--choco);line-height:1}
+  .date span{display:inline-block;animation:bob 1.6s ease-in-out infinite}
+  .date span:nth-child(2){animation-delay:.1s}.date span:nth-child(4){animation-delay:.2s}.date span:nth-child(5){animation-delay:.3s}
+  @keyframes bob{50%{transform:translateY(-8px)}}
+  .sub{font-size:20px;color:var(--pink);font-weight:700;margin-top:-8px}
+  h2{font-size:22px;color:var(--choco)}
+  .hint{font-size:16px;opacity:.85}
+  .hidden{visibility:hidden}
+  .visits{min-height:30px;font-size:14px;font-weight:700;opacity:0;transition:opacity .6s}
+  .visits.on{opacity:1}
+  .visits span{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:3px 12px}
+
+  .btn{
+    border:3px solid var(--ink);background:var(--pink);color:#fff;font-size:18px;font-weight:800;
+    padding:12px 28px;border-radius:999px;box-shadow:0 5px 0 var(--ink);cursor:pointer;font-family:inherit
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+  .btn.ghost{background:#fff;color:var(--ink)}
+
+  /* gift */
+  .gift{position:relative;width:190px;height:265px;cursor:pointer}
+  .bunny svg,.pop svg{width:100%;height:auto;display:block}
+  .gift.shake{animation:shake 1.2s ease-in-out infinite}
+  @keyframes shake{0%,60%,100%{transform:rotate(0)}65%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}85%{transform:rotate(-3deg)}}
+  .box{position:absolute;bottom:0;left:10px;width:170px;height:130px;background:var(--pink);border:4px solid var(--ink);border-radius:10px;z-index:2}
+  .ribbon{position:absolute;bottom:0;left:84px;width:22px;height:130px;background:#FFE066;border-left:4px solid var(--ink);border-right:4px solid var(--ink);z-index:3}
+  .lid{position:absolute;bottom:118px;left:0;width:190px;height:36px;background:#FF6F94;border:4px solid var(--ink);border-radius:10px;z-index:4;transition:transform .7s cubic-bezier(.3,1.6,.5,1),opacity .7s}
+  .lid::after{content:"";position:absolute;left:80px;top:-4px;width:22px;height:36px;background:#FFE066;border-left:4px solid var(--ink);border-right:4px solid var(--ink)}
+  .gift.open .lid{transform:translate(70px,-120px) rotate(35deg);opacity:0}
+  .pop{position:absolute;left:30px;bottom:40px;width:130px;z-index:1;transform:translateY(60px) scale(.6);opacity:0;transition:all .6s cubic-bezier(.3,1.7,.5,1) .25s}
+  .gift.open .pop{transform:translateY(-78px) scale(1);opacity:1}
+  .bubble{position:absolute;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:4px 12px;font-weight:900;font-size:20px;white-space:nowrap}
+  .pop .bubble{right:-52px;top:4px;transform:rotate(8deg);z-index:2}
+
+  /* make */
+  .stage{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:320px}
+  .stage .bunny{width:120px;margin-bottom:10px}
+  .stick{position:relative;width:24px;height:300px;background:var(--biscuit);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
+  .coat{position:absolute;top:0;left:0;right:0;height:0;transition:height .9s cubic-bezier(.4,1.4,.5,1),background .3s;border-bottom:3px solid var(--ink)}
+  .coat.on{height:72%}
+  .sp{position:absolute;width:5px;height:9px;border-radius:3px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .chip{border:3px solid var(--ink);border-radius:999px;padding:7px 14px;font-weight:700;font-size:15px;background:#fff;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .chip.sel{background:var(--yellow);box-shadow:0 0 0 3px var(--pink)}
+  .chip i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid var(--ink)}
+
+  /* game */
+  #s-game{justify-content:flex-start;padding:16px 0 0}
+  .hud{display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 16px;font-weight:800;font-size:18px}
+  .bar{flex:1;height:16px;margin:0 12px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+  .bar div{height:100%;width:0;background:var(--pink);transition:width .25s}
+  canvas{flex:1;width:100%;touch-action:none;display:block}
+  .tip{position:absolute;top:70px;left:0;right:0;font-size:15px;opacity:.75;pointer-events:none;transition:opacity .5s}
+
+  /* letter */
+  .card{
+    background:#fff;border:4px solid var(--ink);border-radius:22px;padding:22px 20px 18px;width:100%;
+    box-shadow:0 8px 0 var(--ink);text-align:left;position:relative;max-height:62vh;overflow:auto
+  }
+  .card .to{font-weight:900;font-size:20px;margin-bottom:12px;color:var(--choco)}
+  .card .msg{font-size:17px;line-height:1.8;min-height:8em;white-space:pre-wrap}
+  .card .msg .cur{display:inline-block;width:2px;height:1em;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .card .from{text-align:right;margin-top:14px;font-weight:800}
+  .peek{width:110px;margin-bottom:-14px;z-index:2}
+  .ko{font-size:22px;font-weight:900;color:var(--pink)}
+  .rain{position:fixed;top:-60px;width:10px;height:56px;border-radius:5px;border:2px solid var(--ink);pointer-events:none;z-index:50;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(115vh) rotate(var(--r))}}
+  .jump{animation:jump .5s ease}
+  @keyframes jump{40%{transform:translateY(-22px) scale(1.05,.95)}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<main>
+  <!-- 1. 拆礼物 -->
+  <section id="s-intro" class="scene active">
+    <div class="date"><span>1</span><span>1</span>.<span>1</span><span>1</span></div>
+    <div class="sub">빼빼로 데이 · 百奇节</div>
+    <div class="visits" id="visits"></div>
+    <div class="gift shake" id="gift">
+      <div class="pop" id="popBunny"><div class="bubble">呀哈！</div></div>
+      <div class="lid"></div><div class="box"></div><div class="ribbon"></div>
+    </div>
+    <p class="hint" id="introHint">有一份礼物给 <b class="toName"></b>，点一下礼盒 🎁</p>
+    <button id="toMake" class="btn hidden">打开看看 →</button>
+  </section>
+
+  <!-- 2. 做 Pepero -->
+  <section id="s-make" class="scene">
+    <h2>先做一根专属 Pepero 吧</h2>
+    <div class="stage">
+      <div class="bunny" id="makeBunny"></div>
+      <div class="stick"><div class="coat" id="coat"></div></div>
+    </div>
+    <p class="hint" id="makeHint">① 选巧克力口味</p>
+    <div class="row" id="flavors"></div>
+    <div class="row" id="sprinkles"></div>
+    <button id="toGame" class="btn hidden">做好啦 →</button>
+  </section>
+
+  <!-- 3. 小游戏 -->
+  <section id="s-game" class="scene">
+    <div class="hud"><span>🥢</span><div class="bar"><div id="barFill"></div></div><span id="score">0/11</span></div>
+    <div class="tip" id="gameTip">左右拖动乌萨奇，接住 11 根 Pepero！</div>
+    <canvas id="cv"></canvas>
+  </section>
+
+  <!-- 4. 信 -->
+  <section id="s-letter" class="scene">
+    <div class="peek bunny" id="letterBunny"></div>
+    <div class="card">
+      <div class="to">给 <span class="toName"></span>：</div>
+      <div class="msg" id="msg"></div>
+      <div class="from">—— <span id="fromName"></span></div>
+    </div>
+    <div class="ko">빼빼로 데이 축하해 💕</div>
+    <div class="row">
+      <button class="btn" id="accept">收下啦 💝</button>
+      <button class="btn ghost" id="replay">再玩一次</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ================== 在这里改成你的内容 ================== */
+const CONFIG = {
+  toName: "耳朵",               // 她的名字 / 昵称
+  fromName: "我",               // 你的名字
+  // 乌萨奇图片：放到同目录，填文件名（透明背景 png 最好）
+  bunnyImage: "usagi.png",          // 平时的样子
+  bunnyImageYaha: "usagi-yaha.png", // 兴奋喊"呀哈！"的样子（没有就留空 ""，会用上面那张）
+  message: [
+    "今天是 11 月 11 日，韩国的 Pepero Day。",
+    "没办法亲手把 Pepero 递给你，",
+    "所以做了这个小东西，里面的每一根都是送你的。",
+    "希望你今天也像乌萨奇一样，",
+    "元气满满，呀哈！",
+  ],
+  // 访问次数（按 IP 统计）：填 Supabase 项目的 URL 和 anon key，留空则不统计
+  supabaseUrl: "",       // 例如 "https://xxxx.supabase.co"
+  supabaseAnonKey: "",   // Project Settings → API → anon public
+};
+/* ======================================================= */
+
+const $ = s => document.querySelector(s);
+const show = id => { document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); };
+document.querySelectorAll('.toName').forEach(e=>e.textContent=CONFIG.toName);
+$('#fromName').textContent = CONFIG.fromName;
+
+/* ---------- 原创小兔 ---------- */
+function bunnySVG(mood){
+  const mouth = mood==='yaha'
+    ? '<path d="M86 150 Q100 178 114 150 Z" fill="#c4475d" stroke="#4a3426" stroke-width="3.5" stroke-linejoin="round"/>'
+    : '<path d="M89 150 Q94.5 158 100 150 Q105.5 158 111 150" fill="none" stroke="#4a3426" stroke-width="3.5" stroke-linecap="round"/>';
+  const eyes = mood==='yaha'
+    ? '<path d="M66 136 L80 140 L66 144" fill="none" stroke="#2b1d14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M134 136 L120 140 L134 144" fill="none" stroke="#2b1d14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'
+    : '<ellipse cx="74" cy="138" rx="7" ry="9" fill="#2b1d14"/><circle cx="76.5" cy="134.5" r="2.6" fill="#fff"/><ellipse cx="126" cy="138" rx="7" ry="9" fill="#2b1d14"/><circle cx="128.5" cy="134.5" r="2.6" fill="#fff"/>';
+  return `<svg viewBox="0 0 200 222" xmlns="http://www.w3.org/2000/svg" width="200" height="222">
+    <g stroke="#4a3426" stroke-width="4" fill="#FFF1BF">
+      <ellipse cx="72" cy="60" rx="17" ry="52" transform="rotate(-10 72 60)"/>
+      <ellipse cx="128" cy="60" rx="17" ry="52" transform="rotate(10 128 60)"/>
+    </g>
+    <ellipse cx="72" cy="66" rx="7" ry="34" fill="#FFC2D1" transform="rotate(-10 72 66)"/>
+    <ellipse cx="128" cy="66" rx="7" ry="34" fill="#FFC2D1" transform="rotate(10 128 66)"/>
+    <ellipse cx="100" cy="152" rx="76" ry="64" fill="#FFF1BF" stroke="#4a3426" stroke-width="4"/>
+    ${eyes}
+    <ellipse cx="58" cy="160" rx="12" ry="7" fill="#FF9EB5" opacity=".75"/>
+    <ellipse cx="142" cy="160" rx="12" ry="7" fill="#FF9EB5" opacity=".75"/>
+    ${mouth}
+  </svg>`;
+}
+function bunnySrc(mood){
+  return (mood==='yaha' && CONFIG.bunnyImageYaha) || CONFIG.bunnyImage || '';
+}
+function bunnyHTML(mood){
+  const src=bunnySrc(mood);
+  return src ? `<img src="${src}" style="width:100%;display:block" alt="乌萨奇">` : bunnySVG(mood);
+}
+function setBunny(el, mood){
+  el.innerHTML = bunnyHTML(mood);
+  const img=el.querySelector('img');
+  if(img) img.onerror=()=>{ img.outerHTML=bunnySVG(mood); };
+}
+['#makeBunny','#letterBunny'].forEach(s=>setBunny($(s),'happy'));
+{ const d=document.createElement('div'); $('#popBunny').appendChild(d); setBunny(d,'yaha'); }
+
+/* ---------- 背景漂浮 ---------- */
+(function(){
+  const icons=['💕','🥢','✨','🎀','💗'];
+  for(let i=0;i<14;i++){
+    const d=document.createElement('div'); d.className='float';
+    d.textContent=icons[i%icons.length];
+    d.style.left=Math.random()*100+'vw';
+    d.style.animationDuration=(9+Math.random()*10)+'s';
+    d.style.animationDelay=(-Math.random()*18)+'s';
+    $('#bg').appendChild(d);
+  }
+})();
+
+/* ---------- 访问次数 ---------- */
+(async function recordVisit(){
+  if(!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) return;
+  try{
+    const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),6000);
+    const res=await fetch(CONFIG.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/record_visit',{
+      method:'POST', signal:ctrl.signal,
+      headers:{'apikey':CONFIG.supabaseAnonKey,'Authorization':'Bearer '+CONFIG.supabaseAnonKey,'Content-Type':'application/json'},
+      body:'{}',
+    });
+    if(!res.ok) return;
+    const n=await res.json();
+    if(typeof n!=='number') return;
+    const el=$('#visits');
+    el.innerHTML = n===1
+      ? `<span>✨ ${escapeHTML(CONFIG.toName)}第一次打开这份礼物</span>`
+      : `<span>💕 这是${escapeHTML(CONFIG.toName)}第 ${n} 次打开这份礼物</span>`;
+    el.classList.add('on');
+  }catch(e){ /* 网络不通就不显示，不影响礼物本身 */ }
+})();
+
+/* ---------- 1. 拆礼物 ---------- */
+$('#gift').addEventListener('click', ()=>{
+  const g=$('#gift'); if(g.classList.contains('open')) return;
+  g.classList.remove('shake'); g.classList.add('open');
+  $('#introHint').textContent='乌拉！乌萨奇带着 Pepero 来找你啦';
+  setTimeout(()=>$('#toMake').classList.remove('hidden'),700);
+});
+$('#toMake').onclick=()=>show('#s-make');
+
+/* ---------- 2. 做 Pepero ---------- */
+const FLAVORS=[
+  {n:'牛奶巧克力',c:'#6B3E26'},{n:'草莓',c:'#FF8FAB'},{n:'抹茶',c:'#8DB86B'},{n:'白巧克力',c:'#FFF6E0'},
+];
+const SPRINKLES=[
+  {n:'彩虹糖针',c:['#FF6F94','#FFE066','#7BD3EA','#A6E3A1','#fff']},
+  {n:'粉色爱心',c:['#FF6F94','#FFC2D1']},{n:'杏仁碎',c:['#D9A066','#F2D3A0']},
+];
+let flavor=null, sprinkle=null;
+function chips(container,list,onPick,dot){
+  list.forEach((f,i)=>{
+    const b=document.createElement('button'); b.className='chip';
+    b.innerHTML=`<i style="background:${dot(f)}"></i>${f.n}`;
+    b.onclick=()=>{container.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');onPick(f)};
+    container.appendChild(b);
+  });
+}
+chips($('#flavors'),FLAVORS,f=>{
+  flavor=f; const c=$('#coat'); c.style.background=f.c; c.classList.add('on');
+  $('#makeHint').textContent='② 撒点装饰';
+  $('#makeBunny').classList.remove('jump'); void $('#makeBunny').offsetWidth; $('#makeBunny').classList.add('jump');
+},f=>f.c);
+chips($('#sprinkles'),SPRINKLES,s=>{
+  if(!flavor){ $('#makeHint').textContent='先选巧克力口味哦'; return; }
+  sprinkle=s; const c=$('#coat'); c.querySelectorAll('.sp').forEach(e=>e.remove());
+  for(let i=0;i<26;i++){
+    const d=document.createElement('span'); d.className='sp';
+    d.style.background=s.c[i%s.c.length];
+    d.style.left=(Math.random()*16)+'px'; d.style.top=(4+Math.random()*90)+'%';
+    d.style.transform=`rotate(${Math.random()*180}deg)`;
+    if(s.n==='粉色爱心'){d.style.borderRadius='50%';d.style.height='6px';d.style.width='6px'}
+    c.appendChild(d);
+  }
+  setBunny($('#makeBunny'),'yaha');
+  $('#makeHint').textContent='好看！这根是你的 ✨';
+  $('#toGame').classList.remove('hidden');
+},s=>s.c[0]);
+$('#toGame').onclick=()=>{ show('#s-game'); startGame(); };
+
+/* ---------- 3. 接 Pepero 小游戏 ---------- */
+const GOAL=11;
+const cv=$('#cv'), ctx=cv.getContext('2d');
+let W,H,dpr, bx, items, score, last, spawnT, raf, yahaT=0, pops=[];
+const imgs={};
+function loadImg(mood){
+  const im=new Image();
+  im.onerror=()=>{ im.onerror=null; im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(bunnySVG(mood)); };
+  im.src=bunnySrc(mood) || ('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(bunnySVG(mood)));
+  return im;
+}
+imgs.happy=loadImg('happy'); imgs.yaha=loadImg('yaha');
+
+function resize(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  const r=cv.getBoundingClientRect(); W=r.width; H=r.height;
+  cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function startGame(){
+  resize(); bx=W/2; items=[]; score=0; spawnT=0; last=performance.now(); pops=[];
+  updateHud(); $('#gameTip').style.opacity=.75;
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+}
+function updateHud(){ $('#score').textContent=`${score}/${GOAL}`; $('#barFill').style.width=(score/GOAL*100)+'%'; }
+function move(e){ const r=cv.getBoundingClientRect(); bx=Math.max(40,Math.min(W-40,e.clientX-r.left)); $('#gameTip').style.opacity=0; }
+cv.addEventListener('pointerdown',move); cv.addEventListener('pointermove',move);
+window.addEventListener('resize',()=>{ if($('#s-game').classList.contains('active')) resize(); });
+
+function spawn(){
+  const heart=Math.random()<.18;
+  const fl = (flavor && Math.random()<.5) ? flavor : FLAVORS[Math.floor(Math.random()*FLAVORS.length)];
+  items.push({x:30+Math.random()*(W-60),y:-60,vy:140+Math.random()*90+score*6,rot:(Math.random()-.5)*.6,vr:(Math.random()-.5)*2,heart,c:fl.c});
+}
+function drawStick(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.rotate(it.rot);
+  ctx.lineWidth=2.5; ctx.strokeStyle='#4a3426';
+  rr(-6,-34,12,68,6); ctx.fillStyle='#E9B872'; ctx.fill(); ctx.stroke();
+  rr(-7,-34,14,48,7); ctx.fillStyle=it.c; ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawHeart(it){
+  ctx.save(); ctx.translate(it.x,it.y); ctx.font='30px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('💗',0,0); ctx.restore();
+}
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+function loop(t){
+  const dt=Math.min((t-last)/1000,.05); last=t;
+  ctx.clearRect(0,0,W,H);
+  spawnT-=dt; if(spawnT<=0){ spawn(); spawnT=.55+Math.random()*.45; }
+  const ref=imgs.happy, ratio=(ref.naturalWidth&&ref.naturalHeight)?ref.naturalHeight/ref.naturalWidth:1.11;
+  const bw=96, bh=bw*ratio, by=H-bh-14;
+  for(const it of items){
+    it.y+=it.vy*dt; it.rot+=it.vr*dt;
+    if(!it.done && it.y>by+20 && it.y<by+80 && Math.abs(it.x-bx)<bw*.55){
+      it.done=true; score=Math.min(GOAL,score+(it.heart?2:1)); yahaT=.35; updateHud();
+      pops.push({x:bx,y:by,t:0,txt:it.heart?'+2 💕':['呀哈！','乌拉！','哈！'][Math.floor(Math.random()*3)]});
+    }
+  }
+  items=items.filter(it=>!it.done && it.y<H+80);
+  items.forEach(it=>it.heart?drawHeart(it):drawStick(it));
+
+  yahaT-=dt;
+  const im=yahaT>0?imgs.yaha:imgs.happy;
+  const hop=yahaT>0?Math.sin((.35-yahaT)/.35*Math.PI)*14:0;
+  if(im.complete) ctx.drawImage(im,bx-bw/2,by-hop,bw,bh);
+
+  ctx.textAlign='center'; ctx.font='900 20px sans-serif';
+  pops.forEach(p=>{ p.t+=dt; ctx.globalAlpha=Math.max(0,1-p.t); ctx.fillStyle='#FF6F94'; ctx.fillText(p.txt,p.x,p.y-20-p.t*50); });
+  ctx.globalAlpha=1; pops=pops.filter(p=>p.t<1);
+
+  if(score>=GOAL){ setTimeout(()=>{ show('#s-letter'); typeLetter(); },500); return; }
+  raf=requestAnimationFrame(loop);
+}
+
+/* ---------- 4. 信 ---------- */
+let typing;
+function typeLetter(){
+  clearInterval(typing);
+  const full=CONFIG.message.join('\n'); const el=$('#msg'); let i=0;
+  setBunny($('#letterBunny'),'happy');
+  typing=setInterval(()=>{
+    i++; el.innerHTML=escapeHTML(full.slice(0,i))+'<span class="cur"></span>';
+    if(i>=full.length){ clearInterval(typing); setBunny($('#letterBunny'),'yaha'); }
+  },90);
+}
+function escapeHTML(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+$('#accept').onclick=()=>{
+  const cols=['#6B3E26','#FF8FAB','#8DB86B','#FFF6E0'];
+  for(let i=0;i<60;i++){
+    const d=document.createElement('div'); d.className='rain';
+    const c=cols[i%cols.length];
+    d.style.background=`linear-gradient(${c} 0 70%, #E9B872 70%)`;
+    d.style.left=Math.random()*100+'vw';
+    d.style.setProperty('--r',(Math.random()*720-360)+'deg');
+    d.style.animationDuration=(2+Math.random()*2.5)+'s';
+    d.style.animationDelay=(Math.random()*1.2)+'s';
+    document.body.appendChild(d); setTimeout(()=>d.remove(),6000);
+  }
+  $('#letterBunny').classList.remove('jump'); void $('#letterBunny').offsetWidth; $('#letterBunny').classList.add('jump');
+};
+$('#replay').onclick=()=>{ show('#s-game'); startGame(); };
+</script>
+</body>
+</html>
