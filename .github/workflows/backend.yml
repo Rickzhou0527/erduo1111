@@ -39,4 +39,4 @@ jobs:
       - name: Apply migrations
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: supabase db push --remote="$SUPABASE_DB_URL" --skip-vault
+        run: supabase db push --remote="$SUPABASE_DB_URL" --skip-vault --yes
