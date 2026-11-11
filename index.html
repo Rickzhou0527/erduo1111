@@ -141,6 +141,13 @@
   @keyframes meteor{from{opacity:1;translate:0 0}to{opacity:0;translate:-110vw 60vw}}
   .wish{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:56;background:rgba(43,29,20,.85);color:#FFE9A8;border-radius:18px;padding:16px 22px;font-size:20px;font-weight:800;text-align:center;opacity:0;pointer-events:none;transition:opacity .6s;white-space:nowrap}
   .wish.on{opacity:1}
+  .note-modal{position:fixed;inset:0;z-index:65;background:rgba(74,52,38,.4);display:flex;align-items:center;justify-content:center;padding:24px 16px;opacity:0;pointer-events:none;transition:opacity .35s}
+  .note-modal.on{opacity:1;pointer-events:auto}
+  .note-card{position:relative;background:#FFFBEA;border:4px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink);width:100%;max-width:340px;padding:64px 22px 20px;text-align:center;transform:scale(.8) translateY(20px);transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+  .note-modal.on .note-card{transform:none}
+  .note-bunny{position:absolute;left:50%;top:-58px;width:110px;transform:translateX(-50%)}
+  .note-num{font-size:14px;font-weight:800;color:var(--pink);letter-spacing:1px}
+  .note-text{font-size:19px;line-height:1.75;font-weight:700;color:var(--choco);margin:10px 0 18px}
   .toast{position:fixed;left:50%;top:12px;transform:translate(-50%,-140%);z-index:70;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:8px 16px;font-weight:800;font-size:15px;box-shadow:0 4px 0 var(--ink);transition:transform .45s cubic-bezier(.3,1.5,.5,1);white-space:nowrap;cursor:pointer;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
   .toast.on{transform:translate(-50%,0)}
   .egg-btn{font-size:15px;padding:8px 16px}
@@ -224,6 +231,14 @@
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="note-modal" id="noteModal">
+  <div class="note-card">
+    <div class="bunny note-bunny" id="noteBunny"></div>
+    <p class="note-num" id="noteNum"></p>
+    <p class="note-text" id="noteText"></p>
+    <button class="btn" id="noteOk">收到 💕</button>
+  </div>
+</div>
 <div class="wish" id="wish">现在是 11:11<br>许个愿吧 ✨</div>
 <div class="book" id="book">
   <div class="book-card">
@@ -263,6 +278,19 @@ const CONFIG = {
     "收到这根的人，要开心一整天哦",
     "你是我心里的第一名 🏅",
   ],
+  // 第 N 次打开时弹出的悄悄话（key 是访问次数，可以自己增删改）
+  visitNotes: {
+    2:  "又见面啦。你回来看的这一下，我在这头都感觉到了。",
+    3:  "第 3 次了。原来被惦记是这种感觉，甜得像刚蘸好巧克力的 Pepero。",
+    5:  "如果打开一次就代表想我一次，那我已经被想了 5 次，赚到了。",
+    7:  "一周有 7 天，我希望每一天都有你。",
+    9:  "听说“久”和 9 同音，那就从这第 9 次开始，长长久久吧。",
+    11: "11 像两根并排的 Pepero，一根是你，一根是我。",
+    13: "13 次了，乌萨奇都记住你了，我当然记得更牢。",
+    16: "你不在的时候，世界有点吵；你一出现，就安静又刚刚好。",
+    20: "第 20 次。我们之间没有距离，只有还没见面的日子。",
+    25: "谢谢你一次又一次地回来。下一次，换我去见你。",
+  },
   // 访问次数（按 IP 统计）：部署时由 GitHub Actions 用仓库变量 SUPABASE_URL / SUPABASE_ANON_KEY 替换
   // 本地预览时保持占位符即可（不会统计）
   supabaseUrl: "__SUPABASE_URL__",
@@ -476,7 +504,18 @@ function showVisits(n){
   el.classList.add('on');
   // 彩蛋 10：第 11 次打开，金色特别版
   if(n===11){ document.body.classList.add('gold-day'); addFloaters(16); unlock('visit11'); }
+  const note=(CONFIG.visitNotes||{})[n];
+  if(note) setTimeout(()=>showNote(n,note),1200);
 }
+// 第 N 次打开的悄悄话弹窗
+function showNote(n,text){
+  $('#noteNum').textContent=`第 ${n} 次见面的悄悄话`;
+  $('#noteText').textContent=text;
+  setBunny($('#noteBunny'),'yaha');
+  $('#noteModal').classList.add('on');
+}
+$('#noteOk').onclick=()=>{ $('#noteModal').classList.remove('on'); burst(innerWidth/2,innerHeight*.45,['💕','💗','✨'],10); };
+$('#noteModal').onclick=e=>{ if(e.target.id==='noteModal') $('#noteModal').classList.remove('on'); };
 
 /* ---------- 1. 拆礼物 ---------- */
 // 彩蛋 2：拆之前长按礼盒 2 秒，偷看一眼
