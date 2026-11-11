@@ -35,6 +35,7 @@
   .sub{font-size:20px;color:var(--pink);font-weight:700;margin-top:-8px}
   h2{font-size:22px;color:var(--choco)}
   .hint{font-size:16px;opacity:.85}
+  .hint.reply{opacity:1;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:8px 14px;font-weight:700;line-height:1.5;max-width:340px}
   .hidden{visibility:hidden}
   .visits{min-height:30px;font-size:14px;font-weight:700;opacity:0;transition:opacity .6s}
   .visits.on{opacity:1}
@@ -63,9 +64,10 @@
   .pop .bubble{right:-52px;top:4px;transform:rotate(8deg);z-index:2}
 
   /* make */
-  .stage{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:320px}
-  .stage .bunny{width:120px;margin-bottom:10px}
-  .stick{position:relative;width:24px;height:300px;background:var(--biscuit);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
+  #s-make{gap:12px;padding-top:12px;padding-bottom:12px}
+  .stage{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:min(300px,34vh);flex:none}
+  .stage .bunny{width:min(120px,15vh);margin-bottom:6px}
+  .stick{position:relative;width:24px;height:100%;background:var(--biscuit);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
   .coat{position:absolute;top:0;left:0;right:0;height:0;transition:height .9s cubic-bezier(.4,1.4,.5,1),background .3s;border-bottom:3px solid var(--ink)}
   .coat.on{height:72%}
   .sp{position:absolute;width:5px;height:9px;border-radius:3px}
@@ -291,6 +293,24 @@ const CONFIG = {
     "收到这根的人，要开心一整天哦",
     "你是我心里的第一名 🏅",
   ],
+  // 做 Pepero 时，每种 口味+配料 组合的回复（key：口味+配料）
+  peperoReplies: {
+    "牛奶巧克力+彩虹糖针": "经典巧克力配彩虹糖针，像你一样，稳重又会发光 ✨",
+    "牛奶巧克力+粉色爱心": "浓浓的巧克力加满满的爱心，这根太甜了，乌萨奇想偷吃一口！",
+    "牛奶巧克力+杏仁碎":   "巧克力杏仁，最懂行的组合。不愧是智慧型女硕 🎓",
+    "草莓+彩虹糖针":       "粉粉的草莓撒上彩虹，这是童话里才有的 Pepero 吧 🦄",
+    "草莓+粉色爱心":       "全粉色！甜度超标警告 ⚠️ 乌萨奇的心都化了",
+    "草莓+杏仁碎":         "草莓的甜加上杏仁的香，又可爱又有内涵，跟你一模一样",
+    "抹茶+彩虹糖针":       "抹茶配彩虹，清新里藏着小惊喜，呀哈！",
+    "抹茶+粉色爱心":       "抹茶和爱心，像樱花落在春天的草地上 🌸",
+    "抹茶+杏仁碎":         "抹茶杏仁，大人的味道。耳朵今天很成熟嘛 🍵",
+    "白巧克力+彩虹糖针":   "白巧克力撒上彩虹糖针，像下了一场彩色的雪 ❄️",
+    "白巧克力+粉色爱心":   "白巧克力和粉色爱心，干干净净的喜欢，就是这个味道",
+    "白巧克力+杏仁碎":     "白巧克力杏仁，奶香满满，乌萨奇想抱着它睡觉",
+    "彩虹+彩虹糖针":       "彩虹加彩虹！全宇宙最闪的 Pepero，乌拉！🌈",
+    "彩虹+粉色爱心":       "隐藏口味配爱心，被你找到的东西都会变得特别",
+    "彩虹+杏仁碎":         "彩虹杏仁，这个组合连乌萨奇都没想到，你好会！",
+  },
   // 第 N 次打开时弹出的悄悄话（key 是访问次数，可以自己增删改）
   visitNotes: {
     2:  "又见面啦。你回来看的这一下，我在这头都感觉到了。",
@@ -496,20 +516,25 @@ function checkWish(){
 checkWish(); setInterval(checkWish,15000);
 
 /* ---------- 访问次数 ---------- */
-(async function recordVisit(){
-  if(!/^https:\/\//.test(CONFIG.supabaseUrl) || !CONFIG.supabaseAnonKey || CONFIG.supabaseAnonKey.startsWith('__')) return;
+// 调用 Supabase 数据库函数；没配置、网络不通或超过 6 秒都返回 null，不影响礼物本身
+function supabaseReady(){ return /^https:\/\//.test(CONFIG.supabaseUrl) && !!CONFIG.supabaseAnonKey && !CONFIG.supabaseAnonKey.startsWith('__'); }
+async function rpc(name,body={}){
+  if(!supabaseReady()) return null;
+  const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),6000);
   try{
-    const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),6000);
-    const res=await fetch(CONFIG.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/record_visit',{
+    const res=await fetch(CONFIG.supabaseUrl.replace(/\/$/,'')+'/rest/v1/rpc/'+name,{
       method:'POST', signal:ctrl.signal,
       headers:{'apikey':CONFIG.supabaseAnonKey,'Authorization':'Bearer '+CONFIG.supabaseAnonKey,'Content-Type':'application/json'},
-      body:'{}',
+      body:JSON.stringify(body),
     });
-    if(!res.ok) return;
-    const n=await res.json();
-    if(typeof n!=='number') return;
-    showVisits(n);
-  }catch(e){ /* 网络不通就不显示，不影响礼物本身 */ }
+    if(!res.ok) return null;
+    const txt=await res.text(); return txt?JSON.parse(txt):null;
+  }catch(_){ return null; }
+  finally{ clearTimeout(timer); }
+}
+(async function recordVisit(){
+  const n=await rpc('record_visit');
+  if(typeof n==='number') showVisits(n);
 })();
 function showVisits(n){
   const el=$('#visits'), name=escapeHTML(CONFIG.toName);
@@ -568,19 +593,20 @@ function addChip(container,f,onPick,dot){
 }
 function chips(container,list,onPick,dot){ list.forEach(f=>addChip(container,f,onPick,dot)); }
 // 彩蛋 5：4 种口味都试过后，解锁隐藏的彩虹口味
-const RAINBOW={n:'🌈 彩虹',c:'#FF6F94',rainbow:true,
+const RAINBOW={n:'🌈 彩虹',db:'彩虹',c:'#FF6F94',rainbow:true,
   colors:['#FF6F94','#FFB86B','#FFE066','#A6E3A1','#7BD3EA','#C3A6FF'],
   bg:'linear-gradient(#FF6F94 0 17%,#FFB86B 17% 34%,#FFE066 34% 51%,#A6E3A1 51% 68%,#7BD3EA 68% 85%,#C3A6FF 85%)'};
 const tried=new Set();
 function pickFlavor(f){
   flavor=f; const c=$('#coat'); c.style.background=f.bg||f.c; c.classList.add('on');
-  $('#makeHint').textContent = f.rainbow ? '彩虹 Pepero！只有你有 🌈' : '② 撒点装饰';
+  if(sprinkle) showCombo();
+  else $('#makeHint').textContent = f.rainbow ? '彩虹 Pepero！只有你有 🌈' : '② 撒点装饰';
   replayAnim($('#makeBunny'),'jump');
   if(!f.rainbow){
     tried.add(f.n);
     if(tried.size===FLAVORS.length && !$('#flavors .chip.new')){
       addChip($('#flavors'),RAINBOW,pickFlavor,()=>'').classList.add('new');
-      $('#makeHint').textContent='每种都尝过了？解锁隐藏口味 🌈';
+      $('#makeHint').classList.remove('reply'); $('#makeHint').textContent='每种都尝过了？解锁隐藏口味 🌈';
       unlock('rainbow');
     }
   }
@@ -598,10 +624,22 @@ chips($('#sprinkles'),SPRINKLES,s=>{
     c.appendChild(d);
   }
   setBunny($('#makeBunny'),'yaha');
-  $('#makeHint').textContent='好看！这根是你的 ✨';
+  showCombo();
   $('#toGame').classList.remove('hidden');
 },s=>s.c[0]);
-$('#toGame').onclick=()=>{ show('#s-game'); startGame(false); };
+// 每种 口味+配料 组合一句回复，并记录到数据库
+let lastCombo='';
+function comboKey(){ return `${flavor.db||flavor.n}+${sprinkle.n}`; }
+function showCombo(){
+  const key=comboKey(), hint=$('#makeHint');
+  hint.textContent=(CONFIG.peperoReplies||{})[key]||'好看！这根是你的 ✨';
+  hint.classList.add('reply'); replayAnim(hint,'jump');
+  if(key!==lastCombo){ lastCombo=key; rpc('record_pepero',{p_flavor:flavor.db||flavor.n,p_sprinkle:sprinkle.n,p_final:false}); }
+}
+$('#toGame').onclick=()=>{
+  if(flavor && sprinkle) rpc('record_pepero',{p_flavor:flavor.db||flavor.n,p_sprinkle:sprinkle.n,p_final:true});
+  show('#s-game'); startGame(false);
+};
 
 /* ---------- 3. 接 Pepero 小游戏 ---------- */
 const GOAL=11;

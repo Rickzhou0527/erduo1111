@@ -81,7 +81,11 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -c "grant usage on schema public to anon; grant select, insert, update, delete on all tables in schema public to anon;"
 
       - name: Run tests
-        run: psql -v ON_ERROR_STOP=1 -At -f supabase/tests/visits_test.sql
+        run: |
+          for f in supabase/tests/*.sql; do
+            echo "== $f"
+            psql -v ON_ERROR_STOP=1 -At -f "$f"
+          done
 
       - uses: supabase/setup-cli@v1
         with:
