@@ -97,14 +97,26 @@
   /* letter */
   .card{
     background:#fff;border:4px solid var(--ink);border-radius:22px;padding:22px 20px 18px;width:100%;
-    box-shadow:0 8px 0 var(--ink);text-align:left;position:relative;max-height:62vh;overflow:auto
+    box-shadow:0 8px 0 var(--ink);text-align:left;position:relative;overflow:auto;flex:0 1 auto;min-height:0
   }
-  .card .to{font-weight:900;font-size:20px;margin-bottom:12px;color:var(--choco)}
-  .card .msg{font-size:17px;line-height:1.8;min-height:8em;white-space:pre-wrap}
+  #s-letter{gap:12px;padding-top:12px;padding-bottom:16px}
+  @media (max-height:620px){
+    #s-letter{gap:8px;padding-top:8px;padding-bottom:10px}
+    .peek{width:72px}
+    .card{padding:16px 16px 12px}
+    .card .to{font-size:18px;margin-bottom:8px}
+    .card .msg{font-size:15px;line-height:1.6;min-height:0}
+    .card .from{margin-top:8px}
+    .ko{font-size:18px}
+    #s-letter .btn{padding:9px 20px;font-size:16px}
+  }
+  .card .to{font-weight:900;font-size:20px;margin-bottom:12px;color:var(--choco);line-height:1.5}
+  .to-title{display:inline-block;font-size:14px;font-weight:800;color:#fff;background:var(--pink);border:2px solid var(--ink);border-radius:999px;padding:1px 10px;vertical-align:3px}
+  .card .msg{font-size:16px;line-height:1.7;min-height:7em;white-space:pre-wrap}
   .card .msg .cur{display:inline-block;width:2px;height:1em;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
   .card .from{text-align:right;margin-top:14px;font-weight:800}
-  .peek{width:110px;margin-bottom:-14px;z-index:2}
+  .peek{width:92px;flex:none;margin-bottom:-12px;z-index:2}
   .ko{font-size:22px;font-weight:900;color:var(--pink)}
   .rain{position:fixed;top:-60px;width:10px;height:56px;border-radius:5px;border:2px solid var(--ink);pointer-events:none;z-index:50;animation:fall linear forwards}
   @keyframes fall{to{transform:translateY(115vh) rotate(var(--r))}}
@@ -217,7 +229,7 @@
   <section id="s-letter" class="scene">
     <div class="peek bunny" id="letterBunny"></div>
     <div class="card">
-      <div class="to">给 <span class="toName"></span>：</div>
+      <div class="to" id="letterTo"></div>
       <div class="msg" id="msg"></div>
       <div class="from">—— <span id="fromName"></span></div>
     </div>
@@ -253,7 +265,8 @@
 /* ================== 在这里改成你的内容 ================== */
 const CONFIG = {
   toName: "耳朵",               // 她的名字 / 昵称
-  fromName: "我",               // 你的名字
+  toTitle: "智慧型女硕",         // 信件抬头里名字前面的 title
+  fromName: "百万收入博 叔叔",   // 信末署名
   // 乌萨奇图片：放到同目录，填文件名（透明背景 png 最好）
   bunnyImage: "usagi.png",          // 平时的样子
   bunnyImageYaha: "usagi-yaha.png", // 兴奋喊"呀哈！"的样子（没有就留空 ""，会用上面那张）
@@ -302,6 +315,8 @@ const $ = s => document.querySelector(s);
 const show = id => { document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); };
 document.querySelectorAll('.toName').forEach(e=>e.textContent=CONFIG.toName);
 $('#fromName').textContent = CONFIG.fromName;
+function letterTo(){ $('#letterTo').innerHTML=`给 ${CONFIG.toTitle?`<span class="to-title">${escapeHTML(CONFIG.toTitle)}</span> `:''}${escapeHTML(CONFIG.toName)}：`; }
+letterTo();
 
 /* ---------- 原创小兔 ---------- */
 function bunnySVG(mood){
@@ -744,7 +759,7 @@ function loop(t){
 let typing;
 function typeLetter(){
   clearInterval(typing);
-  if(psShown){ psShown=false; $('.card').classList.remove('ps'); $('.card .to').innerHTML=`给 <span class="toName">${escapeHTML(CONFIG.toName)}</span>：`; }
+  if(psShown){ psShown=false; $('.card').classList.remove('ps'); letterTo(); }
   const full=CONFIG.message.join('\n'); const el=$('#msg'); let i=0;
   setBunny($('#letterBunny'),'happy');
   typing=setInterval(()=>{
@@ -762,7 +777,7 @@ function flipCard(toPS){
   setTimeout(()=>{
     clearInterval(typing);
     psShown=toPS; card.classList.toggle('ps',toPS);
-    $('.card .to').innerHTML = toPS ? '（背面）' : `给 <span class="toName">${escapeHTML(CONFIG.toName)}</span>：`;
+    if(toPS) $('#letterTo').textContent='（背面）'; else letterTo();
     $('#msg').innerHTML = escapeHTML((toPS?CONFIG.ps:CONFIG.message).join('\n'));
     card.classList.remove('flip');
   },250);
