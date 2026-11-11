@@ -149,7 +149,7 @@
     <div class="overlay" id="howto">
       <div class="howto-card">
         <h3>🎮 接 Pepero 小游戏</h3>
-        <div class="rule"><i>👆</i><span>手指<b>按住屏幕左右滑动</b>，乌萨奇会跟着走</span></div>
+        <div class="rule"><i>👆</i><span>手指在<b>屏幕下方左右滑动</b>，乌萨奇会跟着走</span></div>
         <div class="rule"><i><span class="mini-stick"></span></i><span>接住一根 Pepero <b>+1</b></span></div>
         <div class="rule"><i>💗</i><span>接住爱心 <b>+2</b></span></div>
         <div class="rule"><i>💌</i><span>集齐 <b>11 根</b>就能打开信</span></div>
@@ -356,12 +356,22 @@ function countdown(){
   cdTimer=setInterval(()=>{ n--; if(n>0) bigText(n); else { clearInterval(cdTimer); bigText('开始！'); phase='play'; } },800);
 }
 function updateHud(){ $('#score').textContent=`${score}/${GOAL}`; $('#barFill').style.width=(score/GOAL*100)+'%'; }
-function move(e){
+// 手机：相对拖动（像触控板），手指放在哪里都行，乌萨奇不会跳到手指底下被挡住
+// 电脑：鼠标悬停时乌萨奇直接跟随光标
+let dragX=null, dragBx=0;
+const DRAG_GAIN=1.3;
+function setBx(x){ bx=Math.max(40,Math.min(W-40,x)); moved=true; idle=0; }
+cv.addEventListener('pointerdown',e=>{
   if(phase==='howto') return;
-  const r=cv.getBoundingClientRect(); bx=Math.max(40,Math.min(W-40,e.clientX-r.left));
-  moved=true; idle=0;
-}
-cv.addEventListener('pointerdown',move); cv.addEventListener('pointermove',move);
+  dragX=e.clientX; dragBx=bx;
+  try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+});
+cv.addEventListener('pointermove',e=>{
+  if(phase==='howto') return;
+  if(dragX!==null) setBx(dragBx+(e.clientX-dragX)*DRAG_GAIN);
+  else if(e.pointerType==='mouse') setBx(e.clientX-cv.getBoundingClientRect().left);
+});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>cv.addEventListener(t,()=>{ dragX=null; }));
 window.addEventListener('resize',()=>{ if($('#s-game').classList.contains('active')) resize(); });
 
 function spawn(){
@@ -387,7 +397,14 @@ function loop(t){
   ctx.clearRect(0,0,W,H);
   if(phase==='play'){ spawnT-=dt; if(spawnT<=0){ spawn(); spawnT=.55+Math.random()*.45; } }
   const ref=imgs.happy, ratio=(ref.naturalWidth&&ref.naturalHeight)?ref.naturalHeight/ref.naturalWidth:1.11;
-  const bw=96, bh=bw*ratio, by=H-bh-14;
+  // 底部留出手指滑动区，乌萨奇站在滑动区上方
+  const zone=Math.max(110,Math.min(160,H*.22));
+  const bw=96, bh=bw*ratio, by=H-zone-bh;
+  const zx=16, zy=H-zone+14, zw=W-32, zh=zone-28;
+  ctx.fillStyle='rgba(255,143,171,.13)'; rr(zx,zy,zw,zh,24); ctx.fill();
+  ctx.setLineDash([7,6]); ctx.strokeStyle='rgba(74,52,38,.35)'; ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(74,52,38,.6)'; ctx.font='700 15px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('👆 手指在这里左右滑动',W/2,zy+zh/2); ctx.textBaseline='alphabetic';
   for(const it of items){
     it.y+=it.vy*dt; it.rot+=it.vr*dt;
     if(!it.done && it.y>by+20 && it.y<by+80 && Math.abs(it.x-bx)<bw*.55){
@@ -412,7 +429,7 @@ function loop(t){
   if(phase==='play') idle+=dt;
   if(phase!=='howto' && phase!=='done' && (!moved || idle>4)){
     hintT+=dt; const off=Math.abs(Math.sin(hintT*4))*10;
-    const label='按住屏幕左右滑动', ty=by-hop-30;
+    const label='手指在下面左右滑动 👇', ty=by-hop-30;
     ctx.font='800 15px sans-serif'; const tw=ctx.measureText(label).width;
     const lx=Math.max(tw/2+18,Math.min(W-tw/2-18,bx));
     ctx.fillStyle='#fff'; ctx.strokeStyle='#4a3426'; ctx.lineWidth=2.5;
