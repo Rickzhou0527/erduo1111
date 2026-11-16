@@ -32,6 +32,7 @@
     --toast-bg:rgba(36,26,19,.92); --toast-fg:#fbf3e8;
     --usagi-bg:transparent; --usagi-bg-av:#fbf1e2; --usagi-pad:0px;
     --bub-peer:rgba(255,252,245,.78); --bub-own:rgba(255,198,216,.80); --bub-fx:rgba(255,234,192,.88); --bub-fail:rgba(255,210,210,.88);
+    --chat-bg:#ffffff; --chat-bub-peer:#f3efe9; --chat-bub-bd:rgba(43,33,24,.08);
     --bub-bd:rgba(255,255,255,.75); --bub-hi:rgba(255,255,255,.95); --bub-lo:rgba(96,62,32,.12); --bub-sheen:rgba(255,255,255,.6);
     --wet-bg:rgba(208,230,242,.84); --wet-bd:rgba(255,255,255,.8); --wet-fg:#16384f; --drop:#6bb8e8;
     --love-bg:rgba(255,178,204,.86); --love-bd:rgba(255,255,255,.7); --love-fg:#5e1633; --love-heart:#d6376f; --love-rgb:226,60,124;
@@ -70,6 +71,7 @@
     --toast-bg:rgba(70,52,44,.94); --toast-fg:#fff3ea;
     --usagi-bg:#f6e8dc; --usagi-bg-av:#f6e8dc; --usagi-pad:6px;
     --bub-peer:rgba(84,62,50,.80); --bub-own:rgba(150,72,100,.78); --bub-fx:rgba(122,90,46,.82); --bub-fail:rgba(128,44,50,.86);
+    --chat-bg:#1a1613; --chat-bub-peer:rgba(84,62,50,.80); --chat-bub-bd:rgba(255,236,214,.16);
     --bub-bd:rgba(255,236,214,.16); --bub-hi:rgba(255,236,214,.30); --bub-lo:rgba(0,0,0,.30); --bub-sheen:rgba(255,236,214,.14);
     --wet-bg:rgba(54,76,90,.84); --wet-bd:rgba(170,215,245,.35); --wet-fg:#e4f2ff; --drop:#9fd4f6;
     --love-bg:rgba(140,54,90,.86); --love-bd:rgba(255,190,214,.40); --love-fg:#ffe9f1; --love-heart:#ffb0c8; --love-rgb:255,150,190;
@@ -99,6 +101,7 @@
     --toast-bg:rgba(70,52,44,.94); --toast-fg:#fff3ea;
     --usagi-bg:#f6e8dc; --usagi-bg-av:#f6e8dc; --usagi-pad:6px;
     --bub-peer:rgba(84,62,50,.80); --bub-own:rgba(150,72,100,.78); --bub-fx:rgba(122,90,46,.82); --bub-fail:rgba(128,44,50,.86);
+    --chat-bg:#1a1613; --chat-bub-peer:rgba(84,62,50,.80); --chat-bub-bd:rgba(255,236,214,.16);
     --bub-bd:rgba(255,236,214,.16); --bub-hi:rgba(255,236,214,.30); --bub-lo:rgba(0,0,0,.30); --bub-sheen:rgba(255,236,214,.14);
     --wet-bg:rgba(54,76,90,.84); --wet-bd:rgba(170,215,245,.35); --wet-fg:#e4f2ff; --drop:#9fd4f6;
     --love-bg:rgba(140,54,90,.86); --love-bd:rgba(255,190,214,.40); --love-fg:#ffe9f1; --love-heart:#ffb0c8; --love-rgb:255,150,190;
@@ -296,7 +299,8 @@
   .toggle:disabled{opacity:.45}
 
   /* 聊天页 */
-  #chat{position:absolute;inset:0;z-index:5;background:var(--scene-bg);background-size:cover;background-position:center}
+  /* 聊天页用纯色背景（白天纯白、晚上纯深色），对方气泡换成自己的底色，避免在白底上看不见 */
+  #chat{position:absolute;inset:0;z-index:5;background:var(--chat-bg);--bub-peer:var(--chat-bub-peer);--bub-bd:var(--chat-bub-bd)}
   #chat .top{gap:8px;padding-left:8px}
   #chat .back{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--t2);border-radius:var(--r-ctl);transition:transform .16s var(--ease)}
   #chat .back:active{transform:translateY(1px) scale(.98)}
