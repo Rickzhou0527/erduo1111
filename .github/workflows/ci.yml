@@ -21,34 +21,68 @@ jobs:
 
       - name: JavaScript syntax
         run: |
-          for f in index.html pepero/index.html chat/index.html; do
-            sed -n '/<script>/,/<\/script>/p' "$f" | sed '1d;$d' > /tmp/page.js
-            node --check /tmp/page.js
-            echo "$f: JS syntax ok"
-          done
-          node --check chat/sw.js
-          echo "chat/sw.js: JS syntax ok"
+          python3 - <<'PY'
+          import glob, os, re, shutil, subprocess, sys, tempfile
+          tmp = tempfile.mkdtemp()
+          failed = 0
+          def check(path, label):
+              global failed
+              r = subprocess.run(["node", "--check", path], capture_output=True, text=True)
+              if r.returncode:
+                  failed = 1
+                  print("::error::%s: JS syntax error\n%s" % (label, r.stderr))
+              else:
+                  print("%s: JS syntax ok" % label)
+          # 页面里的内联 <script>（没有 src、也不是 JSON）
+          for f in ["index.html", "pepero/index.html", "chat/index.html"]:
+              s = open(f, encoding="utf-8").read()
+              n = 0
+              for m in re.finditer(r"<script([^>]*)>(.*?)</script>", s, re.S):
+                  attrs = m.group(1)
+                  if "src=" in attrs or "json" in attrs or not m.group(2).strip():
+                      continue
+                  n += 1
+                  p = os.path.join(tmp, "inline%d.%s" % (n, "mjs" if "module" in attrs else "js"))
+                  open(p, "w", encoding="utf-8").write(m.group(2))
+                  check(p, "%s (inline script %d)" % (f, n))
+          # 拆分后的页面：chat/ 和 pepero/ 下所有 .js。sw.js 是普通脚本，其余是 ES 模块
+          # （复制成 .mjs 再检查：不依赖 Node 的模块自动识别，任何 Node 版本都一样）
+          for f in sorted(glob.glob("chat/**/*.js", recursive=True) + glob.glob("pepero/**/*.js", recursive=True)):
+              if os.path.basename(f) == "sw.js":
+                  check(f, f)
+              else:
+                  p = os.path.join(tmp, f.replace("/", "__") + ".mjs")
+                  shutil.copy(f, p)
+                  check(p, f)
+          sys.exit(failed)
+          PY
+
+      - name: Lint ES modules
+        run: |
+          dirs=""
+          for d in chat/js pepero/js; do [ -d "$d" ] && dirs="$dirs $d"; done
+          [ -n "$dirs" ] && npx -y eslint@9 $dirs || echo "no module directories to lint"
 
       - name: Supabase placeholders present
         run: |
-          for f in pepero/index.html chat/index.html; do
-            grep -q '__SUPABASE_URL__' "$f"
-            grep -q '__SUPABASE_ANON_KEY__' "$f"
-            echo "$f: placeholders ok (deploy will inject repo variables)"
+          for d in pepero chat; do
+            grep -rq '__SUPABASE_URL__' "$d"
+            grep -rq '__SUPABASE_ANON_KEY__' "$d"
+            echo "$d: placeholders ok (deploy will inject repo variables)"
           done
 
       - name: Referenced images exist
         run: |
           missing=0
-          for f in $(grep -oE 'bunnyImage(Yaha)?: *"[^"]+"' pepero/index.html | sed -E 's/.*"([^"]+)"/\1/'); do
-            if [ ! -f "pepero/$f" ]; then echo "::warning::pepero/index.html references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
+          for f in $(grep -rohE 'bunnyImage(Yaha)?: *"[^"]+"' pepero --include='*.html' --include='*.js' | sed -E 's/.*"([^"]+)"/\1/'); do
+            if [ ! -f "pepero/$f" ]; then echo "::warning::pepero references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
           done
           [ "$missing" = 0 ] && echo "images ok" || true
 
       - name: Chat images exist
         run: |
           missing=0
-          for f in $(grep -ohE '[A-Za-z0-9_-][A-Za-z0-9_./-]*\.(png|jpg|jpeg|webp|gif|svg)' chat/index.html chat/manifest.webmanifest | sort -u); do
+          for f in $(grep -rohE '[A-Za-z0-9_-][A-Za-z0-9_./-]*\.(png|jpg|jpeg|webp|gif|svg)' chat --include='*.html' --include='*.js' --include='*.css' --include='manifest.webmanifest' | sort -u); do
             case "$f" in http*|//*) continue;; esac
             if [ ! -f "chat/$f" ]; then echo "::error::chat references $f but chat/$f does not exist"; missing=1; fi
           done
