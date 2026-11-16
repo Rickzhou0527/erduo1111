@@ -771,7 +771,44 @@
   .gc-txt b{font-size:var(--fs-md);font-weight:600;color:var(--t1)}
   .gc-st{font-size:var(--fs-sm);color:var(--t2);white-space:nowrap}
   .gc-st.you{font-weight:600;color:var(--t1)}
-  @media (prefers-reduced-motion:reduce){.panel-up,.ttt-board.shake{animation:none}.mk.anim path,.mk.anim circle,.ttt-win.anim line{animation-duration:.01s;animation-delay:0s}}
+
+  /* 弹弓大战：HUD、画布、弹药栏；聊天里的卡片预览 */
+  #toolGrid button .tool-img{width:32px;height:32px;object-fit:contain;margin:-2px 0}
+  .gc-sl{flex:none;position:relative;width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--t1) 10%,transparent);display:flex;align-items:center;justify-content:center}
+  .gc-sl img{width:34px;height:34px;object-fit:contain}
+  .gc-score{position:absolute;right:-6px;bottom:-6px;min-width:26px;padding:1px 5px;border-radius:10px;background:var(--g-solid);border:1px solid var(--rim);box-shadow:var(--sh-1);font-size:var(--fs-xs);font-weight:600;line-height:1.4;color:var(--t1);text-align:center}
+  .sl{flex:1;min-height:0;width:calc(100% + 32px);margin:0 -16px;display:flex;flex-direction:column;gap:8px}
+  .sl-msg{margin:auto;padding:0 24px;text-align:center;color:var(--t2)}
+  .sl-hud{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:0 68px 0 16px;min-height:44px}
+  .sl-pl{display:flex;align-items:center;gap:8px;min-width:0}
+  .sl-pl.r{justify-content:flex-end}
+  .sl-av{position:relative;width:40px;height:40px;padding:2px;border-radius:50%;border:2px solid transparent;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
+  .sl-av .avatar{width:32px!important;height:32px!important}
+  .sl-av.turn{border-color:var(--pink);box-shadow:0 0 0 3px color-mix(in srgb,var(--pink) 28%,transparent)}
+  .sl-score{font-size:var(--fs-xl);font-weight:700;color:var(--t1);min-width:16px;text-align:center;font-variant-numeric:tabular-nums}
+  .sl-mid{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:84px}
+  .sl-stat{font-size:var(--fs-sm);font-weight:600;color:var(--t2);white-space:nowrap}
+  .sl-stat.you{color:var(--pink-text)}
+  .sl-wind{display:flex;align-items:center;gap:6px;min-height:16px;font-size:var(--fs-xs);color:var(--t2);white-space:nowrap}
+  .sl-wind svg{display:block;color:var(--t2)}
+  .sl-stage{position:relative;flex:1;min-height:150px;margin:0 12px;overflow:hidden;border-radius:var(--r-card);border:1px solid var(--rim);box-shadow:var(--sh-1);background:var(--g-card)}
+  .sl-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-user-select:none;user-select:none}
+  .sl-hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);padding:5px 12px;border-radius:999px;background:var(--toast-bg);color:var(--toast-fg);font-size:var(--fs-xs);pointer-events:none;white-space:nowrap}
+  .sl-stage.shake{animation:tttShake .5s var(--ease)}
+  .sl-bar{flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;min-height:48px}
+  .sl-ammo{flex:1;min-width:0;display:flex;gap:6px}
+  .sl-chip{flex:1;min-width:0;min-height:46px;display:flex;align-items:center;justify-content:center;gap:4px;padding:2px 4px;font-size:var(--fs-xs);font-weight:500;color:var(--t1);background:var(--g-chip);border:1px solid var(--rim);border-radius:var(--r-ctl);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1);transition:transform .16s var(--ease),border-color .16s var(--ease)}
+  .sl-chip img{width:26px;height:26px;object-fit:contain;flex:none}
+  .sl-chip.on{border-color:var(--pink);box-shadow:0 0 0 2px color-mix(in srgb,var(--pink) 40%,transparent),var(--sh-1)}
+  .sl-chip:active{transform:scale(.97)}
+  .sl-act{flex:none;display:flex;align-items:center}
+  .sl-act .btn.quiet{background:none;border:0;box-shadow:none;color:var(--t2);text-decoration:underline;text-underline-offset:3px;padding:6px 8px}
+  .sl-act .btn.quiet.sure{color:var(--red-text);font-weight:600}
+  .sl-ammo[hidden]{display:none}
+  .sl-bar:has(.sl-ammo[hidden]){justify-content:center}
+  .sl-bar:has(.sl-ammo[hidden]) .sl-act{flex:1;justify-content:center}
+  .sl-bar:has(.sl-ammo[hidden]) .sl-act .btn{flex:1;max-width:240px}
+  @media (prefers-reduced-motion:reduce){.panel-up,.ttt-board.shake,.sl-stage.shake{animation:none}.mk.anim path,.mk.anim circle,.ttt-win.anim line{animation-duration:.01s;animation-delay:0s}}
   /* 不支持 backdrop-filter 的浏览器：玻璃退成更不透明的纯色填充 */
   @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
     .top,#tabbar,#composer,#emojiPanel,#plusPanel,.panel,#view-friends .card,.auth-card{background:var(--g-solid)}
@@ -899,6 +936,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1089,6 +1127,9 @@
     not_your_turn: '还没轮到你',
     cell_taken: '这一格已经有人下了',
     game_over: '这局已经结束了',
+    stale_turn: '这一发已经过期了，已刷新',
+    invalid_ammo: '操作无效',
+    invalid_shot: '这一发无效，再试一次',
     invalid_cell: '操作无效',
   };
   function errText(e) {
@@ -1857,7 +1898,7 @@
     var el = h('div', { class: 'row' });
     el._stamp = h('div', { class: 'stamp', hidden: true });
     el._bubble = h('div', { class: 'bubble' });
-    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp('ttt', { id: el._gcid }); }); // 点特效气泡再看一次
+    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp(el._gkind, { id: el._gcid }); }); // 点特效气泡再看一次
     el._meta = h('div', { class: 'meta', hidden: true });
     el._av = h('div', { class: 'av-slot' });
     var col = h('div', { class: 'col' });
@@ -1959,8 +2000,8 @@
     if (el._body !== bsig) {
       el._body = bsig;
       var fx = pf && pf.fx;
-      var gid = tttOf(m.body);
-      el._gcid = gid; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
+      var gk = gameKind(m.body), gid = gk ? gk.id : null;
+      el._gcid = gid; el._gkind = gk ? gk.k : null; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
       el._fxb = !!fx || gid != null;
       el._bubble.classList.toggle('fx', !!fx);
       el._bubble.classList.toggle('gcard', gid != null);
@@ -1982,7 +2023,7 @@
         el._bubble.removeAttribute('title');
       }
     }
-    if (el._gcid != null) tttFillCard(el);
+    if (el._gcid != null) { if (el._gkind === 'sling') slFillCard(el); else tttFillCard(el); }
     updateQuote(el, m);
     refreshCls(el);
     if (!own) { el._meta.hidden = true; return; }
@@ -2026,7 +2067,7 @@
   }
   function fxOf(body) { var p = fxParse(body); return p ? p.fx : null; }
   // 消息列表里的预览：定向特效不显示后面的 #id
-  function previewOf(body) { if (tttOf(body) != null) return '井字棋'; var p = fxParse(body); return p ? p.tok : body; }
+  function previewOf(body) { if (tttOf(body) != null) return '井字棋'; if (slOf(body) != null) return '弹弓大战'; var p = fxParse(body); return p ? p.tok : body; }
 
   var fxQueue = [], fxBusy = false, fxToken = 0;
   var fxCurKey = null, fxCurMsg = null, fxCurReplay = false, curAbort = null;
@@ -3469,11 +3510,11 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
   }
   var MSG_ACTIONS = [
-    { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body) && tttOf(m.body) == null; }, run: function (m) { copyText(m.body); } },
+    { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null; }, run: function (m) { copyText(m.body); } },
     // 引用：自己和对方已发出的消息都能引用（发送中的还没有 id，不显示）
     { id: 'quote', label: '引用', icon: 'i-reply', show: function (m) { return !!(S.chat && m.id != null); }, run: function (m) { startQuote(m); } },
     { id: 'hit', label: '用表情打', icon: 'i-smile',
-      show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body) && tttOf(m.body) == null); },
+      show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null); },
       run: function (m, el) { openFxPick(m, el); } }
   ];
   var menuEl = null;
@@ -3806,6 +3847,9 @@
     ['player_x', 'player_o'].forEach(function (col) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: 'ttt_games', filter: col + '=eq.' + me }, onTttGame);
     });
+    ['player_a', 'player_b'].forEach(function (col) {
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'sling_games', filter: col + '=eq.' + me }, onSlingGame);
+    });
     ch.subscribe(function (status) {
       if (status === 'SUBSCRIBED') {
         // 重新连上之后补一次，避免断线期间漏消息
@@ -3822,7 +3866,7 @@
   async function refreshAll() {
     if (!S.me) return;
     await loadAll();
-    if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); }
+    if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); slResync(); }
   }
 
   // ===== 进入 / 退出 =====
@@ -3860,7 +3904,7 @@
     showAuth();
   }
   function resetState() {
-    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null; resetQuoteUi(); tttReset();
+    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null; resetQuoteUi(); tttReset(); slReset();
     document.title = '耳朵聊天';
     try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) { /* 忽略 */ }
   }
@@ -3869,6 +3913,7 @@
   // 入口：startQuote(m)，m 是当前聊天 msgs 里的一条消息（长按菜单的"引用"直接调用它）
   function quoteText(body) {
     if (tttOf(body) != null) return '井字棋';
+    if (slOf(body) != null) return '弹弓大战';
     var fx = fxOf(body);
     return fx ? fx.name : String(body || '');
   }
@@ -4122,12 +4167,13 @@
   // ===== "+" 工具面板 =====
   // 以后加工具：往 TOOLS 里加一项（图标用 SVG 符号 id），run 里调用 openApp(id, params)
   var TOOLS = [
-    { id: 'ttt', label: '井字棋', icon: 'i-grid', run: function () { tttStartHere(); } }
+    { id: 'ttt', label: '井字棋', icon: 'i-grid', run: function () { tttStartHere(); } },
+    { id: 'sling', label: '弹弓大战', img: 'sling/icon-slingshot.png', run: function () { slStartHere(); } }
   ];
   function buildPlusPanel() {
     var g = $('toolGrid');
     TOOLS.forEach(function (t) {
-      var b = h('button', { type: 'button', 'aria-label': t.label }, svgIcon(t.icon), h('span', { text: t.label }));
+      var b = h('button', { type: 'button', 'aria-label': t.label }, t.img ? h('img', { class: 'tool-img', src: t.img, alt: '', draggable: 'false' }) : svgIcon(t.icon), h('span', { text: t.label }));
       b.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 不抢输入框焦点
       b.addEventListener('click', function () { closePanels(); t.run(); });
       g.appendChild(b);
@@ -4244,7 +4290,7 @@
     }
     el._bubble.innerHTML = '<div class="gc-board">' + cells + '</div><div class="gc-txt"><b>井字棋</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
   }
-  function tttEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gcid != null) fn(el); }); }
+  function tttEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gkind === 'ttt' && el._gcid != null) fn(el); }); }
   function queueGame(id) {
     if (TTT.pend[id]) return;
     TTT.pend[id] = 1; TTT.want.push(id);
@@ -4477,6 +4523,988 @@
       putGame(ng);
       if (S.chat && S.chat.peer === other) openApp('ttt', { id: ng.id });
     }, function (e) { if (TV) { TV.busy = false; tttActions(); } toast(errText(e)); });
+  }
+
+  /*SIM-BEGIN*/
+  // 物理模拟：固定步长 1/60 秒，布局由种子决定，模拟过程中不用 Math.random。
+  // 出手方的设备是权威：它模拟、上传落定后的状态；对方设备按同样的输入重放动画，最后对齐到上传的状态。
+  var SLW = 2000, SLH = 1000, PLAT_Y = 827, PLAT_X = 490, VALLEY_Y = 951, BS = 56, AV_R = 24;
+  var SL_ANCHOR = { x: 410, y: 700 };
+  var SL_VMAX = 24, SL_WINDK = 1.08e-4, SL_MAXSTEPS = 480, SL_DMGK = 0.22, SL_DMGMIN = 3.5;
+  var SL_TYPES = {
+    biscuit: { w: 55, h: 55, density: 0.002, hp: 100 },
+    chocolate: { w: 55, h: 55, density: 0.0035, hp: 230 },
+    wafer: { w: 111, h: 55, density: 0.0006, hp: 45 }
+  };
+  var SL_AMMO = {
+    carrot: { r: 17, density: 0.05, rest: 0.15 },
+    snowball: { r: 18, density: 0.02, rest: 0.1 },
+    chili: { r: 14, density: 0.016, rest: 0.1 }
+  };
+  function slRng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // 堡垒布局（A 方）；B 方是镜像。返回 { blocks: [{type,x,y,w,h}], av: {x,y} }
+  function slLayout(seed) {
+    var r = slRng(seed), blocks = [], x0 = 112, row, col, rowsN = 3 + (r() < 0.5 ? 1 : 0);
+    var span = [4, r() < 0.5 ? 4 : 3, r() < 0.5 ? 3 : 2, 2], off = 0, topL = 0, topR = 0;
+    for (row = 0; row < rowsN; row++) {
+      var n = span[row], used = 0;
+      off = row === 0 ? 0 : Math.min(4 - n, Math.floor(r() * (4 - n + 1)));
+      var cy = PLAT_Y - (row + 0.5) * BS;
+      while (used < n) {
+        var type, wide = false;
+        if (n - used >= 2 && r() < 0.32) { type = 'wafer'; wide = true; }
+        else type = r() < (row === 0 ? 0.5 : 0.3) ? 'chocolate' : 'biscuit';
+        var cols = wide ? 2 : 1, d = SL_TYPES[type];
+        blocks.push({ type: type, x: x0 + (off + used + cols / 2) * BS, y: cy - 0.5, w: d.w, h: d.h });
+        used += cols;
+      }
+      topL = x0 + off * BS; topR = x0 + (off + n) * BS;
+    }
+    var top = PLAT_Y - rowsN * BS;
+    return { blocks: blocks, av: { x: (topL + topR) / 2, y: top - AV_R - 1 }, flag: { x: topL + 16, y: top } };
+  }
+  function slMirror(l) {
+    return {
+      blocks: l.blocks.map(function (b) { return { type: b.type, x: SLW - b.x, y: b.y, w: b.w, h: b.h }; }),
+      av: { x: SLW - l.av.x, y: l.av.y }, flag: { x: SLW - l.flag.x, y: l.flag.y }
+    };
+  }
+  function slRound(v, k) { return Math.round(v * k) / k; }
+
+  function SlSim(seed, state, wind) {
+    var M = Matter, i;
+    this.seed = seed; this.wind = wind || 0;
+    this.engine = M.Engine.create({ enableSleeping: true, positionIterations: 8, velocityIterations: 6 });
+    this.engine.gravity.y = 1;
+    this.world = this.engine.world;
+    this.ev = []; this.steps = 0; this.proj = null; this.projIdle = 0; this.projAge = 0; this.hitAt = -1;
+    this.boom = null; this.calm = 0; this.over = false; this.knocked = [false, false]; this.shooter = 0; this.ammo = null;
+    var statics = [];
+    var stat = { isStatic: true, friction: 0.9, frictionStatic: 1, restitution: 0, label: 'ground' };
+    statics.push(M.Bodies.rectangle((-400 + PLAT_X) / 2, PLAT_Y + 200, PLAT_X + 400, 400, stat));
+    statics.push(M.Bodies.rectangle(SLW - (-400 + PLAT_X) / 2, PLAT_Y + 200, PLAT_X + 400, 400, stat));
+    statics.push(M.Bodies.fromVertices(0, 0, [[{ x: PLAT_X, y: PLAT_Y }, { x: 700, y: VALLEY_Y }, { x: 700, y: VALLEY_Y + 400 }, { x: PLAT_X, y: VALLEY_Y + 400 }]], stat));
+    statics.push(M.Bodies.fromVertices(0, 0, [[{ x: SLW - PLAT_X, y: PLAT_Y }, { x: SLW - 700, y: VALLEY_Y }, { x: SLW - 700, y: VALLEY_Y + 400 }, { x: SLW - PLAT_X, y: VALLEY_Y + 400 }]], stat));
+    statics.push(M.Bodies.rectangle(SLW / 2, VALLEY_Y + 200, SLW - 1400, 400, stat));
+    this.slopes = [statics[2], statics[3]];
+    statics.forEach(function (b) { b.slk = 'ground'; });
+    M.World.add(this.world, statics);
+    var la = slLayout(seed), lb = slMirror(la);
+    this.layouts = [la, lb];
+    this.blocks = []; this.av = [];
+    [la, lb].forEach(function (l, side) {
+      l.blocks.forEach(function (d) {
+        var t = SL_TYPES[d.type];
+        var b = M.Bodies.rectangle(d.x, d.y, d.w, d.h, { density: t.density, friction: 0.7, frictionStatic: 1.2, restitution: 0.05, label: 'block' });
+        b.slk = 'block'; b.sl = { id: this.blocks.length, type: d.type, hp: t.hp, maxhp: t.hp, frozen: false, broken: false, w: d.w, h: d.h, side: side };
+        this.blocks.push(b);
+      }, this);
+      var a = M.Bodies.circle(l.av.x, l.av.y, AV_R, { density: 0.003, friction: 1, frictionStatic: 6, restitution: 0.1, label: 'avatar' });
+      a.slk = 'avatar'; a.sl = { side: side };
+      this.av.push(a);
+    }, this);
+    M.World.add(this.world, this.blocks.concat(this.av));
+    this.slopeFix();
+    if (state) this.applyState(state);
+    this.sleepAll();
+    var me = this;
+    M.Events.on(this.engine, 'collisionStart', function (e) { me.onCollide(e.pairs); });
+  }
+  SlSim.prototype.slopeFix = function () {
+    // fromVertices 的结果以重心为中心：按期望的顶点把它挪到正确位置
+    var M = Matter, s = this.slopes, want = [
+      { x: PLAT_X, y: PLAT_Y, cx: (PLAT_X + 700) / 2 }, { x: SLW - PLAT_X, y: PLAT_Y, cx: SLW - (PLAT_X + 700) / 2 }
+    ];
+    s.forEach(function (b, k) {
+      var minY = Infinity, minX = Infinity, maxX = -Infinity, j;
+      for (j = 0; j < b.vertices.length; j++) { minY = Math.min(minY, b.vertices[j].y); minX = Math.min(minX, b.vertices[j].x); maxX = Math.max(maxX, b.vertices[j].x); }
+      M.Body.translate(b, { x: want[k].cx - (minX + maxX) / 2, y: PLAT_Y - minY });
+    });
+  };
+  SlSim.prototype.sleepAll = function () {
+    var M = Matter;
+    this.blocks.concat(this.av).forEach(function (b) { if (!(b.sl.broken)) M.Sleeping.set(b, true); });
+  };
+  SlSim.prototype.applyState = function (st) {
+    var M = Matter, i;
+    for (i = 0; i < this.blocks.length; i++) {
+      var b = this.blocks[i], d = st.b && st.b[i];
+      if (!d) continue;
+      if (d[5]) { this.breakBlock(b, true); continue; }
+      if (b.sl.broken) { b.sl.broken = false; Matter.World.add(this.world, b); } // 重放和权威状态有出入时，把方块放回去
+      M.Body.setPosition(b, { x: d[0], y: d[1] }); M.Body.setAngle(b, d[2]);
+      M.Body.setVelocity(b, { x: 0, y: 0 }); M.Body.setAngularVelocity(b, 0);
+      b.sl.hp = d[3]; b.sl.frozen = !!d[4];
+    }
+    for (i = 0; i < 2; i++) {
+      var v = st.v && st.v[i];
+      if (!v) continue;
+      M.Body.setPosition(this.av[i], { x: v[0], y: v[1] }); M.Body.setAngle(this.av[i], v[2]);
+      M.Body.setVelocity(this.av[i], { x: 0, y: 0 }); M.Body.setAngularVelocity(this.av[i], 0);
+    }
+  };
+  SlSim.prototype.snapshot = function () {
+    var b = this.blocks.map(function (x) {
+      return x.sl.broken ? [0, 0, 0, 0, 0, 1] : [slRound(x.position.x, 10), slRound(x.position.y, 10), slRound(x.angle, 1000), Math.max(1, Math.round(x.sl.hp)), x.sl.frozen ? 1 : 0, 0];
+    });
+    var v = this.av.map(function (x) { return [slRound(x.position.x, 10), slRound(x.position.y, 10), slRound(x.angle, 1000)]; });
+    return { b: b, v: v };
+  };
+  SlSim.prototype.breakBlock = function (b, silent) {
+    if (b.sl.broken) return;
+    b.sl.broken = true; b.sl.hp = 0;
+    Matter.World.remove(this.world, b);
+    if (!silent) this.ev.push({ t: 'break', x: b.position.x, y: b.position.y, type: b.sl.type, w: b.sl.w, h: b.sl.h, a: b.angle });
+  };
+  SlSim.prototype.dmg = function (b, rel, other) {
+    // 给方块 b 记一次撞击：相对速度 × 对方质量
+    if (b.slk !== 'block' || b.sl.broken || rel < SL_DMGMIN) return;
+    var m = other.slk === 'ground' ? b.mass * 0.6 : Math.min(other.mass, 60);
+    var d = (rel - SL_DMGMIN + 1) * m * SL_DMGK * (b.sl.frozen ? 2 : 1);
+    b.sl.hp -= d;
+    this.ev.push({ t: 'hit', x: b.position.x, y: b.position.y, s: Math.min(1, d / 60) });
+    if (b.sl.hp <= 0) this.breakBlock(b);
+  };
+  SlSim.prototype.onCollide = function (pairs) {
+    var i, p, a, b, dvx, dvy, rel;
+    for (i = 0; i < pairs.length; i++) {
+      p = pairs[i]; a = p.bodyA; b = p.bodyB;
+      if (a.slk === 'proj' || b.slk === 'proj') {
+        var pr = a.slk === 'proj' ? a : b, o = pr === a ? b : a;
+        if (this.hitAt < 0) this.hitAt = this.steps;
+        if (pr.sl.ammo === 'chili' && !this.boom) {
+          this.boom = { x: pr.position.x, y: pr.position.y }; // 第一次撞到就炸
+        }
+        if (pr.sl.ammo === 'snowball' && o.slk === 'block' && !o.sl.frozen) {
+          // 先按未冻结算伤害，再标记冻结
+          var rv = Math.sqrt(Math.pow(pr.velocity.x - o.velocity.x, 2) + Math.pow(pr.velocity.y - o.velocity.y, 2));
+          this.dmg(o, rv, pr);
+          if (!o.sl.broken) { o.sl.frozen = true; this.ev.push({ t: 'freeze', x: o.position.x, y: o.position.y }); }
+          continue;
+        }
+      }
+      if (a.slk === 'avatar' && b.slk === 'ground') this.knocked[a.sl.side] = true;
+      if (b.slk === 'avatar' && a.slk === 'ground') this.knocked[b.sl.side] = true;
+      dvx = a.velocity.x - b.velocity.x; dvy = a.velocity.y - b.velocity.y;
+      rel = Math.sqrt(dvx * dvx + dvy * dvy);
+      this.dmg(a, rel, b); this.dmg(b, rel, a);
+    }
+  };
+  SlSim.prototype.explode = function (c) {
+    var M = Matter, R = 150, i, all = this.blocks.concat(this.av);
+    this.ev.push({ t: 'boom', x: c.x, y: c.y });
+    for (i = 0; i < all.length; i++) {
+      var b = all[i];
+      if (b.sl.broken) continue;
+      var dx = b.position.x - c.x, dy = b.position.y - c.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d > R) continue;
+      var s = 1 - d / R, nx = d < 1 ? 0 : dx / d, ny = d < 1 ? -1 : dy / d;
+      M.Sleeping.set(b, false);
+      var k = 15 * s / Math.sqrt(Math.max(b.mass, 2.5) / 2.5);
+      M.Body.setVelocity(b, { x: b.velocity.x + nx * k, y: b.velocity.y + ny * k - 3 * s });
+      M.Body.setAngularVelocity(b, b.angularVelocity + (nx >= 0 ? 1 : -1) * 0.1 * s);
+      if (b.slk === 'block') {
+        b.sl.hp -= 150 * s * (b.sl.frozen ? 2 : 1);
+        if (b.sl.hp <= 0) this.breakBlock(b);
+      }
+    }
+  };
+  SlSim.prototype.fire = function (side, ammo, angleDeg, power) {
+    var M = Matter, d = SL_AMMO[ammo], dir = side === 0 ? 1 : -1, rad = angleDeg * Math.PI / 180;
+    var ax = side === 0 ? SL_ANCHOR.x : SLW - SL_ANCHOR.x;
+    var p = M.Bodies.circle(ax, SL_ANCHOR.y, d.r, { density: d.density, friction: 0.4, frictionStatic: 0.5, frictionAir: 0, restitution: d.rest, label: 'proj', sleepThreshold: 1e9 });
+    p.slk = 'proj'; p.sl = { ammo: ammo, r: d.r };
+    M.Body.setVelocity(p, { x: Math.cos(rad) * dir * power * SL_VMAX, y: -Math.sin(rad) * power * SL_VMAX });
+    M.World.add(this.world, p);
+    this.proj = p; this.projAge = 0; this.projIdle = 0; this.hitAt = -1; this.shooter = side; this.ammo = ammo;
+    this.launched = true; this.calm = 0;
+  };
+  SlSim.prototype.removeProj = function () {
+    if (this.proj) { Matter.World.remove(this.world, this.proj); this.proj = null; }
+  };
+  SlSim.prototype.step = function () {
+    var M = Matter, i, p = this.proj;
+    if (p) M.Body.applyForce(p, p.position, { x: this.wind * SL_WINDK * p.mass, y: 0 });
+    for (i = 0; i < this.av.length; i++) {
+      var a = this.av[i];
+      if (!a.isSleeping) M.Body.setAngularVelocity(a, a.angularVelocity * 0.88); // 头像不容易自己滚走
+    }
+    M.Engine.update(this.engine, 1000 / 60);
+    this.steps++;
+    if (this.boom) {
+      var bm = this.boom; this.boom = null;
+      this.explode(bm);
+      this.removeProj();
+      p = null;
+    }
+    p = this.proj;
+    if (p) {
+      this.projAge++;
+      var sp = Math.sqrt(p.velocity.x * p.velocity.x + p.velocity.y * p.velocity.y);
+      if (this.hitAt >= 0 && sp < 0.5) this.projIdle++; else this.projIdle = 0;
+      if (p.position.x < -400 || p.position.x > SLW + 400 || p.position.y > SLH + 300 ||
+          this.projIdle > 40 || this.projAge > 420 || (this.hitAt >= 0 && this.steps - this.hitAt > 200)) {
+        this.ev.push({ t: 'projEnd', x: p.position.x, y: p.position.y });
+        this.removeProj();
+      }
+    }
+    // 头像掉下堡垒底（低于平台）或离开平台，也算被击落
+    for (i = 0; i < 2; i++) {
+      var v = this.av[i];
+      if (v.position.y > PLAT_Y + 10) this.knocked[i] = true;
+      if (i === 0 && v.position.x > PLAT_X + 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
+      if (i === 1 && v.position.x < SLW - PLAT_X - 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
+    }
+    // 落定：没有弹丸，所有东西都睡着或几乎不动，持续半秒
+    if (!this.proj && this.launched) {
+      var still = true, all = this.blocks.concat(this.av);
+      for (i = 0; i < all.length; i++) {
+        var b = all[i];
+        if (b.sl.broken || b.isSleeping) continue;
+        if (b.speed > 0.15 || Math.abs(b.angularVelocity) > 0.01) { still = false; break; }
+      }
+      this.calm = still ? this.calm + 1 : 0;
+      if (this.calm >= 30) this.over = true;
+    }
+    if (this.steps >= SL_MAXSTEPS) { this.removeProj(); this.over = true; }
+  };
+  // 出手方的这一发是否算击落（只算对手的头像；自己的头像掉下去不算）
+  SlSim.prototype.enemyKnocked = function () { return this.knocked[1 - this.shooter]; };
+  // 弹道预览：和 Matter 的积分一致（速度先加加速度，再挪位置）
+  function slPreview(side, angleDeg, power, wind, n) {
+    var dir = side === 0 ? 1 : -1, rad = angleDeg * Math.PI / 180, g = 0.001 * 1 * (1000 / 60) * (1000 / 60);
+    var x = side === 0 ? SL_ANCHOR.x : SLW - SL_ANCHOR.x, y = SL_ANCHOR.y;
+    var vx = Math.cos(rad) * dir * power * SL_VMAX, vy = -Math.sin(rad) * power * SL_VMAX, out = [], i;
+    var wx = wind * SL_WINDK * (1000 / 60) * (1000 / 60);
+    for (i = 0; i < n; i++) { vx += wx; vy += g; x += vx; y += vy; out.push({ x: x, y: y }); }
+    return out;
+  }
+  /*SIM-END*/
+
+  // ===== 弹弓大战 =====
+  var SG = { games: {}, want: [], pend: {}, tm: 0 };
+  function slReset() { SG.games = {}; SG.want = []; SG.pend = {}; }
+  function slOf(body) {
+    var m = typeof body === 'string' ? /^\[弹弓大战\]#(\d{1,15})$/.exec(body) : null;
+    return m ? parseInt(m[1], 10) : null;
+  }
+  function gameKind(body) {
+    var t = tttOf(body);
+    if (t != null) return { k: 'ttt', id: t };
+    var s = slOf(body);
+    return s != null ? { k: 'sling', id: s } : null;
+  }
+  function slStatus(g) {
+    var me = S.me.id;
+    if (!g) return { t: g === null ? '对局不可用' : '载入中…', you: false };
+    if (g.status === 'active') return g.next_player === me ? { t: '轮到你了', you: true } : { t: '等 Ta 出手', you: false };
+    if (g.status === 'resigned') return { t: g.winner === me ? 'Ta 认输了' : '你认输了', you: false };
+    return { t: g.winner === me ? '你赢了' : 'Ta 赢了', you: false };
+  }
+  function slScores(g) { return g.player_a === S.me.id ? [g.score_a, g.score_b] : [g.score_b, g.score_a]; }
+  function slFillCard(el) {
+    var m = el._m, id = el._gcid;
+    if (!m || id == null || !S.me) return;
+    var g = SG.games[id];
+    var sig = id + '|' + (g ? [g.score_a, g.score_b, g.status, g.next_player, g.winner].join('|') : 'x') + '|' + S.me.id;
+    if (!g && !SG.pend[id] && SG.games[id] === undefined) slQueue(id);
+    if (el._gsig === sig) return;
+    el._gsig = sig;
+    var st = slStatus(g), sc = g ? slScores(g) : [0, 0];
+    el._bubble.innerHTML = '<div class="gc-sl"><img src="sling/icon-slingshot.png" alt="" draggable="false"><span class="gc-score">' + sc[0] + ':' + sc[1] + '</span></div><div class="gc-txt"><b>弹弓大战</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
+  }
+  function slEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gkind === 'sling' && el._gcid != null) fn(el); }); }
+  function slQueue(id) {
+    if (SG.pend[id]) return;
+    SG.pend[id] = 1; SG.want.push(id);
+    clearTimeout(SG.tm);
+    SG.tm = setTimeout(slFetchGames, 0);
+  }
+  function slFetchGames() {
+    var ids = SG.want.splice(0);
+    if (!ids.length || !sb) return;
+    sb.from('sling_games').select('*').in('id', ids).then(function (r) {
+      ids.forEach(function (id) { delete SG.pend[id]; });
+      if (r.error) return;
+      var got = {};
+      (r.data || []).forEach(function (g) { got[g.id] = 1; slPut(g); });
+      ids.forEach(function (id) { if (!got[id] && !SG.games[id]) SG.games[id] = null; slEachCard(function (el) { if (el._gcid === id) slFillCard(el); }); });
+    }, function () { ids.forEach(function (id) { delete SG.pend[id]; }); });
+  }
+  function slResync() {
+    slEachCard(function (el) { delete SG.pend[el._gcid]; slQueue(el._gcid); });
+    if (APP.cur && APP.cur.id === 'sling') {
+      var id = APP.cur.params.id;
+      sb.from('sling_games').select('*').eq('id', id).maybeSingle().then(function (r) { if (r.data) slPut(r.data); }, function () { /* 离线 */ });
+    }
+  }
+  function slPut(g) {
+    g = tttRow(g);
+    if (!g || g.id == null) return;
+    var old = SG.games[g.id];
+    if (old && Date.parse(old.updated_at) > Date.parse(g.updated_at)) return;
+    SG.games[g.id] = g;
+    slEachCard(function (el) { if (el._gcid === g.id) slFillCard(el); });
+    if (APP.cur && APP.cur.id === 'sling' && APP.cur.params.id === g.id) slV.update(g);
+  }
+  function slShowing(id) { return !!(APP.cur && APP.cur.id === 'sling' && APP.cur.params.id === id && S.chat); }
+  function onSlingGame(p) {
+    var g = p && p.new;
+    if (!g || g.id == null || !S.me) return;
+    var prev = SG.games[g.id];
+    slPut(g);
+    if (p.eventType === 'UPDATE' && prev && g.status === 'active' && g.next_player === S.me.id && prev.turn_no !== g.turn_no && !slShowing(g.id) && isVisible()) toast('轮到你了（弹弓大战）');
+  }
+  function slStartHere() {
+    var c = S.chat;
+    if (!c) return;
+    if (APP.cur && APP.cur.id === 'sling') return;
+    var peer = c.peer;
+    sb.rpc('sling_start', { p_peer: peer }).then(function (r) {
+      if (r.error) return toast(errText(r.error));
+      var g = tttRow(r.data);
+      slPut(g);
+      if (S.chat && S.chat.peer === peer) openApp('sling', { id: g.id });
+    }, function (e) { toast(errText(e)); });
+  }
+
+  // ---- 素材 ----
+  var SL_IMG_SRC = {
+    biscuit: 'sling/block-biscuit.png', chocolate: 'sling/block-chocolate.png', wafer: 'sling/block-wafer.png',
+    carrot: 'sling/ammo-carrot.png', snowball: 'sling/ammo-snowball.png', chili: 'sling/ammo-chili.png',
+    boom: 'sling/fx-boom.png', ice: 'sling/fx-ice.png', flag: 'sling/flag.png', sling: 'sling/slingshot.png',
+    bgDay: 'sling/bg-day.jpg', bgNight: 'sling/bg-night.jpg', usagi: 'usagi.png'
+  };
+  var SLI = null;
+  function slLoadImages() {
+    if (SLI) return;
+    SLI = {};
+    Object.keys(SL_IMG_SRC).forEach(function (k) {
+      var im = new Image();
+      im.onload = function () { im._ok = true; if (SV) SV.dirty = true; };
+      im.src = SL_IMG_SRC[k];
+      SLI[k] = im;
+    });
+  }
+  function slDark() {
+    var t = document.documentElement.getAttribute('data-theme');
+    return t === 'dark' || (t !== 'light' && !!darkMq && darkMq.matches);
+  }
+  var SL_AMMO_NAME = { carrot: '胡萝卜', snowball: '雪球', chili: '辣椒' };
+  var SL_CRUMB = { biscuit: ['#e1ac62', '#c58d44'], chocolate: ['#6b3e26', '#8a5233'], wafer: ['#f4a8bc', '#fbe3c8'] };
+
+  var SV = null; // 当前打开的这一局的界面状态
+  function slPerson(id) { return tttPerson(id); }
+  var slV = {
+    mount: function (box, params) {
+      SV = {
+        id: params.id, box: box, g: SG.games[params.id] || null, sim: null, mode: 'idle', ammo: 'carrot',
+        cam: { x: 300, y: 567, s: 0.5 }, camSet: false, parts: [], trail: [], aim: null, shownTurn: -1, round: -1,
+        up: false, sure: false, sureTm: 0, raf: 0, last: 0, acc: 0, dirty: true, off: null, appear: 1, holdUntil: 0,
+        local: null, replay: null, delay: 0, syncTok: 0, busy: false, shake: 0, cw: 300, ch: 300, dpr: 1, avImg: [null, null], persons: [null, null],
+        hint: lsGet('sling.hint') !== '1', bgKey: '', skyTop: '#f9c9d0', ground: '#d89a3c', frames: 0
+      };
+      var V = SV;
+      var root = h('div', { class: 'sl' });
+      if (typeof Matter === 'undefined') {
+        root.appendChild(h('div', { class: 'sl-msg', text: '没有加载到游戏引擎，请检查网络后刷新页面。' }));
+        box.appendChild(root);
+        return;
+      }
+      slLoadImages();
+      V.hud = h('div', { class: 'sl-hud' });
+      V.stage = h('div', { class: 'sl-stage' });
+      V.cv = h('canvas', { 'aria-label': '弹弓大战' });
+      V.hintEl = h('div', { class: 'sl-hint', text: '向后拖动弹弓，松手发射' });
+      V.hintEl.hidden = true;
+      V.stage.appendChild(V.cv); V.stage.appendChild(V.hintEl);
+      V.bar = h('div', { class: 'sl-bar' });
+      V.chips = {};
+      V.ammoRow = h('div', { class: 'sl-ammo' });
+      ['carrot', 'snowball', 'chili'].forEach(function (k) {
+        var b = h('button', { type: 'button', class: 'sl-chip', 'aria-label': SL_AMMO_NAME[k] }, h('img', { src: SL_IMG_SRC[k], alt: '', draggable: 'false' }), h('span', { text: SL_AMMO_NAME[k] }));
+        b.addEventListener('click', function () { V.ammo = k; slChips(); V.dirty = true; });
+        V.chips[k] = b; V.ammoRow.appendChild(b);
+      });
+      V.act = h('div', { class: 'sl-act' });
+      V.bar.appendChild(V.ammoRow); V.bar.appendChild(V.act);
+      root.appendChild(V.hud); root.appendChild(V.stage); root.appendChild(V.bar);
+      box.appendChild(root);
+      V.ctx = V.cv.getContext('2d');
+      V.ro = window.ResizeObserver ? new ResizeObserver(function () { slResize(); }) : null;
+      if (V.ro) V.ro.observe(V.stage);
+      slResize();
+      slBindInput();
+      slChips();
+      if (V.g) { slPeople(); slHud(); }
+      V.raf = requestAnimationFrame(slLoop);
+      var id = params.id;
+      sb.from('sling_games').select('*').eq('id', id).maybeSingle().then(function (r) {
+        if (!SV || SV.id !== id) return;
+        if (r.data) slPut(r.data);
+        else if (!SV.g) { toast('找不到这局弹弓大战'); closeApp(); }
+      }, function () { /* 离线：显示缓存 */ });
+      if (V.g) slSync();
+    },
+    unmount: function () {
+      if (SV) {
+        cancelAnimationFrame(SV.raf); clearTimeout(SV.sureTm); clearTimeout(SV.celTm);
+        if (SV.ro) SV.ro.disconnect();
+        SV.dead = true;
+      }
+      SV = null;
+    },
+    same: function (a, b) { return a.id === b.id; },
+    update: function (g) {
+      if (!SV) return;
+      SV.g = g;
+      if (!SV.persons[0]) slPeople();
+      slSync();
+      slEnded();
+    }
+  };
+  APPS.sling = slV;
+  function slSide(g) { return g.player_a === S.me.id ? 0 : 1; }
+  function slPeople() {
+    var V = SV, g = V.g;
+    if (!g) return;
+    [g.player_a, g.player_b].forEach(function (pid, k) {
+      V.persons[k] = slPerson(pid);
+      var p = V.persons[k], url = p && avatarUrl(p.avatar_path), im = new Image();
+      im.onload = function () { im._ok = true; if (SV) SV.dirty = true; };
+      im.onerror = function () { im._ok = false; };
+      V.avImg[k] = im;
+      im.src = url || 'usagi.png';
+    });
+    V.hudBuilt = false;
+  }
+  function slResize() {
+    var V = SV;
+    if (!V || !V.cv) return;
+    var r = V.stage.getBoundingClientRect();
+    V.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    V.cw = Math.max(80, Math.round(r.width)); V.ch = Math.max(80, Math.round(r.height));
+    V.cv.width = Math.round(V.cw * V.dpr); V.cv.height = Math.round(V.ch * V.dpr);
+    V.camSet = false; V.dirty = true;
+  }
+  function slChips() {
+    var V = SV;
+    Object.keys(V.chips).forEach(function (k) { V.chips[k].classList.toggle('on', V.ammo === k); V.chips[k].setAttribute('aria-pressed', V.ammo === k ? 'true' : 'false'); });
+  }
+  function slMyTurn() {
+    var V = SV, g = V.g;
+    return !!g && g.status === 'active' && g.next_player === S.me.id && V.mode === 'idle' && !V.up && V.shownTurn === g.turn_no && !!V.sim;
+  }
+  function slHud() {
+    var V = SV, g = V.g;
+    if (!V.hud || !g) return;
+    var me = S.me.id;
+    if (!V.hudBuilt) {
+      V.hudBuilt = true;
+      clear(V.hud);
+      V.hAv = []; V.hSc = [];
+      var cols = [];
+      [0, 1].forEach(function (k) {
+        var p = V.persons[k] || slPerson(k === 0 ? g.player_a : g.player_b);
+        var pid = k === 0 ? g.player_a : g.player_b;
+        var av = h('div', { class: 'sl-av', title: pid === me ? '你' : (p ? p.nickname : 'Ta') }, makeAvatar(p, 36));
+        var sc = h('b', { class: 'sl-score', text: '0' });
+        V.hAv.push(av); V.hSc.push(sc);
+        cols.push(h('div', { class: 'sl-pl' + (k ? ' r' : '') }, k ? sc : av, k ? av : sc));
+      });
+      V.hMid = h('div', { class: 'sl-mid' });
+      V.hStat = h('span', { class: 'sl-stat', role: 'status' });
+      V.hWind = h('span', { class: 'sl-wind' });
+      V.hMid.appendChild(V.hStat); V.hMid.appendChild(V.hWind);
+      V.hud.appendChild(cols[0]); V.hud.appendChild(V.hMid); V.hud.appendChild(cols[1]);
+    }
+    V.hSc[0].textContent = g.score_a; V.hSc[1].textContent = g.score_b;
+    var active = g.status === 'active';
+    if (active) V.wasActive = true;
+    var turnId = !active ? null : (V.up ? (g.player_a === me ? g.player_b : g.player_a) : g.next_player);
+    if (V.mode === 'sim' && V.local) turnId = me;
+    V.hAv[0].classList.toggle('turn', !!turnId && turnId === g.player_a);
+    V.hAv[1].classList.toggle('turn', !!turnId && turnId === g.player_b);
+    var st = slStatus(g);
+    if (active && V.up) st = { t: '等 Ta 出手', you: false };
+    if (V.mode === 'sim') st = V.local ? { t: '发射！', you: true } : { t: 'Ta 出手了', you: false };
+    V.hStat.textContent = st.t;
+    V.hStat.classList.toggle('you', st.you);
+    var w = Number(g.wind) || 0, lv = Math.round(Math.abs(w) * 5);
+    var wsig = active ? w : 'x';
+    if (V.wsig !== wsig) {
+      V.wsig = wsig;
+      if (!active) { V.hWind.innerHTML = ''; }
+      else if (lv === 0) V.hWind.innerHTML = '<span>无风</span>';
+      else {
+        var len = 14 + lv * 5;
+        V.hWind.innerHTML = '<svg viewBox="0 0 40 14" width="' + len + '" height="14" aria-hidden="true" style="' + (w < 0 ? 'transform:scaleX(-1)' : '') + '"><path d="M1 7h34M28 2l8 5-8 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>风 ' + lv + '</span>';
+      }
+    }
+    slActions();
+    V.dirty = true;
+  }
+  function slActions() {
+    var V = SV, g = V.g, box = clear(V.act);
+    V.ammoRow.hidden = !(g && g.status === 'active');
+    if (!g) return;
+    if (g.status === 'active') {
+      var b = h('button', { type: 'button', class: 'btn small quiet' + (V.sure ? ' sure' : ''), text: V.sure ? '再点确认' : '认输' });
+      b.addEventListener('click', slResign);
+      box.appendChild(b);
+    } else {
+      var again = h('button', { type: 'button', class: 'btn', text: '再来一局' });
+      again.disabled = V.busy;
+      again.addEventListener('click', slAgain);
+      box.appendChild(again);
+    }
+  }
+
+  // ---- 同步：最新状态 / 重放对手的上一发 ----
+  function slSeen(id) { var v = parseInt(lsGet('sling.seen.' + id), 10); return isNaN(v) ? 0 : v; }
+  function slSetSeen(id, n) { if (n > slSeen(id)) lsSet('sling.seen.' + id, String(n)); }
+  function slBuildScene(g) {
+    var V = SV;
+    V.sim = new SlSim(g.seed, g.state, Number(g.wind) || 0);
+    V.round = g.round_no; V.shownTurn = g.turn_no; V.off = null; V.appear = 0; V.trail = [];
+    V.camSet = false; V.dirty = true;
+    slHud();
+  }
+  function slSync() {
+    var V = SV, g = V && V.g;
+    if (!V || !g || !V.cv) return;
+    slHud();
+    if (V.mode !== 'idle') return; // 一发打完 / 庆祝结束后会再来一次
+    if (V.shownTurn === g.turn_no && V.round === g.round_no) return;
+    if (V.fetching) { V.again = true; return; }
+    V.fetching = true;
+    var id = g.id, tok = ++V.syncTok;
+    sb.from('sling_shots').select('*').eq('game_id', id).order('turn_no', { ascending: false }).limit(2).then(function (r) {
+      return r;
+    }, function () { return { error: true }; }).then(function (r) {
+      if (!SV || SV.id !== id) return;
+      V = SV; V.fetching = false;
+      var cur = V.g, shots = r && !r.error && r.data ? r.data : [];
+      if (V.mode !== 'idle') return;
+      var last = shots[0];
+      var replay = !!last && last.shooter !== S.me.id && last.turn_no === cur.turn_no - 1 && last.turn_no > slSeen(id);
+      if (replay && V.shownTurn === last.turn_no + 1 && V.round === cur.round_no) replay = false;
+      if (replay) {
+        var prev = shots[1], pre = prev && prev.round_no === last.round_no && prev.turn_no === last.turn_no - 1 ? prev.result : null;
+        slStartReplay(last, pre);
+      } else {
+        if (last && last.shooter !== S.me.id) slSetSeen(id, last.turn_no);
+        slBuildScene(cur);
+      }
+      if (V.again) { V.again = false; if (V.mode === 'idle') slSync(); }
+    });
+  }
+  function slStartReplay(shot, pre) {
+    var V = SV, g = V.g;
+    V.sim = new SlSim(shot.seed, pre, Number(shot.wind) || 0);
+    V.round = shot.round_no; V.shownTurn = shot.turn_no; V.off = null; V.appear = 1; V.trail = [];
+    V.replay = { shot: shot }; V.local = null; V.mode = 'sim'; V.delay = 0.7; V.acc = 0;
+    V.sim.fire(shot.shooter === g.player_a ? 0 : 1, shot.ammo, Number(shot.angle), Number(shot.power));
+    V.dirty = true;
+    slHud();
+  }
+  function slBeginFire(angle, power) {
+    var V = SV, g = V.g;
+    var side = slSide(g);
+    V.local = { turn: g.turn_no, ammo: V.ammo, angle: angle, power: power, game: g.id, side: side };
+    V.replay = null; V.mode = 'sim'; V.delay = 0; V.acc = 0; V.trail = [];
+    // 每一发都从服务器的状态重新搭一个场景来模拟：和对方重放时用的起点完全一样，两边的动画才最接近
+    V.sim = new SlSim(g.seed, g.state, Number(g.wind) || 0);
+    V.off = null;
+    V.sim.fire(side, V.ammo, angle, power);
+    V.dirty = true;
+    if (V.hint) { V.hint = false; lsSet('sling.hint', '1'); V.hintEl.hidden = true; }
+    slHud();
+  }
+  function slEvents(V) {
+    var ev = V.sim.ev.splice(0), i, e, k;
+    for (i = 0; i < ev.length; i++) {
+      e = ev[i];
+      if (e.t === 'break') {
+        var cc = SL_CRUMB[e.type] || SL_CRUMB.biscuit;
+        for (k = 0; k < 9; k++) V.parts.push({ x: e.x + (Math.random() - 0.5) * e.w * 0.7, y: e.y + (Math.random() - 0.5) * e.h * 0.7, vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 6 - 1, r: 2.5 + Math.random() * 4, c: cc[k % 2], life: 0, max: 0.9 + Math.random() * 0.6, rot: Math.random() * 6 });
+      } else if (e.t === 'boom') {
+        V.parts.push({ fx: 'boom', x: e.x, y: e.y, life: 0, max: 0.6 });
+        V.shake = 0.35;
+      } else if (e.t === 'freeze') {
+        for (k = 0; k < 6; k++) V.parts.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 5, vy: -Math.random() * 4, r: 2 + Math.random() * 3, c: '#e6f4ff', life: 0, max: 0.7, rot: 0 });
+      } else if (e.t === 'hit' && e.s > 0.15) {
+        for (k = 0; k < 3; k++) V.parts.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 3, r: 2 + Math.random() * 2, c: '#fff3d6', life: 0, max: 0.4, rot: 0 });
+      } else if (e.t === 'projEnd') {
+        V.holdUntil = performance.now() + 700; V.holdAt = { x: Math.max(0, Math.min(SLW, e.x)), y: Math.max(200, Math.min(900, e.y)) };
+      }
+    }
+  }
+  function slPosOffsets(V, mutate) {
+    var sim = V.sim, before = [], i, all = sim.blocks.concat(sim.av);
+    for (i = 0; i < all.length; i++) before.push({ x: all[i].position.x, y: all[i].position.y, a: all[i].angle, in: !all[i].sl.broken });
+    mutate();
+    var off = [];
+    for (i = 0; i < all.length; i++) {
+      var b = all[i], o = before[i];
+      off.push(o.in && !b.sl.broken ? { x: o.x - b.position.x, y: o.y - b.position.y, a: o.a - b.angle } : null);
+    }
+    V.off = off;
+  }
+  function slEndSim() {
+    var V = SV, sim = V.sim, g = V.g;
+    if (V.local) {
+      var L = V.local, snap = sim.snapshot(), knocked = sim.enemyKnocked();
+      if (!knocked && sim.knocked[L.side]) { // 自己的头像被炸下去了：放回堡顶，不算分
+        var la = sim.layouts[L.side].av;
+        snap.v[L.side] = [la.x, la.y, 0];
+      }
+      slPosOffsets(V, function () { sim.applyState(snap); sim.sleepAll(); });
+      V.mode = 'idle'; V.local = null;
+      V.shownTurn = L.turn + 1; V.up = true;
+      slHud();
+      slUpload({ game: L.game, turn: L.turn, ammo: L.ammo, angle: L.angle, power: L.power, snap: snap, knocked: knocked }, 0);
+      if (knocked) slCelebrate(true, false);
+    } else if (V.replay) {
+      var sh = V.replay.shot;
+      slPosOffsets(V, function () { sim.applyState(sh.result); sim.sleepAll(); });
+      V.mode = 'idle'; V.replay = null;
+      V.shownTurn = sh.turn_no + 1;
+      slSetSeen(sh.game_id, sh.turn_no);
+      slHud();
+      if (sh.knocked) slCelebrate(false, false); else slSync();
+    }
+    V.dirty = true;
+  }
+  // 击落后的小庆祝，然后换新的堡垒；赢了/输了的动效在对局状态到达时再补
+  function slCelebrate(mine, over) {
+    var V = SV, k, cols = ['#e1ac62', '#6b3e26', '#f4a8bc', '#ffe08a', '#ff8fab'];
+    V.mode = 'celebrate';
+    if (mine) {
+      for (k = 0; k < 60; k++) V.parts.push({ x: 800 + Math.random() * 400, y: 300 + Math.random() * 100, vx: (Math.random() - 0.5) * 8, vy: Math.random() * 3, r: 3 + Math.random() * 4, c: cols[k % 5], life: 0, max: 1.6 + Math.random(), rot: Math.random() * 6 });
+      popYaha('打中了！');
+    } else V.shake = 0.6;
+    clearTimeout(V.celTm);
+    V.celTm = setTimeout(function () { if (SV === V) { V.mode = 'idle'; slSync(); slEnded(); } }, 1900);
+  }
+  function slEnded() {
+    var V = SV, g = V && V.g;
+    if (!V || !g || V.endShown || g.status === 'active') return;
+    if (V.mode !== 'idle') return;
+    if (V.shownTurn !== g.turn_no && g.status !== 'resigned') return;
+    V.endShown = true;
+    if (!V.wasActive) return; // 打开时就已经结束：不放动效
+    if (g.winner === S.me.id) popYaha('你赢了！');
+    else if (g.status !== 'resigned') V.shake = 0.8;
+  }
+  function slUpload(a, tries) {
+    var V = SV, id = a.game;
+    var done = function () { if (SV && SV.id === id) { SV.up = false; SV.dirty = true; slHud(); if (SV.mode === 'idle') slSync(); } };
+    var args = { p_game: a.game, p_turn_no: a.turn, p_ammo: a.ammo, p_angle: a.angle, p_power: a.power, p_result: a.snap, p_knocked: a.knocked };
+    var terminal = { not_your_turn: 1, stale_turn: 1, game_over: 1, game_not_found: 1, invalid_ammo: 1, invalid_shot: 1, not_authenticated: 1 };
+    var retry = function () {
+      if (tries >= 6) { toast('网络不好，这一发没有发出去'); if (SV && SV.id === id) { SV.shownTurn = -1; SV.up = false; slSync(); } return; }
+      setTimeout(function () { slUpload(a, tries + 1); }, Math.min(8000, 1000 * Math.pow(2, tries)));
+    };
+    sb.rpc('sling_shoot', args).then(function (r) {
+      if (!r.error) {
+        var d = r.data || {};
+        if (d.game) slPut(d.game);
+        firePush('sling_turn', d.shot_id);
+        done();
+        return;
+      }
+      var msg = r.error.message || '';
+      if (!terminal[msg]) { retry(); return; }
+      // 已经提交过 / 回合过期：以服务器为准
+      sb.from('sling_shots').select('id,shooter').eq('game_id', id).eq('turn_no', a.turn).maybeSingle().then(function (q) {
+        if (q.data && q.data.shooter === S.me.id) firePush('sling_turn', q.data.id);
+        else if (msg !== 'game_over') toast(errText(r.error));
+        sb.from('sling_games').select('*').eq('id', id).maybeSingle().then(function (gq) {
+          if (SV && SV.id === id && !(q.data && q.data.shooter === S.me.id)) { SV.shownTurn = -1; }
+          if (gq.data) slPut(gq.data);
+          done();
+        }, done);
+      }, done);
+    }, retry);
+  }
+  function slResign() {
+    var V = SV, g = V && V.g;
+    if (!g || g.status !== 'active') return;
+    if (!V.sure) {
+      V.sure = true; slActions();
+      V.sureTm = setTimeout(function () { if (SV === V) { V.sure = false; slActions(); } }, 3000);
+      return;
+    }
+    clearTimeout(V.sureTm); V.sure = false;
+    var id = g.id;
+    sb.rpc('sling_resign', { p_game: id }).then(function (r) {
+      if (r.error) { toast(errText(r.error)); sb.from('sling_games').select('*').eq('id', id).maybeSingle().then(function (q) { if (q.data) slPut(q.data); }); return; }
+      slPut(r.data);
+    }, function (e) { toast(errText(e)); });
+  }
+  function slAgain() {
+    var V = SV, g = V && V.g;
+    if (!g || V.busy) return;
+    var other = g.player_a === S.me.id ? g.player_b : g.player_a, id = g.id;
+    V.busy = true; slActions();
+    sb.rpc('sling_start', { p_peer: other }).then(function (r) {
+      if (SV && SV.id === id) SV.busy = false;
+      if (r.error) { toast(errText(r.error)); if (SV) slActions(); return; }
+      var ng = tttRow(r.data);
+      slPut(ng);
+      if (S.chat && S.chat.peer === other) openApp('sling', { id: ng.id });
+    }, function (e) { if (SV) { SV.busy = false; slActions(); } toast(errText(e)); });
+  }
+
+  // ---- 输入：向后拖，松手发射 ----
+  function slBindInput() {
+    var V = SV, cv = V.cv, MAXD = 150;
+    function calc(ev) {
+      // 用屏幕上的位移除以当前缩放：镜头还在移动时也不影响拉的距离和角度
+      var side = slSide(V.g), dir = side === 0 ? 1 : -1;
+      var dx = (ev.clientX - V.aim.sx) / V.cam.s, dy = (ev.clientY - V.aim.sy) / V.cam.s, len = Math.sqrt(dx * dx + dy * dy);
+      if (len > MAXD) { dx *= MAXD / len; dy *= MAXD / len; len = MAXD; }
+      V.aim.dx = dx; V.aim.dy = dy;
+      var lx = -dx * dir, ly = dy; // 发射方向 = 拖动的反方向（向前为正，向上为正）
+      V.aim.valid = len >= 14 && lx > 4;
+      var ang = Math.atan2(ly, Math.max(lx, 0.001)) * 180 / Math.PI;
+      V.aim.angle = Math.round(Math.max(-30, Math.min(85, ang)) * 10) / 10;
+      V.aim.power = Math.round(Math.max(0.05, Math.min(1, len / MAXD)) * 100) / 100;
+      V.dirty = true;
+    }
+    cv.addEventListener('pointerdown', function (ev) {
+      if (!slMyTurn() || V.aim) return;
+      V.aim = { sx: ev.clientX, sy: ev.clientY, dx: 0, dy: 0, id: ev.pointerId, valid: false, angle: 30, power: 0.5 };
+      try { cv.setPointerCapture(ev.pointerId); } catch (e) { /* 忽略 */ }
+      ev.preventDefault();
+      if (V.hintEl) V.hintEl.hidden = true;
+    });
+    cv.addEventListener('pointermove', function (ev) { if (V.aim && ev.pointerId === V.aim.id) { calc(ev); ev.preventDefault(); } });
+    function end(ev, cancel) {
+      if (!V.aim || ev.pointerId !== V.aim.id) return;
+      calc(ev);
+      var a = V.aim;
+      V.aim = null; V.dirty = true;
+      if (!cancel && a.valid && slMyTurn()) slBeginFire(a.angle, a.power);
+    }
+    cv.addEventListener('pointerup', function (ev) { end(ev, false); });
+    cv.addEventListener('pointercancel', function (ev) { end(ev, true); });
+  }
+
+  // ---- 主循环 ----
+  function slLoop(ts) {
+    var V = SV;
+    if (!V || V.dead) return;
+    V.raf = requestAnimationFrame(slLoop);
+    var dt = V.last ? Math.min(0.05, (ts - V.last) / 1000) : 0.016;
+    V.last = ts;
+    if (document.hidden) return;
+    var busy = false;
+    if (V.mode === 'sim' && V.sim) {
+      busy = true;
+      if (V.delay > 0) V.delay -= dt;
+      else {
+        V.acc += dt;
+        var n = 0;
+        while (V.acc >= 1 / 60 && n < 4) {
+          V.acc -= 1 / 60; n++;
+          V.sim.step();
+          if (V.sim.proj) { V.trail.push({ x: V.sim.proj.position.x, y: V.sim.proj.position.y }); if (V.trail.length > 40) V.trail.shift(); }
+          if (V.sim.over) break;
+        }
+        if (V.acc > 0.1) V.acc = 0;
+        slEvents(V);
+        if (V.sim.over) { slEndSim(); busy = true; }
+      }
+    }
+    if (V.appear < 1) { V.appear = Math.min(1, V.appear + dt * 2.2); busy = true; }
+    if (V.parts.length) {
+      busy = true;
+      var i, p, w = dt * 60;
+      for (i = V.parts.length - 1; i >= 0; i--) {
+        p = V.parts[i]; p.life += dt;
+        if (p.life > p.max) { V.parts.splice(i, 1); continue; }
+        if (!p.fx) { p.vy += 0.35 * w; p.x += p.vx * w; p.y += p.vy * w; p.rot += 0.1 * w; }
+      }
+    }
+    if (V.shake > 0) { V.shake = Math.max(0, V.shake - dt); busy = true; }
+    if (V.off) {
+      var any = false, f = Math.pow(0.001, dt), j;
+      for (j = 0; j < V.off.length; j++) {
+        var o = V.off[j];
+        if (!o) continue;
+        o.x *= f; o.y *= f; o.a *= f;
+        if (Math.abs(o.x) + Math.abs(o.y) + Math.abs(o.a) > 0.05) any = true;
+      }
+      if (any) busy = true; else V.off = null;
+    }
+    if (V.aim) busy = true;
+    var dk = slDark();
+    if (dk !== V.dk) { V.dk = dk; V.dirty = true; }
+    if (slCamUpdate(V, dt)) busy = true;
+    var hint = V.hint && slMyTurn() && !V.aim;
+    if (V.hintEl && V.hintEl.hidden === hint) V.hintEl.hidden = !hint;
+    if (busy || V.dirty) { V.dirty = false; slDraw(V, ts); V.frames++; }
+  }
+  function slCamUpdate(V, dt) {
+    var s0 = V.ch / 620, vw = V.cw / s0, vh = V.ch / s0, tx, ty, ts = s0, c = V.cam, g = V.g;
+    var sim = V.sim, now = performance.now();
+    var side = g ? slSide(g) : 0;
+    if (V.mode === 'sim' && sim && V.delay <= 0 && sim.proj) {
+      tx = sim.proj.position.x; ty = Math.min(sim.proj.position.y, 640);
+    } else if (V.mode === 'sim' && V.holdUntil > now && V.holdAt) {
+      tx = V.holdAt.x; ty = V.holdAt.y;
+    } else if (V.mode === 'sim' && V.delay > 0 && V.replay) {
+      var rs = V.replay.shot.shooter === g.player_a ? 0 : 1;
+      tx = rs === 0 ? 40 + vw / 2 : SLW - 40 - vw / 2; ty = PLAT_Y - 260;
+    } else if (g && slMyTurn()) {
+      tx = side === 0 ? 40 + vw / 2 : SLW - 40 - vw / 2; ty = PLAT_Y - 260;
+    } else {
+      ts = V.cw / 1800; tx = SLW / 2; ty = 500;
+      vw = V.cw / ts; vh = V.ch / ts;
+    }
+    if (vw <= SLW) tx = Math.max(vw / 2, Math.min(SLW - vw / 2, tx)); else tx = SLW / 2;
+    if (vh <= SLH) ty = Math.max(vh / 2, Math.min(SLH - vh / 2, ty)); else ty = SLH / 2;
+    if (!V.camSet) { c.x = tx; c.y = ty; c.s = ts; V.camSet = true; return true; }
+    var k = 1 - Math.exp(-dt * (V.mode === 'sim' && sim && sim.proj ? 9 : 4.5));
+    var dx = tx - c.x, dy = ty - c.y, ds = ts - c.s;
+    if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3 && Math.abs(ds) < 0.0004) { c.x = tx; c.y = ty; c.s = ts; return false; }
+    c.x += dx * k; c.y += dy * k; c.s += ds * Math.min(1, k * 0.9);
+    return true;
+  }
+  function slBg(V) {
+    var key = slDark() ? 'bgNight' : 'bgDay', im = SLI[key];
+    if (V.bgKey !== key && im && im._ok) {
+      V.bgKey = key;
+      try {
+        var cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+        var cx = cv.getContext('2d'); cx.drawImage(im, 0, 0);
+        var a = cx.getImageData(4, 2, 1, 1).data, b = cx.getImageData(Math.floor(im.naturalWidth / 2), im.naturalHeight - 3, 1, 1).data;
+        V.skyTop = 'rgb(' + a[0] + ',' + a[1] + ',' + a[2] + ')'; V.ground = 'rgb(' + b[0] + ',' + b[1] + ',' + b[2] + ')';
+      } catch (e) { V.skyTop = key === 'bgNight' ? '#2a1b2c' : '#f9c9d0'; V.ground = key === 'bgNight' ? '#4a2c1a' : '#d89a3c'; }
+    }
+    if (!V.bgKey) { var dk = slDark(); V.skyTop = dk ? '#2a1b2c' : '#f9c9d0'; V.ground = dk ? '#4a2c1a' : '#d89a3c'; }
+    return im && im._ok ? im : null;
+  }
+  function slDraw(V, ts) {
+    var c = V.ctx, cam = V.cam, k = V.dpr * cam.s, sim = V.sim, i, b, shx = 0;
+    var bg = slBg(V);
+    if (V.shake > 0) shx = Math.sin(ts / 22) * V.shake * 9;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.fillStyle = V.skyTop; c.fillRect(0, 0, V.cv.width, V.cv.height);
+    c.setTransform(k, 0, 0, k, V.dpr * (V.cw / 2 - cam.x * cam.s + shx), V.dpr * (V.ch / 2 - cam.y * cam.s));
+    c.fillStyle = V.ground; c.fillRect(-3000, SLH - 1, SLW + 6000, 4000);
+    if (bg) c.drawImage(bg, 0, 0, SLW, SLH);
+    else { c.fillStyle = V.skyTop; c.fillRect(0, 0, SLW, SLH); c.fillStyle = V.ground; c.fillRect(0, PLAT_Y, PLAT_X, 200); c.fillRect(SLW - PLAT_X, PLAT_Y, PLAT_X, 200); }
+    if (!sim) return;
+    var g = V.g, side = g ? slSide(g) : 0, wind = g ? Number(g.wind) || 0 : 0;
+    // 旗子和弹弓
+    var lay = sim.layouts, sw = SLI.sling._ok;
+    for (i = 0; i < 2; i++) {
+      var fl = lay[i].flag, im = SLI.flag;
+      if (im._ok) {
+        c.save(); c.translate(fl.x, fl.y); c.rotate((i === 0 ? 1 : 1) * wind * 0.22);
+        c.drawImage(im, -14, -50, 34, 50); c.restore();
+      }
+      var ax = i === 0 ? SL_ANCHOR.x : SLW - SL_ANCHOR.x;
+      c.save(); c.translate(ax, PLAT_Y + 6); if (i === 1) c.scale(-1, 1);
+      if (sw) c.drawImage(SLI.sling, -52, -166, 104, 172);
+      else { c.fillStyle = '#6b3e26'; c.fillRect(-8, -130, 16, 136); }
+      c.restore();
+    }
+    // 方块（带冲击后的回弹偏移，让快照对齐不突兀）
+    var all = sim.blocks, off = V.off, nb = all.length;
+    c.globalAlpha = V.appear;
+    for (i = 0; i < nb; i++) {
+      b = all[i];
+      if (b.sl.broken) continue;
+      var o = off && off[i], bx = b.position.x + (o ? o.x : 0), by = b.position.y + (o ? o.y : 0), ba = b.angle + (o ? o.a : 0), d = b.sl;
+      c.save(); c.translate(bx, by + (1 - V.appear) * -30); c.rotate(ba);
+      var bi = SLI[d.type];
+      if (bi._ok) c.drawImage(bi, -d.w / 2 - 1.5, -d.h / 2 - 1.5, d.w + 3, d.h + 3);
+      else { c.fillStyle = d.type === 'chocolate' ? '#6b3e26' : d.type === 'wafer' ? '#f4a8bc' : '#e1ac62'; c.fillRect(-d.w / 2, -d.h / 2, d.w, d.h); }
+      var hr = d.hp / d.maxhp;
+      if (hr < 0.65) {
+        c.strokeStyle = 'rgba(50,25,10,' + (0.55 * (1 - hr)).toFixed(2) + ')'; c.lineWidth = 2; c.beginPath();
+        var q = (d.id * 7) % 5 - 2;
+        c.moveTo(-8 + q, -d.h / 2); c.lineTo(-2 + q, -4); c.lineTo(-12 + q, 6); c.lineTo(-6 + q, d.h / 2);
+        if (hr < 0.35) { c.moveTo(14, -d.h / 2); c.lineTo(8, 2); c.lineTo(16, d.h / 2); }
+        c.stroke();
+      }
+      if (d.frozen) {
+        c.fillStyle = 'rgba(150,205,245,0.38)'; c.fillRect(-d.w / 2, -d.h / 2, d.w, d.h);
+        if (SLI.ice._ok) { c.globalAlpha = V.appear; c.drawImage(SLI.ice, -d.w / 2 - 4, -d.h / 2 - 4, d.w + 8, d.h + 8); c.drawImage(SLI.ice, -d.w / 2 - 4, -d.h / 2 - 4, d.w + 8, d.h + 8); }
+        c.strokeStyle = 'rgba(210,235,255,0.9)'; c.lineWidth = 2; c.strokeRect(-d.w / 2 + 1, -d.h / 2 + 1, d.w - 2, d.h - 2);
+      }
+      c.restore();
+    }
+    // 头像
+    for (i = 0; i < 2; i++) {
+      var a = sim.av[i], oo = off && off[nb + i], ax2 = a.position.x + (oo ? oo.x : 0), ay2 = a.position.y + (oo ? oo.y : 0) + (1 - V.appear) * -30;
+      var mine = (i === side), im2 = V.avImg[i];
+      c.save(); c.translate(ax2, ay2); c.rotate(a.angle + (oo ? oo.a : 0));
+      c.beginPath(); c.arc(0, 0, AV_R + 3, 0, 6.2832); c.fillStyle = '#f6e8dc'; c.fill();
+      c.save(); c.beginPath(); c.arc(0, 0, AV_R + 1, 0, 6.2832); c.clip();
+      if (im2 && im2._ok) { var iw = im2.naturalWidth, ih = im2.naturalHeight, m = Math.min(iw, ih); c.drawImage(im2, (iw - m) / 2, (ih - m) / 2, m, m, -AV_R - 1, -AV_R - 1, 2 * AV_R + 2, 2 * AV_R + 2); }
+      c.restore();
+      c.lineWidth = 3; c.strokeStyle = mine ? '#ff8fab' : '#8a5233'; c.beginPath(); c.arc(0, 0, AV_R + 2, 0, 6.2832); c.stroke();
+      c.restore();
+    }
+    c.globalAlpha = 1;
+    // 瞄准：橡皮筋、装好的弹药、弹道点
+    var ammoK = V.ammo, r0 = SL_AMMO[ammoK].r, ap = SLI[ammoK];
+    if (slMyTurn() || (V.mode === 'idle' && V.aim)) {
+      var dir = side === 0 ? 1 : -1, ax3 = side === 0 ? SL_ANCHOR.x : SLW - SL_ANCHOR.x, ay3 = SL_ANCHOR.y;
+      var px = ax3, py = ay3;
+      if (V.aim) { px += V.aim.dx; py += V.aim.dy; }
+      c.strokeStyle = '#ff8fab'; c.lineWidth = 6; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(ax3 - 20 * dir, ay3 + 4); c.lineTo(px, py); c.lineTo(ax3 + 20 * dir, ay3 + 4); c.stroke();
+      if (ap._ok) c.drawImage(ap, px - r0 * 1.25, py - r0 * 1.25, r0 * 2.5, r0 * 2.5);
+      if (V.aim && V.aim.valid) {
+        var pts = slPreview(side, V.aim.angle, V.aim.power, wind, 40), j;
+        for (j = 2; j < pts.length; j += 3) {
+          var f = 1 - j / pts.length;
+          c.beginPath(); c.arc(pts[j].x, pts[j].y, 3 + 4 * f, 0, 6.2832);
+          c.fillStyle = 'rgba(255,255,255,' + (0.35 + 0.6 * f).toFixed(2) + ')'; c.fill();
+          c.lineWidth = 1.5; c.strokeStyle = 'rgba(107,62,38,' + (0.3 + 0.5 * f).toFixed(2) + ')'; c.stroke();
+        }
+      }
+    }
+    // 飞行中的弹药和拖尾
+    if (sim.proj) {
+      var pj = sim.proj, pim = SLI[pj.sl.ammo], t, tr = V.trail;
+      for (t = 0; t < tr.length; t += 3) {
+        c.beginPath(); c.arc(tr[t].x, tr[t].y, 2 + 3 * (t / tr.length), 0, 6.2832);
+        c.fillStyle = 'rgba(255,255,255,' + (0.5 * t / tr.length).toFixed(2) + ')'; c.fill();
+      }
+      c.save(); c.translate(pj.position.x, pj.position.y); c.rotate(pj.angle);
+      var rr = pj.sl.r * 1.3;
+      if (pim._ok) c.drawImage(pim, -rr, -rr, rr * 2, rr * 2);
+      c.restore();
+    }
+    // 粒子
+    for (i = 0; i < V.parts.length; i++) {
+      var p = V.parts[i], lf = p.life / p.max;
+      if (p.fx === 'boom') {
+        var sz = 120 + 300 * Math.min(1, lf * 1.6);
+        c.globalAlpha = 1 - lf * lf;
+        if (SLI.boom._ok) c.drawImage(SLI.boom, p.x - sz / 2, p.y - sz / 2, sz, sz);
+        c.globalAlpha = 1;
+      } else {
+        c.save(); c.globalAlpha = 1 - lf; c.translate(p.x, p.y); c.rotate(p.rot);
+        c.fillStyle = p.c; c.fillRect(-p.r, -p.r * 0.7, p.r * 2, p.r * 1.4); c.restore();
+      }
+    }
   }
 
   // ===== 键盘与视口（iOS 键盘弹出时让输入栏保持可见） =====

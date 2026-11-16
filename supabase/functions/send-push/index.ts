@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = ["https://rickzhou0527.github.io"];
 const LOCAL_ORIGIN_RE = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 const FRESH_MS = 2 * 60 * 1000;
 
-type PushEvent = { type: "message" | "friend_request" | "friend_accepted"; id: number };
+type PushEvent = { type: "message" | "friend_request" | "friend_accepted" | "sling_turn"; id: number };
 type Payload = { title: string; body: string; tag: string; peer?: string; tab?: string };
 
 function corsHeaders(req: Request): Record<string, string> {
@@ -40,7 +40,9 @@ function stripStickerId(s: string): string {
 
 // 井字棋邀请 "[井字棋]#123" 推送成一句话，不暴露对局 id
 function pushText(s: string): string {
-  return /^\[井字棋\]#\d+$/.test(s) ? "邀请你下一局井字棋" : stripStickerId(s);
+  if (/^\[井字棋\]#\d+$/.test(s)) return "邀请你下一局井字棋";
+  if (/^\[弹弓大战\]#\d+$/.test(s)) return "邀请你玩弹弓大战";
+  return stripStickerId(s);
 }
 
 function cut(s: string, n: number): string {
@@ -82,7 +84,7 @@ Deno.serve(async (req) => {
   let ev: PushEvent;
   try {
     const b = await req.json();
-    if (!b || !["message", "friend_request", "friend_accepted"].includes(b.type) || !Number.isSafeInteger(b.id) || b.id <= 0) {
+    if (!b || !["message", "friend_request", "friend_accepted", "sling_turn"].includes(b.type) || !Number.isSafeInteger(b.id) || b.id <= 0) {
       return reply(req, 400, { error: "invalid_body" });
     }
     ev = { type: b.type, id: b.id };
@@ -117,6 +119,24 @@ Deno.serve(async (req) => {
       if (q && typeof q.body === "string") prefix = "回复「" + cut(stripStickerId(q.body).replace(/^\[([^\[\]]{1,6})\]$/, "$1").replace(/\s+/g, " "), 20) + "」"; // 特效表情 "[水枪]" 显示成 水枪
     }
     payload = { title: p?.nickname ?? "新消息", body: cut(prefix + pushText(m.body), 80), tag: "msg-" + me, peer: me };
+  } else if (ev.type === "sling_turn") {
+    // 弹弓大战：出手后通知对方轮到 Ta 了；出手记录必须是调用者刚刚打的
+    const { data: sh } = await admin.from("sling_shots").select("id,game_id,shooter,knocked,created_at").eq("id", ev.id).maybeSingle();
+    if (!sh || sh.shooter !== me) return reply(req, 403, { error: "forbidden" });
+    if (!isFresh(sh.created_at)) return reply(req, 400, { error: "too_old" });
+    const { data: g } = await admin.from("sling_games").select("player_a,player_b,score_a,score_b").eq("id", sh.game_id).maybeSingle();
+    if (!g) return reply(req, 403, { error: "forbidden" });
+    const { data: p } = await admin.from("profiles").select("nickname").eq("id", me).maybeSingle();
+    recipient = g.player_a === me ? g.player_b : g.player_a;
+    const mine = recipient === g.player_a ? g.score_a : g.score_b;
+    const theirs = recipient === g.player_a ? g.score_b : g.score_a;
+    refId = sh.id;
+    payload = {
+      title: p?.nickname ?? "弹弓大战",
+      body: sh.knocked ? "打中你了！比分 " + mine + ":" + theirs : "轮到你了（弹弓大战）",
+      tag: "sling-" + me,
+      peer: me,
+    };
   } else {
     const { data: f } = await admin.from("friendships").select("id,requester_id,addressee_id,status,updated_at").eq("id", ev.id).maybeSingle();
     if (!f) return reply(req, 403, { error: "forbidden" });
