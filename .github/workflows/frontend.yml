@@ -6,6 +6,7 @@ on:
     paths:
       - "index.html"
       - "pepero/**"
+      - "chat/**"
       - "*.png"
       - "*.jpg"
       - "*.jpeg"
@@ -43,6 +44,7 @@ jobs:
           for f in *.png *.jpg *.jpeg *.gif *.webp; do cp "$f" _site/; done
           # 每个小程序一个目录
           cp -R pepero _site/
+          cp -R chat _site/
 
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "::warning::SUPABASE_URL / SUPABASE_ANON_KEY 仓库变量未设置，访问次数统计将不会启用"

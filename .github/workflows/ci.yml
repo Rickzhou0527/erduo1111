@@ -21,17 +21,21 @@ jobs:
 
       - name: JavaScript syntax
         run: |
-          for f in index.html pepero/index.html; do
+          for f in index.html pepero/index.html chat/index.html; do
             sed -n '/<script>/,/<\/script>/p' "$f" | sed '1d;$d' > /tmp/page.js
             node --check /tmp/page.js
             echo "$f: JS syntax ok"
           done
+          node --check chat/sw.js
+          echo "chat/sw.js: JS syntax ok"
 
       - name: Supabase placeholders present
         run: |
-          grep -q '__SUPABASE_URL__' pepero/index.html
-          grep -q '__SUPABASE_ANON_KEY__' pepero/index.html
-          echo "placeholders ok (deploy will inject repo variables)"
+          for f in pepero/index.html chat/index.html; do
+            grep -q '__SUPABASE_URL__' "$f"
+            grep -q '__SUPABASE_ANON_KEY__' "$f"
+            echo "$f: placeholders ok (deploy will inject repo variables)"
+          done
 
       - name: Referenced images exist
         run: |
@@ -40,6 +44,16 @@ jobs:
             if [ ! -f "pepero/$f" ]; then echo "::warning::pepero/index.html references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
           done
           [ "$missing" = 0 ] && echo "images ok" || true
+
+      - name: Chat images exist
+        run: |
+          missing=0
+          for f in $(grep -ohE '[A-Za-z0-9_-][A-Za-z0-9_./-]*\.(png|jpg|jpeg|webp|gif|svg)' chat/index.html chat/manifest.webmanifest | sort -u); do
+            case "$f" in http*|//*) continue;; esac
+            if [ ! -f "chat/$f" ]; then echo "::error::chat references $f but chat/$f does not exist"; missing=1; fi
+          done
+          [ "$missing" = 0 ] && echo "chat images ok"
+          exit $missing
 
       - name: No secret keys committed
         run: |
@@ -67,8 +81,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare Supabase-like roles
-        run: psql -v ON_ERROR_STOP=1 -c "create role anon nologin;"
+      - name: Prepare Supabase-like environment (roles, auth/storage stubs, realtime publication)
+        run: psql -v ON_ERROR_STOP=1 -q -f supabase/ci/stubs.sql
 
       - name: Apply migrations (twice, to check they are re-runnable)
         run: |
