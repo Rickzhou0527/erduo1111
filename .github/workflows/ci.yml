@@ -21,21 +21,23 @@ jobs:
 
       - name: JavaScript syntax
         run: |
-          sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/page.js
-          node --check /tmp/page.js
-          echo "JS syntax ok"
+          for f in index.html pepero/index.html; do
+            sed -n '/<script>/,/<\/script>/p' "$f" | sed '1d;$d' > /tmp/page.js
+            node --check /tmp/page.js
+            echo "$f: JS syntax ok"
+          done
 
       - name: Supabase placeholders present
         run: |
-          grep -q '__SUPABASE_URL__' index.html
-          grep -q '__SUPABASE_ANON_KEY__' index.html
+          grep -q '__SUPABASE_URL__' pepero/index.html
+          grep -q '__SUPABASE_ANON_KEY__' pepero/index.html
           echo "placeholders ok (deploy will inject repo variables)"
 
       - name: Referenced images exist
         run: |
           missing=0
-          for f in $(grep -oE 'bunnyImage(Yaha)?: *"[^"]+"' index.html | sed -E 's/.*"([^"]+)"/\1/'); do
-            if [ ! -f "$f" ]; then echo "::warning::index.html references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
+          for f in $(grep -oE 'bunnyImage(Yaha)?: *"[^"]+"' pepero/index.html | sed -E 's/.*"([^"]+)"/\1/'); do
+            if [ ! -f "pepero/$f" ]; then echo "::warning::pepero/index.html references $f but the file is not in the repo (page falls back to the drawn bunny)"; missing=1; fi
           done
           [ "$missing" = 0 ] && echo "images ok" || true
 
