@@ -4,6 +4,7 @@ import { fetchLatest, msgFromRow, nearBottom, renderMsgs, sortMsgs } from './cha
 import { loadAll } from './data.js';
 import { playFx } from './fx/engine.js';
 import { previewOf } from './fx/table.js';
+import { onSlingGame, slResync } from './miniapps/sling.js';
 import { onTttGame, tttResync } from './miniapps/ttt.js';
 import { notify, notifyMessage } from './notify.js';
 import { markReplyGone, replyPrefix } from './quote.js';
@@ -120,6 +121,9 @@ export function startRealtime() {
   ['player_x', 'player_o'].forEach(function (col) {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'ttt_games', filter: col + '=eq.' + me }, onTttGame);
   });
+  ['player_a', 'player_b'].forEach(function (col) {
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'sling_games', filter: col + '=eq.' + me }, onSlingGame);
+  });
   ch.subscribe(function (status) {
     if (status === 'SUBSCRIBED') {
       // 重新连上之后补一次，避免断线期间漏消息
@@ -136,5 +140,5 @@ export function stopRealtime() {
 export async function refreshAll() {
   if (!S.me) return;
   await loadAll();
-  if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); }
+  if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); slResync(); }
 }

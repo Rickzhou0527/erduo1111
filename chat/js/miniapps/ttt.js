@@ -14,7 +14,7 @@ export function tttOf(body) {
   var m = typeof body === 'string' ? /^\[井字棋\]#(\d{1,15})$/.exec(body) : null;
   return m ? parseInt(m[1], 10) : null;
 }
-function tttRow(d) { return Array.isArray(d) ? d[0] : d; }
+export function tttRow(d) { return Array.isArray(d) ? d[0] : d; }
 function markSvg(c, anim) {
   var d = c === 'x' ? '<path d="M14 14 34 34" pathLength="1"/><path d="M34 14 14 34" pathLength="1"/>' : '<circle cx="24" cy="24" r="12" pathLength="1"/>';
   return '<svg class="mk ' + c + (anim ? ' anim' : '') + '" viewBox="0 0 48 48" aria-hidden="true">' + d + '</svg>';
@@ -42,7 +42,7 @@ export function tttFillCard(el) {
   }
   el._bubble.innerHTML = '<div class="gc-board">' + cells + '</div><div class="gc-txt"><b>井字棋</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
 }
-function tttEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gcid != null) fn(el); }); }
+function tttEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gkind === 'ttt' && el._gcid != null) fn(el); }); }
 function queueGame(id) {
   if (TTT.pend[id]) return;
   TTT.pend[id] = 1; TTT.want.push(id);
@@ -97,7 +97,7 @@ function tttStartHere() {
 }
 
 var TV = null; // 当前打开的这一局的界面状态
-function tttPerson(id) {
+export function tttPerson(id) {
   if (S.me && id === S.me.id) return S.me;
   return profileOf(id) || (convOf(id) ? peerFromConv(convOf(id)) : null);
 }

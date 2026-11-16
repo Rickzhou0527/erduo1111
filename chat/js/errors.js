@@ -21,6 +21,9 @@ export var ERR_TEXT = {
   not_your_turn: '还没轮到你',
   cell_taken: '这一格已经有人下了',
   game_over: '这局已经结束了',
+  stale_turn: '这一发已经过期了，已刷新',
+  invalid_ammo: '操作无效',
+  invalid_shot: '这一发无效，再试一次',
   invalid_cell: '操作无效',
 };
 export function errText(e) {

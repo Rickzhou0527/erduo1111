@@ -5,6 +5,7 @@ import { openChat } from './chat/view.js';
 import { loadAll, loadProfile } from './data.js';
 import { errText } from './errors.js';
 import { closeApp } from './miniapps/host.js';
+import { slReset } from './miniapps/sling.js';
 import { tttReset } from './miniapps/ttt.js';
 import { pushSync, pushUnsubscribe } from './notify.js';
 import { resetQuoteUi } from './quote.js';
@@ -50,7 +51,7 @@ export async function logout() {
   showAuth();
 }
 export function resetState() {
-  S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; setSearchState(null); resetQuoteUi(); tttReset();
+  S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; setSearchState(null); resetQuoteUi(); tttReset(); slReset();
   document.title = '耳朵聊天';
   try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) { /* 忽略 */ }
 }

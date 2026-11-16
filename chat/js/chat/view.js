@@ -191,7 +191,7 @@ function buildRow(m) {
   var el = h('div', { class: 'row' });
   el._stamp = h('div', { class: 'stamp', hidden: true });
   el._bubble = h('div', { class: 'bubble' });
-  el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp('ttt', { id: el._gcid }); }); // 点特效气泡再看一次
+  el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp(el._gkind, { id: el._gcid }); }); // 点特效气泡再看一次
   el._meta = h('div', { class: 'meta', hidden: true });
   el._av = h('div', { class: 'av-slot' });
   var col = h('div', { class: 'col' });

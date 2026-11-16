@@ -11,6 +11,7 @@ const browser = [
 const globals = {};
 for (const g of browser) globals[g] = 'readonly';
 globals.supabase = 'readonly'; // 页面上用 <script> 加载的 Supabase UMD 全局
+globals.Matter = 'readonly'; // 弹弓大战：页面上用 <script> 加载的 Matter.js 全局
 
 export default [
   {

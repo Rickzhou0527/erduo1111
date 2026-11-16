@@ -4,6 +4,7 @@ import { reduced } from './bubble/view.js';
 import { loadOlder, nearBottom, scrollToBottom } from './chat/view.js';
 import { fxOf } from './fx/table.js';
 import { APP, closeApp } from './miniapps/host.js';
+import { slOf } from './miniapps/sling.js';
 import { tttOf } from './miniapps/ttt.js';
 import { S, profileOf, sb } from './state.js';
 import { $, cut, h, sleep, toast } from './utils.js';
@@ -13,6 +14,7 @@ import { convOf, peerFromConv } from './views/chats.js';
 // 入口：startQuote(m)，m 是当前聊天 msgs 里的一条消息（长按菜单的"引用"直接调用它）
 function quoteText(body) {
   if (tttOf(body) != null) return '井字棋';
+  if (slOf(body) != null) return '弹弓大战';
   var fx = fxOf(body);
   return fx ? fx.name : String(body || '');
 }

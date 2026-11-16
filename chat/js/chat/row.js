@@ -3,7 +3,8 @@
 import { refreshCls } from './view.js';
 import { fxParse } from '../fx/table.js';
 import { jumpTo, targetQuoteText } from '../menu.js';
-import { tttFillCard, tttOf } from '../miniapps/ttt.js';
+import { gameKind, slFillCard } from '../miniapps/sling.js';
+import { tttFillCard } from '../miniapps/ttt.js';
 import { updateQuote } from '../quote.js';
 import { dropFailed, retrySend } from '../send.js';
 import { S, makeAvatar, profileOf } from '../state.js';
@@ -70,8 +71,8 @@ export function updateRow(el, m, prev) {
   if (el._body !== bsig) {
     el._body = bsig;
     var fx = pf && pf.fx;
-    var gid = tttOf(m.body);
-    el._gcid = gid; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
+    var gk = gameKind(m.body), gid = gk ? gk.id : null;
+    el._gcid = gid; el._gkind = gk ? gk.k : null; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
     el._fxb = !!fx || gid != null;
     el._bubble.classList.toggle('fx', !!fx);
     el._bubble.classList.toggle('gcard', gid != null);
@@ -93,7 +94,7 @@ export function updateRow(el, m, prev) {
       el._bubble.removeAttribute('title');
     }
   }
-  if (el._gcid != null) tttFillCard(el);
+  if (el._gcid != null) { if (el._gkind === 'sling') slFillCard(el); else tttFillCard(el); }
   updateQuote(el, m);
   refreshCls(el);
   if (!own) { el._meta.hidden = true; return; }

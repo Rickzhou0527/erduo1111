@@ -12,7 +12,7 @@ function plusTools() { return listMiniApps(); }
 export function buildPlusPanel() {
   var g = $('toolGrid');
   plusTools().forEach(function (t) {
-    var b = h('button', { type: 'button', 'aria-label': t.label }, svgIcon(t.icon), h('span', { text: t.label }));
+    var b = h('button', { type: 'button', 'aria-label': t.label }, t.img ? h('img', { class: 'tool-img', src: t.img, alt: '', draggable: 'false' }) : svgIcon(t.icon), h('span', { text: t.label }));
     b.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 不抢输入框焦点
     b.addEventListener('click', function () { closePanels(); t.run(); });
     g.appendChild(b);
