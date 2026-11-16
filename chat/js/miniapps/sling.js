@@ -389,8 +389,12 @@ function slEndSim() {
   if (V.local) {
     var L = V.local, snap = sim.snapshot(), knocked = sim.enemyKnocked();
     if (!knocked && sim.knocked[L.side]) { // 自己的头像被炸下去了：放回堡顶，不算分
-      var la = sim.layouts[L.side].av;
-      snap.v[L.side] = [la.x, la.y, 0];
+      // 放到这一列现在最高的表面上（塔可能已经被打矮了，按最初的塔顶高度放会悬空）
+      var la = sim.layouts[L.side].av, top = PLAT_Y;
+      sim.blocks.forEach(function (b) {
+        if (!b.sl.broken && b.sl.side === L.side && b.bounds.min.x < la.x + AV_R && b.bounds.max.x > la.x - AV_R) top = Math.min(top, b.bounds.min.y);
+      });
+      snap.v[L.side] = [la.x, Math.round((top - AV_R - 1) * 10) / 10, 0];
     }
     slPosOffsets(V, function () { sim.applyState(snap); sim.sleepAll(); });
     V.mode = 'idle'; V.local = null;
@@ -635,9 +639,10 @@ function slDraw(V, ts) {
   // 旗子和弹弓
   var lay = sim.layouts, sw = SLI.sling._ok;
   for (i = 0; i < 2; i++) {
-    var fl = lay[i].flag, im = SLI.flag;
+    // 旗子插在头像脚下那一层：跟着头像走，塔被打矮了也不会悬空
+    var fl = lay[i].flag, av0 = lay[i].av, avb = sim.av[i], im = SLI.flag;
     if (im._ok) {
-      c.save(); c.translate(fl.x, fl.y); c.rotate((i === 0 ? 1 : 1) * wind * 0.22);
+      c.save(); c.translate(avb.position.x + (fl.x - av0.x), avb.position.y + (fl.y - av0.y)); c.rotate((i === 0 ? 1 : 1) * wind * 0.22);
       c.drawImage(im, -14, -50, 34, 50); c.restore();
     }
     var ax = i === 0 ? SL_ANCHOR.x : SLW - SL_ANCHOR.x;

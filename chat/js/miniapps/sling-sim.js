@@ -31,10 +31,12 @@ function slRng(seed) {
 // 堡垒布局（A 方）；B 方是镜像。返回 { blocks: [{type,x,y,w,h}], av: {x,y} }
 function slLayout(seed) {
   var r = slRng(seed), blocks = [], x0 = 112, row, col, rowsN = 3 + (r() < 0.5 ? 1 : 0);
-  var span = [4, r() < 0.5 ? 4 : 3, r() < 0.5 ? 3 : 2, 2], off = 0, topL = 0, topR = 0;
+  var span = [4, r() < 0.5 ? 4 : 3, r() < 0.5 ? 3 : 2, 2], off = 0, topL = 0, topR = 0, pOff = 0, pN = 4;
   for (row = 0; row < rowsN; row++) {
     var n = span[row], used = 0;
-    off = row === 0 ? 0 : Math.min(4 - n, Math.floor(r() * (4 - n + 1)));
+    // 每一层都落在下面那一层的范围里，不会有方块悬空（r() 的调用次数不变，方块的数量 / 类型 / 顺序和以前一样）
+    off = row === 0 ? 0 : pOff + Math.min(pN - n, Math.floor(r() * (pN - n + 1)));
+    pOff = off; pN = n;
     var cy = PLAT_Y - (row + 0.5) * BS;
     while (used < n) {
       var type, wide = false;
@@ -108,8 +110,19 @@ SlSim.prototype.slopeFix = function () {
   });
 };
 SlSim.prototype.sleepAll = function () {
+  // 只让底下有东西托着的物体睡着；悬空的（比如旧版本存下来的、底下方块已经碎了的状态）保持醒着，下一发时会掉下来
+  var M = Matter, me = this;
+  this.blocks.concat(this.av).forEach(function (b) { if (!b.sl.broken && me.supported(b)) M.Sleeping.set(b, true); });
+};
+SlSim.prototype.supported = function (b) {
+  var M = Matter, bd = b.bounds, w = bd.max.x - bd.min.x;
+  var probe = { min: { x: bd.min.x + w * 0.2, y: bd.max.y - 1 }, max: { x: bd.max.x - w * 0.2, y: bd.max.y + 4 } };
+  var others = M.Composite.allBodies(this.world).filter(function (o) { return o !== b && o.slk !== 'proj'; });
+  return M.Query.region(others, probe).length > 0;
+};
+SlSim.prototype.wakeAll = function () {
   var M = Matter;
-  this.blocks.concat(this.av).forEach(function (b) { if (!(b.sl.broken)) M.Sleeping.set(b, true); });
+  this.blocks.concat(this.av).forEach(function (b) { if (!b.sl.broken && b.isSleeping) M.Sleeping.set(b, false); });
 };
 SlSim.prototype.applyState = function (st) {
   var M = Matter, i;
@@ -140,6 +153,8 @@ SlSim.prototype.breakBlock = function (b, silent) {
   if (b.sl.broken) return;
   b.sl.broken = true; b.sl.hp = 0;
   Matter.World.remove(this.world, b);
+  // Matter 不会因为底下的方块没了就唤醒压在上面的睡眠物体，不叫醒的话头像 / 方块会悬在半空
+  if (!silent) this.wakeAll();
   if (!silent) this.ev.push({ t: 'break', x: b.position.x, y: b.position.y, type: b.sl.type, w: b.sl.w, h: b.sl.h, a: b.angle });
 };
 SlSim.prototype.dmg = function (b, rel, other) {
