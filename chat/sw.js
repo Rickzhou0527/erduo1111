@@ -36,10 +36,11 @@ self.addEventListener('push', (event) => {
   event.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const mine = wins.filter((c) => c.url.indexOf(self.registration.scope) === 0);
-    const focused = mine.some((c) => c.visibilityState === 'visible' && c.focused);
+    const visible = mine.some((c) => c.visibilityState === 'visible');
     // 页面正在前台：非苹果浏览器只通知页面，不弹系统通知。
-    // Safari 如果收到推送却什么都没显示，可能撤销推送权限，所以苹果平台照常显示。
-    if (focused && !isApple()) {
+    // 苹果平台：正常情况下服务器已经因为这台设备在前台而没有推送（见 send-push 的 active_until）；
+    // 万一仍然收到（心跳刚好过期的竞态），Safari 收到推送却什么都没显示可能撤销推送权限，所以照常显示。
+    if (visible && !isApple()) {
       mine.forEach((c) => c.postMessage({ type: 'push', peer: d.peer || null, tab: d.tab || null, tag: d.tag || null }));
       return;
     }

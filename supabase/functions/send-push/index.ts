@@ -164,7 +164,11 @@ Deno.serve(async (req) => {
     return reply(req, 500, { error: "log_failed" });
   }
 
-  const { data: subs, error: subErr } = await admin.from("push_subscriptions").select("id,endpoint,p256dh,auth").eq("user_id", recipient);
+  // 跳过正在前台使用的设备（active_until 还没到期）：Safari 无法在页面里拦截推送，只能在服务器这边不发；
+  // 收件人的其他设备不受影响，页面自己会通过 Realtime 收到消息
+  const { data: subs, error: subErr } = await admin.from("push_subscriptions").select("id,endpoint,p256dh,auth")
+    .eq("user_id", recipient)
+    .or("active_until.is.null,active_until.lte." + new Date().toISOString());
   if (subErr) return reply(req, 500, { error: "subscriptions_failed" });
   if (!subs || subs.length === 0) return reply(req, 200, { sent: 0, removed: 0 });
 
