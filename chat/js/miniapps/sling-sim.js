@@ -95,6 +95,7 @@ function SlSim(seed, state, wind) {
   this.slopeFix();
   if (state) this.applyState(state);
   this.sleepAll();
+  if (state) { this.settle(); this.knocked = [false, false]; this.sleepAll(); } // 读到的状态里有悬空的东西：先让它落定（各设备结果一致）
   var me = this;
   M.Events.on(this.engine, 'collisionStart', function (e) { me.onCollide(e.pairs); });
 }
@@ -115,10 +116,47 @@ SlSim.prototype.sleepAll = function () {
   this.blocks.concat(this.av).forEach(function (b) { if (!b.sl.broken && me.supported(b)) M.Sleeping.set(b, true); });
 };
 SlSim.prototype.supported = function (b) {
-  var M = Matter, bd = b.bounds, w = bd.max.x - bd.min.x;
-  var probe = { min: { x: bd.min.x + w * 0.2, y: bd.max.y - 1 }, max: { x: bd.max.x - w * 0.2, y: bd.max.y + 4 } };
+  // 用真实形状判断：把它往下挪 3px（拿一份拷贝，不动原物体），看会不会碰到别的东西；斜靠着的方块也算有支撑
+  var M = Matter;
+  var probe = M.Body.create({ position: { x: b.position.x, y: b.position.y + 3 }, vertices: b.vertices.map(function (v) { return { x: v.x, y: v.y }; }) });
+  M.Body.setPosition(probe, { x: b.position.x, y: b.position.y + 3 });
   var others = M.Composite.allBodies(this.world).filter(function (o) { return o !== b && o.slk !== 'proj'; });
-  return M.Query.region(others, probe).length > 0;
+  return M.Query.collides(probe, others).length > 0;
+};
+// 睡着的物体底下的东西被撞走 / 推开时，Matter 不会叫醒它：每一步检查一遍，悬空的叫醒让它掉下来
+SlSim.prototype.wakeLoose = function () {
+  var M = Matter, me = this;
+  this.blocks.concat(this.av).forEach(function (b) { if (!b.sl.broken && b.isSleeping && !me.supported(b)) M.Sleeping.set(b, false); });
+};
+// 飞出地图的（会一直往下掉，永远落不定）：落定检查里不管它们
+function slGone(b) { return b.position.y > SLH + 200 || b.position.x < -400 || b.position.x > SLW + 400; }
+SlSim.prototype.checkKnocked = function () {
+  // 头像掉下堡垒底（低于平台）或离开平台，也算被击落
+  for (var i = 0; i < 2; i++) {
+    var v = this.av[i];
+    if (v.position.y > PLAT_Y + 10) this.knocked[i] = true;
+    if (i === 0 && v.position.x > PLAT_X + 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
+    if (i === 1 && v.position.x < SLW - PLAT_X - 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
+  }
+};
+// 没有弹丸，一直模拟到没有东西悬空、也没有东西在动（最多 10 秒）。用在读状态时和拍快照之前
+SlSim.prototype.settle = function () {
+  var M = Matter, me = this, calm = 0, n;
+  function busy() {
+    return me.blocks.concat(me.av).some(function (b) {
+      return !b.sl.broken && !b.isSleeping && !slGone(b) && (b.speed > 0.15 || Math.abs(b.angularVelocity) > 0.01 || !me.supported(b));
+    });
+  }
+  this.removeProj();
+  this.wakeLoose();
+  if (!busy()) return;
+  for (n = 0; n < 600 && calm < 30; n++) {
+    M.Engine.update(this.engine, 1000 / 60);
+    this.wakeLoose();
+    this.checkKnocked();
+    calm = busy() ? 0 : calm + 1;
+  }
+  this.ev = [];
 };
 SlSim.prototype.wakeAll = function () {
   var M = Matter;
@@ -232,6 +270,7 @@ SlSim.prototype.step = function () {
   }
   M.Engine.update(this.engine, 1000 / 60);
   this.steps++;
+  this.wakeLoose();
   if (this.boom) {
     var bm = this.boom; this.boom = null;
     this.explode(bm);
@@ -249,13 +288,7 @@ SlSim.prototype.step = function () {
       this.removeProj();
     }
   }
-  // 头像掉下堡垒底（低于平台）或离开平台，也算被击落
-  for (i = 0; i < 2; i++) {
-    var v = this.av[i];
-    if (v.position.y > PLAT_Y + 10) this.knocked[i] = true;
-    if (i === 0 && v.position.x > PLAT_X + 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
-    if (i === 1 && v.position.x < SLW - PLAT_X - 30 && v.position.y > PLAT_Y - 80) this.knocked[i] = true;
-  }
+  this.checkKnocked();
   // 落定：没有弹丸，所有东西都睡着或几乎不动，持续半秒
   if (!this.proj && this.launched) {
     var still = true, all = this.blocks.concat(this.av);

@@ -387,6 +387,7 @@ function slPosOffsets(V, mutate) {
 function slEndSim() {
   var V = SV, sim = V.sim, g = V.g;
   if (V.local) {
+    sim.settle(); // 8 秒上限截停时可能还有东西在半空：先落定再拍快照上传
     var L = V.local, snap = sim.snapshot(), knocked = sim.enemyKnocked();
     if (!knocked && sim.knocked[L.side]) { // 自己的头像被炸下去了：放回堡顶，不算分
       // 放到这一列现在最高的表面上（塔可能已经被打矮了，按最初的塔顶高度放会悬空）
