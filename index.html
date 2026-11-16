@@ -3,16 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#FFF8E7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1f1a1d" media="(prefers-color-scheme: dark)">
 <title>耳朵的小程序</title>
 <style>
   :root{
     --cream:#FFF8E7; --pink:#FF8FAB; --pink2:#FFC2D1; --choco:#6B3E26;
     --biscuit:#E9B872; --ink:#4a3426; --yellow:#FFF1BF;
+    --line:#4a3426; --surface:#fff; --glow:#FFE3EC; --pink-text:#FF8FAB; color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --cream:#1f1a1d; --pink2:#4a2f3b; --choco:#f3cfae; --ink:#f3e8e0; --yellow:#4d4326;
+      --line:#a08b95; --surface:#2b2428; --glow:#3a2433; --pink-text:#ff9db6; color-scheme:dark;
+    }
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{min-height:100%}
   body{
-    background:radial-gradient(circle at 50% 0%,#FFE3EC 0%,var(--cream) 60%) fixed;
+    background:radial-gradient(circle at 50% 0%,var(--glow) 0%,var(--cream) 60%) fixed;
     color:var(--ink);
     font-family:"PingFang SC","Hiragino Sans GB","Apple SD Gothic Neo","Noto Sans KR","Microsoft YaHei",system-ui,sans-serif;
     user-select:none;
@@ -26,20 +35,20 @@
   h1{font-size:30px;font-weight:900;color:var(--choco);letter-spacing:2px}
   h1 span{display:inline-block;animation:bob 1.8s ease-in-out infinite}
   @keyframes bob{50%{transform:translateY(-6px)}}
-  .sub{margin-top:8px;font-size:15px;color:var(--pink);font-weight:700}
+  .sub{margin-top:8px;font-size:15px;color:var(--pink-text);font-weight:700}
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .app{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
     aspect-ratio:1/1;padding:14px;text-align:center;text-decoration:none;color:var(--ink);
-    background:#fff;border:3px solid var(--ink);border-radius:22px;box-shadow:0 6px 0 var(--ink);
+    background:var(--surface);border:3px solid var(--line);border-radius:22px;box-shadow:0 6px 0 var(--line);
     animation:pop .5s cubic-bezier(.3,1.6,.5,1) both;
   }
   .app:nth-child(2){animation-delay:.08s}.app:nth-child(3){animation-delay:.16s}.app:nth-child(4){animation-delay:.24s}
   @keyframes pop{from{opacity:0;transform:scale(.85) translateY(10px)}}
-  a.app:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+  a.app:active{transform:translateY(5px);box-shadow:0 1px 0 var(--line)}
   .icon{
-    width:64px;height:64px;border-radius:18px;border:3px solid var(--ink);
+    width:64px;height:64px;border-radius:18px;border:3px solid var(--line);
     display:flex;align-items:center;justify-content:center;font-size:34px;
   }
   .name{font-size:17px;font-weight:800}
