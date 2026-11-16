@@ -176,11 +176,16 @@
   #msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 12px 6px}
   #olderRow{text-align:center;font-size:12px;opacity:.6;padding:6px}
   .row{display:flex;flex-direction:column;margin-bottom:8px}
-  .row.own{align-items:flex-end}
-  .row.peer{align-items:flex-start}
+  .line{display:flex;gap:8px;align-items:flex-start;max-width:100%}
+  .row.own .line{flex-direction:row-reverse}
+  .av-slot{flex:none;width:34px;height:34px}
+  .row .avatar{width:34px;height:34px}
+  .col{display:flex;flex-direction:column;min-width:0;max-width:calc(100% - 44px)}
+  .row.own .col{align-items:flex-end}
+  .row.peer .col{align-items:flex-start}
   .stamp{align-self:center;font-size:11px;opacity:.55;margin:8px 0 6px}
   .bubble{
-    max-width:78%;padding:8px 12px;font-size:16px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
+    max-width:100%;padding:8px 12px;font-size:16px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
     border:2px solid var(--ink);border-radius:18px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;
   }
   .row.own .bubble{background:var(--pink);color:#fff;border-bottom-right-radius:5px;text-shadow:0 1px 0 rgba(74,52,38,.35)}
@@ -612,6 +617,8 @@
           S.profiles = map;
           if (S.me && map.get(S.me.id)) S.me = map.get(S.me.id);
           renderAll();
+          // 重新加载后，打开且可见的会话若还有未读，补标一次
+          if (S.chat && isVisible()) { var oc = convOf(S.chat.peer); if (oc && Number(oc.unread_count) > 0) markReadIfNeeded(); }
         } while (loadAgain);
         return true;
       } finally { loadingAll = null; }
@@ -1081,9 +1088,15 @@
     el._stamp = h('div', { class: 'stamp', hidden: true });
     el._bubble = h('div', { class: 'bubble' });
     el._meta = h('div', { class: 'meta', hidden: true });
+    el._av = h('div', { class: 'av-slot' });
+    var col = h('div', { class: 'col' });
+    col.appendChild(el._bubble);
+    col.appendChild(el._meta);
+    var line = h('div', { class: 'line' });
+    line.appendChild(el._av);
+    line.appendChild(col);
     el.appendChild(el._stamp);
-    el.appendChild(el._bubble);
-    el.appendChild(el._meta);
+    el.appendChild(line);
     return el;
   }
   function updateRow(el, m, prev) {
@@ -1092,6 +1105,10 @@
     var gap = !prev || (new Date(m.created_at) - new Date(prev.created_at) > 5 * 60000);
     el._stamp.hidden = !gap;
     if (gap) el._stamp.textContent = fmtStamp(m.created_at);
+    // 头像：资料重新加载后头像路径变了就重建
+    var ap = own ? S.me : (profileOf(m.sender_id) || (convOf(m.sender_id) ? peerFromConv(convOf(m.sender_id)) : null));
+    var akey = (own ? 'o|' : 'p|') + (ap && ap.avatar_path || '');
+    if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 34)); }
     if (el._body !== m.body) { el._bubble.textContent = m.body; el._body = m.body; }
     if (!own) { el._meta.hidden = true; return; }
     el._meta.hidden = false;
@@ -1162,20 +1179,36 @@
   }
 
   // ===== 已读 =====
-  var marking = false;
+  var marking = false, markAgain = false;
+  // 打开的会话里是否有对方发来、还没标已读的消息
+  function hasUnreadInChat(c) {
+    return c.msgs.some(function (m) { return m.sender_id === c.peer && !m.read_at; });
+  }
   async function markReadIfNeeded() {
     var c = S.chat;
-    if (!c || !isVisible() || marking) return;
+    if (!c || !isVisible()) return;
+    // 正在请求：记一笔，等本次结束后再标一次，不丢
+    if (marking) { markAgain = true; return; }
     var conv = convOf(c.peer);
-    if (!conv || !(Number(conv.unread_count) > 0)) return;
-    marking = true;
+    // 以打开会话里的消息为准，再并上会话的未读数
+    if (!hasUnreadInChat(c) && !(conv && Number(conv.unread_count) > 0)) return;
+    marking = true; markAgain = false;
+    var sent = c.msgs.filter(function (m) { return m.sender_id === c.peer && !m.read_at; }); // 本次请求覆盖的消息
+    var ok = false;
     try {
       var r = await sb.rpc('mark_read', { p_peer: c.peer });
-      if (!r.error) { conv.unread_count = 0; updateBadges(); renderChats(); closeNotifications('msg-' + c.peer); }
+      if (!r.error) {
+        ok = true;
+        var cv = convOf(c.peer);
+        if (cv) cv.unread_count = 0;
+        // 本地先标上已读，避免重复触发
+        var now = new Date().toISOString();
+        sent.forEach(function (m) { if (!m.read_at) m.read_at = now; });
+        updateBadges(); renderChats(); closeNotifications('msg-' + c.peer);
+      }
     } finally { marking = false; }
-    // 标记期间又来了新消息的话再标一次
-    var again = convOf(c.peer);
-    if (S.chat && again && Number(again.unread_count) > 0 && S.chat.peer === c.peer) markReadIfNeeded();
+    // 标记期间又来了新消息的话再标一次（请求失败时不重试，避免死循环）
+    if (ok && markAgain) { markAgain = false; markReadIfNeeded(); }
   }
 
   // ===== 实时 =====
