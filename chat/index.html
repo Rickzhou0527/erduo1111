@@ -36,6 +36,10 @@
     --bub-bd:rgba(255,255,255,.75); --bub-hi:rgba(255,255,255,.95); --bub-lo:rgba(96,62,32,.12); --bub-sheen:rgba(255,255,255,.6);
     --wet-bg:rgba(208,230,242,.84); --wet-bd:rgba(255,255,255,.8); --wet-fg:#16384f; --drop:#6bb8e8;
     --love-bg:rgba(255,178,204,.86); --love-bd:rgba(255,255,255,.7); --love-fg:#5e1633; --love-heart:#d6376f; --love-rgb:226,60,124;
+    --frozen-bg:rgba(207,231,250,.9); --frozen-bd:rgba(255,255,255,.9); --frozen-fg:#12324b; --ice-a:#f2faff; --ice-b:#a9d3f2;
+    --hot-bg:rgba(255,184,150,.92); --hot-bd:rgba(255,238,224,.8); --hot-fg:#55200d; --steam-rgb:120,96,84;
+    --plump-bg:rgba(255,226,194,.92); --plump-bd:rgba(255,255,255,.75); --plump-fg:#4a2913;
+    --bloom-bg:rgba(226,243,200,.94); --bloom-bd:rgba(255,255,255,.8); --bloom-fg:#2c4a1a; --glow-warm:255,176,96;
     --choco-a:#6b3e26; --choco-b:#52301d; --biscuit-a:#e8c486; --biscuit-b:#d4a862;
     --scene-img:none;
     --scene-bg:
@@ -75,6 +79,10 @@
     --bub-bd:rgba(255,236,214,.16); --bub-hi:rgba(255,236,214,.30); --bub-lo:rgba(0,0,0,.30); --bub-sheen:rgba(255,236,214,.14);
     --wet-bg:rgba(54,76,90,.84); --wet-bd:rgba(170,215,245,.35); --wet-fg:#e4f2ff; --drop:#9fd4f6;
     --love-bg:rgba(140,54,90,.86); --love-bd:rgba(255,190,214,.40); --love-fg:#ffe9f1; --love-heart:#ffb0c8; --love-rgb:255,150,190;
+    --frozen-bg:rgba(48,82,110,.88); --frozen-bd:rgba(190,226,255,.5); --frozen-fg:#e6f4ff; --ice-a:#d6ecfc; --ice-b:#7fb4de;
+    --hot-bg:rgba(150,66,42,.9); --hot-bd:rgba(255,176,128,.45); --hot-fg:#ffe9de; --steam-rgb:255,255,255;
+    --plump-bg:rgba(134,90,58,.88); --plump-bd:rgba(255,220,180,.35); --plump-fg:#ffefdf;
+    --bloom-bg:rgba(72,100,58,.88); --bloom-bd:rgba(200,236,170,.4); --bloom-fg:#ecf8dc; --glow-warm:255,180,100;
     --choco-a:#7d4a2c; --choco-b:#5e3520; --biscuit-a:#d4a566; --biscuit-b:#b8894a;
     --scene-bg:
       var(--scene-img),
@@ -105,6 +113,10 @@
     --bub-bd:rgba(255,236,214,.16); --bub-hi:rgba(255,236,214,.30); --bub-lo:rgba(0,0,0,.30); --bub-sheen:rgba(255,236,214,.14);
     --wet-bg:rgba(54,76,90,.84); --wet-bd:rgba(170,215,245,.35); --wet-fg:#e4f2ff; --drop:#9fd4f6;
     --love-bg:rgba(140,54,90,.86); --love-bd:rgba(255,190,214,.40); --love-fg:#ffe9f1; --love-heart:#ffb0c8; --love-rgb:255,150,190;
+    --frozen-bg:rgba(48,82,110,.88); --frozen-bd:rgba(190,226,255,.5); --frozen-fg:#e6f4ff; --ice-a:#d6ecfc; --ice-b:#7fb4de;
+    --hot-bg:rgba(150,66,42,.9); --hot-bd:rgba(255,176,128,.45); --hot-fg:#ffe9de; --steam-rgb:255,255,255;
+    --plump-bg:rgba(134,90,58,.88); --plump-bd:rgba(255,220,180,.35); --plump-fg:#ffefdf;
+    --bloom-bg:rgba(72,100,58,.88); --bloom-bd:rgba(200,236,170,.4); --bloom-fg:#ecf8dc; --glow-warm:255,180,100;
     --choco-a:#7d4a2c; --choco-b:#5e3520; --biscuit-a:#d4a566; --biscuit-b:#b8894a;
     --scene-bg:
       var(--scene-img),
@@ -365,12 +377,12 @@
   #sendBtn{height:44px;padding:0 20px;min-height:44px}
   #emojiPanel{
     flex:none;margin:0 12px 8px;padding:12px 12px 8px;border-radius:var(--r-card);
-    max-height:232px;overflow-y:auto;overscroll-behavior:contain;
+    max-height:300px;overflow-y:auto;overscroll-behavior:contain;
   }
   .panel-label{font-size:var(--fs-xs);font-weight:500;color:var(--t2);margin:0 4px 8px}
-  #fxRow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  #fxRow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
   #fxRow button{
-    display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;
+    display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;min-width:0;
     background:var(--g-chip);border:1px solid var(--rim);border-radius:var(--r-ctl);
     box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1);
     font-size:var(--fs-xs);font-weight:500;color:var(--t1);
@@ -461,6 +473,142 @@
   .bp.fall{animation-timing-function:cubic-bezier(.5,0,.9,.6)}
   @keyframes bp{0%{transform:translate(0,0) scale(.3) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1) rotate(var(--rot));opacity:0}}
 
+  /* 新状态：冰冻 / 发热 / 圆滚滚 / 花环 / 热恋（隐藏）/ 睡着。特效气泡本身不加这些 class */
+  .row.st-frozen:not(.failed) .bubble:not(.fx){
+    background-color:var(--frozen-bg);border-color:var(--frozen-bd);color:var(--frozen-fg);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),inset 0 0 14px rgba(255,255,255,.62),inset 0 1px 0 var(--bub-hi),0 1px 2px rgba(24,14,6,.1),0 3px 8px rgba(24,14,6,.06);
+  }
+  .row.st-frozen:not(.failed) .bw{z-index:2}
+  .row.st-frozen:not(.failed) .bubble:not(.fx)+.deco::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;
+    background:radial-gradient(120% 90% at 28% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 68%),radial-gradient(80% 60% at 82% 100%,rgba(255,255,255,.36),rgba(255,255,255,0) 70%);
+  }
+  .icl{position:absolute;top:100%;margin:-2px 0 0 -3px;width:6px;clip-path:polygon(0 0,100% 0,50% 100%);background:linear-gradient(90deg,var(--ice-a),var(--ice-b))}
+  .row.st-hot:not(.failed) .bubble:not(.fx){
+    background-color:var(--hot-bg);border-color:var(--hot-bd);color:var(--hot-fg);
+    box-shadow:inset 0 -6px 10px rgba(255,90,40,.26),inset 0 1px 0 var(--bub-hi),0 1px 2px rgba(24,14,6,.1),0 0 10px rgba(255,110,50,.3);
+  }
+  .row.st-hot:not(.failed) .bw{z-index:2}
+  .row.st-hot:not(.failed) .bw>.bubble,.row.st-hot:not(.failed) .bw>.deco{animation:hshake 7s infinite;animation-delay:calc(var(--sd,0s) * -1)}
+  @keyframes hshake{0%,86%,100%{transform:none}88%{transform:translateX(-1.5px) rotate(-.5deg)}90%{transform:translateX(1.5px) rotate(.5deg)}92%{transform:translateX(-1px)}94%{transform:translateX(1px)}96%{transform:none}}
+  .wsp{position:absolute;top:-6px;width:11px;height:22px;margin-left:-5px;border-radius:50%;opacity:0;background:radial-gradient(ellipse at 50% 60%,rgba(var(--steam-rgb),.8),rgba(var(--steam-rgb),0) 70%);animation:wisp 2.4s ease-out infinite}
+  @keyframes wisp{0%{transform:translate(0,4px) scale(.6);opacity:0}25%{opacity:.8}60%{transform:translate(3px,-10px) scale(1)}100%{transform:translate(-2px,-24px) scale(1.3,1.6);opacity:0}}
+  .row.st-plump:not(.failed) .bubble:not(.fx){
+    background-color:var(--plump-bg);border-color:var(--plump-bd);color:var(--plump-fg);
+    box-shadow:inset 0 4px 8px rgba(255,255,255,.45),inset 0 -5px 9px rgba(160,90,40,.2),0 1px 2px rgba(24,14,6,.1),0 3px 8px rgba(24,14,6,.06);
+  }
+  .row.st-plump-1:not(.failed){--r-bub:22px}
+  .row.st-plump-2:not(.failed){--r-bub:25px}
+  .row.st-plump-3:not(.failed){--r-bub:28px}
+  .row.st-plump-1:not(.failed) .bubble:not(.fx){padding:10px 15px}
+  .row.st-plump-2:not(.failed) .bubble:not(.fx){padding:12px 18px}
+  .row.st-plump-3:not(.failed) .bubble:not(.fx){padding:14px 21px}
+  .chk{position:absolute;bottom:3px;width:11px;height:7px;border-radius:50%;background:rgba(255,120,150,.34)}
+  .row.st-bloom:not(.failed) .bubble:not(.fx){
+    background-color:var(--bloom-bg);border-color:var(--bloom-bd);color:var(--bloom-fg);
+    box-shadow:inset 0 0 12px rgba(255,255,255,.4),inset 0 1px 0 var(--bub-hi),0 1px 2px rgba(24,14,6,.1),0 3px 8px rgba(24,14,6,.06);
+  }
+  .row.st-passion:not(.failed) .bubble:not(.fx){box-shadow:inset 0 0 14px rgba(255,255,255,.5),inset 0 1px 0 var(--bub-hi),0 1px 2px rgba(24,14,6,.1),0 0 12px rgba(var(--love-rgb),.4),0 0 22px rgba(var(--glow-warm),.5)}
+  .row.st-passion:not(.failed) .bw{z-index:2}
+  .row.st-bloom:not(.failed) .bw{z-index:2}
+  .flw{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23ff9cbc' stroke='%23d9618f' stroke-width='.8'%3E%3Ccircle cx='12' cy='5.5' r='5'/%3E%3Ccircle cx='18.2' cy='10' r='5'/%3E%3Ccircle cx='15.8' cy='17.3' r='5'/%3E%3Ccircle cx='8.2' cy='17.3' r='5'/%3E%3Ccircle cx='5.8' cy='10' r='5'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='3.6' fill='%23ffd75e'/%3E%3C/svg%3E") center/contain no-repeat}
+  .flw.w{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23fff7fb' stroke='%23d9a6bd' stroke-width='.8'%3E%3Ccircle cx='12' cy='5.5' r='5'/%3E%3Ccircle cx='18.2' cy='10' r='5'/%3E%3Ccircle cx='15.8' cy='17.3' r='5'/%3E%3Ccircle cx='8.2' cy='17.3' r='5'/%3E%3Ccircle cx='5.8' cy='10' r='5'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='3.6' fill='%23ffb23e'/%3E%3C/svg%3E")}
+  .row.st-asleep:not(.failed) .bubble:not(.fx){opacity:.6}
+  .moon{position:absolute;right:-7px;top:-13px;width:18px;height:18px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16 3a9 9 0 1 0 5 15A8 8 0 0 1 16 3z' fill='%23ffd75e' stroke='%23d9a62e' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+  .zz{position:absolute;right:6px;top:-4px;font-size:11px;font-weight:700;line-height:1;color:var(--t2);opacity:0;animation:zz 3s ease-out infinite}
+  @keyframes zz{0%{transform:translate(0,0) scale(.6);opacity:0}20%{opacity:.9}100%{transform:translate(14px,-22px) scale(1.25);opacity:0}}
+  /* 一次性动画（新增的几种）和换色过渡 */
+  .bw.ev-shake{animation:bw-shake .6s var(--ease)}
+  .bw.ev-wobble{animation:bw-wobble .7s var(--ease)}
+  .bw.ev-puff{animation:bw-puff .8s var(--ease)}
+  @keyframes bw-puff{0%{transform:none}30%{transform:scale(1.14,1.1)}60%{transform:scale(.97)}100%{transform:none}}
+  .bw.ev-jelly{transform-origin:50% 100%;animation:bw-jelly .8s var(--ease)}
+  @keyframes bw-jelly{0%{transform:none}25%{transform:scale(1.14,.86)}50%{transform:scale(.92,1.1)}75%{transform:scale(1.04,.97)}100%{transform:none}}
+  .bw.ev-shiver{animation:bw-shiver .5s linear}
+  @keyframes bw-shiver{0%,100%{transform:none}10%{transform:translateX(-2px)}20%{transform:translateX(2px)}30%{transform:translateX(-2px)}40%{transform:translateX(2px)}50%{transform:translateX(-1px)}60%{transform:translateX(1px)}}
+  .bw.ev-flare{animation:bw-flare .8s var(--ease)}
+  @keyframes bw-flare{0%{transform:none}25%{transform:scale(1.1) rotate(-1.5deg)}50%{transform:scale(1.06) rotate(1.5deg)}100%{transform:none}}
+  .bw.ev-stretch{transform-origin:50% 100%;animation:bw-stretch 1s var(--ease)}
+  @keyframes bw-stretch{0%{transform:none}40%{transform:scale(.94,1.14)}70%{transform:scale(1.05,.97)}100%{transform:none}}
+  .bw.ev-tint .bubble:not(.fx){animation:tint-from 1.1s ease-in-out .15s backwards}
+  @keyframes tint-from{from{background-color:var(--from-bg);border-color:var(--from-bd);color:var(--from-fg)}}
+  .bp.orbit{left:50%!important;top:50%!important;animation:bp-orbit 1.5s var(--ease) forwards}
+  @keyframes bp-orbit{0%{transform:rotate(var(--a)) translateX(4px) scale(.4);opacity:0}15%{transform:rotate(calc(var(--a) + 50deg)) translateX(var(--rad)) scale(1);opacity:1}85%{transform:rotate(calc(var(--a) + 310deg)) translateX(var(--rad)) scale(1);opacity:1}100%{transform:rotate(calc(var(--a) + 360deg)) translateX(2px) scale(.5);opacity:0}}
+  .bw.flash .deco::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:2px solid var(--pink);opacity:0;animation:flash-ring 1.2s var(--ease)}
+  @keyframes flash-ring{0%{opacity:0;transform:scale(.96)}20%{opacity:.9;transform:scale(1)}45%{opacity:.2}65%{opacity:.8}100%{opacity:0;transform:scale(1.06)}}
+
+  /* 特效气泡里的引用（定向攻击） */
+  .bubble.fx .fx-txt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0}
+  .bubble.fx .fx-q{font-size:var(--fs-xs);font-weight:400;color:var(--t2);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;word-break:break-all}
+
+  /* 新特效的舞台零件 */
+  .fx-ice{position:absolute;inset:0;border-radius:50%;opacity:0;background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.78),rgba(170,215,250,.55) 55%,rgba(130,190,240,.4))}
+  .fx-hotov{position:absolute;inset:0;border-radius:50%;opacity:0;background:radial-gradient(circle at 50% 60%,rgba(255,110,60,.62),rgba(235,60,30,.45) 62%,rgba(200,40,20,.3))}
+  .fx-snowball{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dbeeff 60%,#a9cdee);box-shadow:0 1px 3px rgba(24,14,6,.25)}
+  .fx-gust{height:3px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(150,175,200,.7));}
+  .fx-ov{position:absolute;inset:0;pointer-events:none}
+  .fx-flood{position:absolute;left:0;right:0;top:0;height:100%;transform:translateY(100%);background:linear-gradient(180deg,rgba(120,190,245,.5),rgba(60,140,220,.72))}
+  .fx-flood::before{content:"";position:absolute;left:0;right:0;top:-12px;height:14px;background:radial-gradient(circle at 10px 14px,rgba(120,190,245,.5) 10px,transparent 11px) 0 0/20px 14px repeat-x}
+  .fx-fire{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 60px 14px rgba(255,100,20,.75),inset 0 0 130px 34px rgba(255,170,40,.32)}
+  .fx-night{position:absolute;inset:0;opacity:0;background:radial-gradient(120% 80% at 50% 0%,#26346a,#0b1030 72%)}
+  .fx-white{position:absolute;inset:0;opacity:0;background:rgba(235,245,255,.42)}
+  .fx-ring{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:3px solid var(--pink);opacity:0}
+  .fx-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 4px 1px rgba(255,255,255,.8);opacity:0}
+  .fx-shoot{position:absolute;width:110px;height:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);opacity:0}
+  .fx-zz{color:#e6edff;font-weight:700;text-shadow:0 0 4px rgba(120,150,255,.8)}
+  .fx-tag{position:absolute;left:50%;top:calc(40% + 140px);transform:translateX(-50%);opacity:0;padding:4px 12px;background:var(--g-chip);border:1px solid var(--rim);border-radius:var(--r-ctl);box-shadow:inset 0 1px 0 var(--hi),var(--sh-1);font-size:var(--fs-sm);font-weight:600;color:var(--pink-text);white-space:nowrap}
+  .fx-big{font-size:28px}
+
+  /* 长按菜单 + 定向表情选择器：深色玻璃小气泡，带小箭头 */
+  #actMenu,#fxPick{
+    position:absolute;z-index:12;display:flex;padding:4px;border-radius:12px;
+    background:var(--toast-bg);color:var(--toast-fg);border:1px solid rgba(255,255,255,.1);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),var(--sh-2);
+    -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+    opacity:0;transform:scale(.92);transform-origin:var(--ax,50%) 100%;
+    transition:opacity .16s var(--ease),transform .16s var(--ease);
+    -webkit-user-select:none;user-select:none;
+  }
+  #actMenu.below,#fxPick.below{transform-origin:var(--ax,50%) 0}
+  #actMenu.show,#fxPick.show{opacity:1;transform:none}
+  #actMenu::after,#fxPick::after{
+    content:"";position:absolute;left:var(--ax,50%);bottom:-5px;width:10px;height:10px;margin-left:-5px;
+    background:var(--toast-bg);transform:rotate(45deg);border-radius:0 0 3px 0;
+  }
+  #actMenu.below::after,#fxPick.below::after{bottom:auto;top:-5px;border-radius:3px 0 0 0}
+  #actMenu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:58px;height:50px;padding:0 10px;border-radius:9px;font-size:var(--fs-xs);font-weight:500;color:inherit;position:relative;z-index:1}
+  #actMenu button+button::before{content:"";position:absolute;left:-1px;top:10px;bottom:10px;width:1px;background:rgba(255,255,255,.14)}
+  #actMenu button:active,#fxPick button:active{background:rgba(255,255,255,.14)}
+  #actMenu .i{width:18px;height:18px}
+  #fxPick{display:grid;grid-template-columns:repeat(5,44px);gap:2px}
+  #fxPick button{width:44px;height:44px;border-radius:9px;font-size:24px;line-height:1;position:relative;z-index:1}
+  .bw.menu-on .bubble{filter:brightness(.92)}
+
+  /* 配方图鉴 */
+  #recipeSheet{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(24,14,6,.34);opacity:0;transition:opacity .24s var(--ease)}
+  #recipeSheet.show{opacity:1}
+  #recipeSheet .sheet{
+    max-height:84%;display:flex;flex-direction:column;gap:12px;padding:16px 16px calc(var(--safe-b) + 16px);border-radius:var(--r-panel) var(--r-panel) 0 0;
+    background:var(--g-solid);border:1px solid var(--rim);border-bottom:0;box-shadow:inset 0 1px 0 var(--hi),var(--sh-2);
+    transform:translateY(32px);transition:transform .3s var(--ease);
+  }
+  #recipeSheet.show .sheet{transform:none}
+  #recipeSheet .sh-top{display:flex;align-items:center;gap:8px}
+  #recipeSheet .sh-top h3{flex:1;font-size:var(--fs-lg);font-weight:600}
+  #recipeSheet .sh-top .count{font-size:var(--fs-sm);font-weight:500;color:var(--t2);margin-left:6px}
+  .rc-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(104px,auto);align-content:start;gap:8px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+  .rc{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 14px;text-align:center;background:var(--g-chip);border:1px solid var(--rim);border-radius:var(--r-ctl);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-0)}
+  .rc .ico{font-size:28px;line-height:1.1}
+  .rc .nm{font-size:var(--fs-sm);font-weight:600}
+  .rc .ht{font-size:var(--fs-xs);color:var(--t2);line-height:1.4}
+  .rc.lock .ico{filter:grayscale(1);opacity:.45}
+  .rc.lock .nm{color:var(--t3)}
+  .rc.fresh{animation:bw-pop .6s var(--ease)}
+  .rc-reset{align-self:center;min-height:36px;padding:0 12px;font-size:var(--fs-xs);color:var(--t3);text-decoration:underline}
+  .card .ri{flex:none;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--pink-text)}
+  .card .ri .i{width:26px;height:26px}
+  .card .chev{flex:none;color:var(--t3)}
+
   /* 皮肤：沙子（粒子画在 #sandCv 上，消息 DOM 在粒子聚拢完之前先隐藏） */
   #sandCv{position:absolute;z-index:6;pointer-events:none}
   #msgs.sand .av-slot,#msgs.sand .meta,#msgs.sand .stamp{transition:opacity .35s}
@@ -488,7 +636,8 @@
   @media (prefers-reduced-motion:reduce){
     .bob,.hero.cheer{animation:none!important}
     #pop .yaha{animation-duration:.01s;animation-delay:1.2s}
-    .drp,.hrt{animation:none}
+    .drp,.hrt,.wsp,.zz{animation:none}
+    .row.st-hot .bw>.bubble,.row.st-hot .bw>.deco{animation:none!important}
     .drp{opacity:.9;transform:translateY(8px)}
   }
   /* 不支持 backdrop-filter 的浏览器：玻璃退成更不透明的纯色填充 */
@@ -504,6 +653,10 @@
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 </defs></svg>
 <div id="shell">
 
@@ -590,6 +743,8 @@
       <div id="emojiGrid"></div>
     </div>
     <div id="fxStage" hidden></div>
+    <div id="actMenu" role="menu" hidden></div>
+    <div id="fxPick" role="menu" aria-label="选一个表情" hidden></div>
     <div id="composer">
       <button type="button" class="icon-btn" id="emojiBtn" aria-label="表情"><svg class="i" aria-hidden="true"><use href="#i-smile"/></svg></button>
       <textarea id="input" rows="1" maxlength="2000" placeholder="说点什么…" enterkeyhint="send"></textarea>
@@ -962,7 +1117,7 @@
         makeAvatar(peerFromConv(c)),
         h('div', { class: 'info' },
           h('div', { class: 'name', text: c.peer_nickname }),
-          h('div', { class: 'line2', text: (own ? '你: ' : '') + c.last_body })),
+          h('div', { class: 'line2', text: (own ? '你: ' : '') + previewOf(c.last_body) })),
         side));
     });
   }
@@ -1167,6 +1322,12 @@
     else if (Notification.permission === 'denied') panel.appendChild(h('p', { class: 'hint', style: 'margin-top:8px', text: '通知被浏览器拦截了，请在浏览器的网站设置里允许通知，然后刷新页面。' }));
     box.appendChild(panel);
 
+    var rc = h('button', { type: 'button', class: 'card', onclick: openRecipes },
+      h('span', { class: 'ri' }, svgIcon('i-book')),
+      h('div', { class: 'info' }, h('div', { class: 'name', text: '配方图鉴 ' + recipeCount() + '/' + RECIPES.length }),
+        h('div', { class: 'line2', text: '特效表情的隐藏玩法' })),
+      h('span', { class: 'chev' }, svgIcon('i-chevron-right')));
+    box.appendChild(rc);
     box.appendChild(h('div', { class: 'panel' }, h('h3', { text: '账号' }),
       h('button', { type: 'button', class: 'btn danger', style: 'width:100%', text: '退出登录', onclick: logout })));
     box.appendChild(emptyState('耳朵和 Usagi 都在这里陪你', true));
@@ -1372,7 +1533,7 @@
     var p = profileOf(m.sender_id);
     notify({
       title: p ? p.nickname : '新消息',
-      body: cut(m.body, 80),
+      body: cut(previewOf(m.body), 80),
       tag: 'msg-' + m.sender_id,
       icon: p && avatarUrl(p.avatar_path),
       data: { peer: m.sender_id }
@@ -1397,7 +1558,7 @@
     }
     if (S.chat && S.chat.peer === peerId) return;
     S.chat = { peer: peerId, msgs: [], ids: new Set(), nodes: new Map(), hasMore: false, loadingOlder: false, loaded: false,
-      bstate: {}, bshow: {}, bev: [], fxApplied: new Set() };
+      bstate: {}, bshow: {}, btstate: {}, btshow: {}, finfo: {}, bev: [], fxApplied: new Set() };
     if (!fromHistory) { try { history.pushState({ chat: peerId }, ''); } catch (e) { /* 忽略 */ } }
     $('chat').hidden = false;
     $('emojiPanel').hidden = true;
@@ -1409,13 +1570,14 @@
     renderChatHeader();
     closeNotifications('msg-' + peerId);
     applySkin();
+    startDecay();
     await fetchLatest(true);
     if (S.chat && S.chat.peer === peerId) markReadIfNeeded();
   }
   function closeChat() {
     if (!S.chat) return;
     S.chat = null;
-    stopFx();
+    stopFx(); stopDecay(); closeActMenu();
     sandDisable();
     $('chat').hidden = true;
     $('emojiPanel').hidden = true;
@@ -1505,12 +1667,12 @@
     var quiet = !!(opts && opts.quiet) || !c.loaded;
     var fresh = [], evQueued = false;
     // 气泡状态完全由聊天记录推出；只有“刚到的”特效消息才排队播变化动画
-    var fold = bubbleFold(c.msgs);
-    c.bstate = fold.states;
+    var fold = bubbleFold(c.msgs, Date.now());
+    c.bstate = fold.states; c.btstate = fold.tstates; c.finfo = fold.info;
     fold.evs.forEach(function (e) {
       if (c.fxApplied.has(e.m.key)) return;
       c.fxApplied.add(e.m.key);
-      if (!quiet) { c.bev.push({ key: e.m.key, uid: e.uid, ev: e.ev, after: e.after }); evQueued = true; }
+      if (!quiet) { c.bev.push({ key: e.m.key, uid: e.uid, tid: e.tid, ev: e.ev, x: e.x, before: e.before, after: e.after }); evQueued = true; }
     });
     syncShow(c);
     c.msgs.forEach(function (m, i) {
@@ -1543,12 +1705,13 @@
     var el = h('div', { class: 'row' });
     el._stamp = h('div', { class: 'stamp', hidden: true });
     el._bubble = h('div', { class: 'bubble' });
-    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m); }); // 点特效气泡再看一次
+    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); }); // 点特效气泡再看一次
     el._meta = h('div', { class: 'meta', hidden: true });
     el._av = h('div', { class: 'av-slot' });
     var col = h('div', { class: 'col' });
     el._deco = h('div', { class: 'deco', 'aria-hidden': 'true' });
     el._bw = h('div', { class: 'bw' }, el._bubble, el._deco);
+    el.style.setProperty('--sd', (Math.random() * 7).toFixed(1) + 's');
     col.appendChild(el._bw);
     col.appendChild(el._meta);
     var line = h('div', { class: 'line' });
@@ -1559,28 +1722,69 @@
     return el;
   }
   // 行的 class：来源方向、发送状态、气泡状态（st-*）、沙子皮肤状态（sand-*）
+  function stClasses(st) {
+    var sc = '';
+    if (st.k === 'wet') sc = ' st-wet';
+    else if (st.k === 'love') sc = ' st-love st-love-' + st.lv;
+    else if (st.k === 'passion') sc = ' st-passion st-love st-love-3';
+    else if (st.k === 'frozen') sc = ' st-frozen';
+    else if (st.k === 'hot') sc = ' st-hot';
+    else if (st.k === 'plump') sc = ' st-plump st-plump-' + st.lv;
+    else if (st.k === 'bloom') sc = ' st-bloom';
+    if (st.as) sc += ' st-asleep';
+    return sc;
+  }
   function refreshCls(el) {
     var m = el._m, c = S.chat; if (!m || !S.me) return;
     var own = m.sender_id === S.me.id;
-    var st = (c && c.bshow[m.sender_id]) || NORMAL;
-    var sc = st.k === 'wet' ? ' st-wet' : st.k === 'love' ? ' st-love st-love-' + st.lv : '';
+    var st = c ? rowState(c, m) : NORMAL;
+    var sc = el._fxb ? '' : stClasses(st); // 特效气泡本身不加装饰
     el.className = 'row ' + (own ? 'own' : 'peer') + (m.status === 'sending' ? ' sending' : '') + (m.status === 'failed' ? ' failed' : '') + sc +
       (el._sd === 'gone' ? ' sand-gone' : el._sd === 'build' ? ' sand-build' : '');
-    var dk = el._fxb ? '' : sc; // 特效气泡本身不加装饰
-    if (el._dk !== dk) { el._dk = dk; buildDeco(el._deco, st, !!dk); }
+    if (el._dk !== sc) { el._dk = sc; buildDeco(el._deco, st, !!sc); }
   }
   var HEART_POS = ['left:-7px;top:-9px', 'right:-7px;bottom:-9px', 'right:-5px;top:-9px', 'left:-5px;bottom:-9px', 'left:46%;top:-10px', 'left:40%;bottom:-10px'];
+  // 花：沿着气泡边框摆一圈（left / top）
+  var FLW_POS = [['10%', '0'], ['32%', '0'], ['55%', '0'], ['78%', '0'], ['100%', '0'], ['0', '0'], ['0', '50%'], ['100%', '50%'], ['0', '100%'], ['22%', '100%'], ['45%', '100%'], ['68%', '100%'], ['100%', '100%'], ['90%', '0'], ['88%', '100%'], ['0', '25%'], ['100%', '75%']];
+  var FLW_RING = [1, 3, 5, 6, 7, 9, 11, 12];
+  var ICL = [['10%', 9], ['26%', 14], ['44%', 8], ['60%', 12], ['76%', 16], ['90%', 10]];
+  function addFlowers(box, idxs) {
+    idxs.forEach(function (n, i) {
+      var f = h('span', { class: 'flw' + (i % 3 === 1 ? ' w' : ''), 'aria-hidden': 'true' });
+      f.style.left = FLW_POS[n][0]; f.style.top = FLW_POS[n][1]; f.style.transform = 'rotate(' + ((n * 47) % 70 - 35) + 'deg)';
+      box.appendChild(f);
+    });
+  }
   function buildDeco(box, st, on) {
     clear(box);
     if (!on) return;
-    var i;
-    if (st.k === 'wet') {
+    var i, k = st.k;
+    if (k === 'wet') {
       var xs = ['16%', '48%', '80%'];
       for (i = 0; i < 3; i++) box.appendChild(h('span', { class: 'drp', style: 'left:' + xs[i] + ';animation-delay:' + (i * 0.65) + 's', 'aria-hidden': 'true' }));
-    } else if (st.k === 'love') {
+    } else if (k === 'love') {
       for (i = 0; i < st.lv * 2 && i < HEART_POS.length; i++) {
         box.appendChild(h('span', { class: 'hrt', style: HEART_POS[i] + ';animation-delay:' + (i * 0.25) + 's', text: '♥', 'aria-hidden': 'true' }));
       }
+    } else if (k === 'passion') {
+      var all = []; for (i = 0; i < FLW_POS.length; i++) all.push(i);
+      addFlowers(box, all);
+      for (i = 0; i < 3; i++) box.appendChild(h('span', { class: 'hrt', style: HEART_POS[i * 2] + ';animation-delay:' + (i * 0.25) + 's', text: '♥', 'aria-hidden': 'true' }));
+    } else if (k === 'bloom') {
+      addFlowers(box, FLW_RING);
+    } else if (k === 'frozen') {
+      ICL.forEach(function (n) { var ic = h('span', { class: 'icl', 'aria-hidden': 'true' }); ic.style.left = n[0]; ic.style.height = n[1] + 'px'; box.appendChild(ic); });
+    } else if (k === 'hot') {
+      var wx = ['20%', '50%', '78%'];
+      for (i = 0; i < 3; i++) box.appendChild(h('span', { class: 'wsp', style: 'left:' + wx[i] + ';animation-delay:' + (i * 0.8) + 's', 'aria-hidden': 'true' }));
+    } else if (k === 'plump') {
+      box.appendChild(h('span', { class: 'chk', style: 'left:3px', 'aria-hidden': 'true' }));
+      box.appendChild(h('span', { class: 'chk', style: 'right:3px', 'aria-hidden': 'true' }));
+    }
+    if (st.as) {
+      box.appendChild(h('span', { class: 'moon', 'aria-hidden': 'true' }));
+      box.appendChild(h('span', { class: 'zz', text: 'z', 'aria-hidden': 'true' }));
+      box.appendChild(h('span', { class: 'zz', style: 'animation-delay:1.5s;right:-2px', text: 'z', 'aria-hidden': 'true' }));
     }
   }
   function updateRow(el, m, prev) {
@@ -1593,15 +1797,23 @@
     var akey = (own ? 'o|' : 'p|') + (ap && ap.avatar_path || '');
     if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 40)); }
     el._m = m;
-    if (el._body !== m.body) {
-      el._body = m.body;
-      var fx = fxOf(m.body);
+    var pf = fxParse(m.body);
+    var q = pf && pf.tid != null ? quoteText(pf.tid) : '';
+    var bsig = m.body + '|' + q;
+    if (el._body !== bsig) {
+      el._body = bsig;
+      var fx = pf && pf.fx;
       el._fxb = !!fx;
       el._bubble.classList.toggle('fx', !!fx);
       clear(el._bubble);
       if (fx) {
         el._bubble.appendChild(h('span', { class: 'fx-ico', text: fx.icon, 'aria-hidden': 'true' }));
-        el._bubble.appendChild(h('span', { text: fx.name }));
+        var tx = h('span', { class: 'fx-txt' }, h('span', { text: fx.name }));
+        if (pf.tid != null) {
+          var tid = pf.tid;
+          tx.appendChild(h('span', { class: 'fx-q', text: fx.hit.replace('{q}', q || '…'), onclick: function (ev) { ev.stopPropagation(); jumpTo(tid); } }));
+        }
+        el._bubble.appendChild(tx);
         el._bubble.title = '点一下再看一次';
       } else {
         el._bubble.textContent = m.body;
@@ -1628,56 +1840,103 @@
 
   // ===== 特效表情 =====
   // 消息内容就是 "[水枪]" 这样的文字：不用改数据库，推送通知和旧版本里也能看懂
+  // 定向攻击在后面加 "#消息id"，比如 "[雪球]#123"，只打中那一条气泡
   var FX = {
-    '[水枪]': { icon: '🔫', name: '水枪', own: '你用水枪滋了 {n}', peer: '{n} 用水枪滋了你', play: fxWater },
-    '[敲头]': { icon: '🔨', name: '敲头', own: '你敲了敲 {n} 的头', peer: '{n} 敲了敲你的头', play: fxHammer },
-    '[飞吻]': { icon: '😘', name: '飞吻', own: '你给 {n} 一个飞吻', peer: '{n} 给你一个飞吻', play: fxKiss },
-    '[拍拍]': { icon: '🫳', name: '拍拍', own: '你拍了拍 {n}', peer: '{n} 拍了拍你', play: fxPat }
+    '[水枪]': { icon: '🔫', name: '水枪', own: '你用水枪滋了 {n}', peer: '{n} 用水枪滋了你', hit: '滋中了「{q}」', at: 700, play: fxWater },
+    '[敲头]': { icon: '🔨', name: '敲头', own: '你敲了敲 {n} 的头', peer: '{n} 敲了敲你的头', hit: '敲中了「{q}」', at: 540, play: fxHammer },
+    '[飞吻]': { icon: '😘', name: '飞吻', own: '你给 {n} 一个飞吻', peer: '{n} 给你一个飞吻', hit: '吻了吻「{q}」', at: 1000, play: fxKiss },
+    '[拍拍]': { icon: '🫳', name: '拍拍', own: '你拍了拍 {n}', peer: '{n} 拍了拍你', hit: '拍了拍「{q}」', at: 600, play: fxPat },
+    '[雪球]': { icon: '❄️', name: '雪球', own: '你朝 {n} 扔了个雪球', peer: '{n} 朝你扔了个雪球', hit: '砸中了「{q}」', at: 700, play: fxSnow },
+    '[辣椒]': { icon: '🌶️', name: '辣椒', own: '你给 {n} 塞了个辣椒', peer: '{n} 给你塞了个辣椒', hit: '辣到了「{q}」', at: 800, play: fxPepper },
+    '[吹风]': { icon: '💨', name: '吹风机', own: '你用吹风机吹了吹 {n}', peer: '{n} 用吹风机吹了吹你', hit: '吹了吹「{q}」', at: 700, play: fxDryer },
+    '[投喂]': { icon: '🥕', name: '投喂', own: '你给 {n} 投喂了胡萝卜', peer: '{n} 给你投喂了胡萝卜', hit: '喂了「{q}」', at: 900, play: fxFeed },
+    '[晚安]': { icon: '🌙', name: '晚安', own: '你对 {n} 说了晚安', peer: '{n} 对你说了晚安', hit: '对「{q}」说了晚安', at: 900, play: fxNight },
+    '[送花]': { icon: '🌸', name: '送花', own: '你送了 {n} 一束花', peer: '{n} 送了你一束花', hit: '给「{q}」送了花', at: 900, play: fxFlower }
   };
-  function fxOf(body) { return Object.prototype.hasOwnProperty.call(FX, body) ? FX[body] : null; }
+  var FX_RE = /^(\[[^\[\]#]{1,4}\])(?:#(\d{1,15}))?$/;
+  function fxParse(body) {
+    if (typeof body !== 'string') return null;
+    var mt = FX_RE.exec(body);
+    if (!mt || !Object.prototype.hasOwnProperty.call(FX, mt[1])) return null;
+    return { tok: mt[1], fx: FX[mt[1]], tid: mt[2] ? parseInt(mt[2], 10) : null };
+  }
+  function fxOf(body) { var p = fxParse(body); return p ? p.fx : null; }
+  // 消息列表里的预览：定向特效不显示后面的 #id
+  function previewOf(body) { var p = fxParse(body); return p ? p.tok : body; }
 
   var fxQueue = [], fxBusy = false, fxToken = 0;
-  var fxCurKey = null;
-  function playFx(m) {
-    if (!fxOf(m.body) || !S.chat || !isVisible() || fxQueue.length >= 3) { releaseBev(m.key); return; } // 连发太多就只排三个
-    fxQueue.push(m);
+  var fxCurKey = null, fxCurMsg = null, fxCurReplay = false, curAbort = null;
+  function playFx(m, replay) {
+    var c = S.chat;
+    if (!fxOf(m.body) || !c || !isVisible() || fxQueue.length >= 3) { releaseBev(m.key); return; } // 连发太多就只排三个
+    var info = !replay && c.finfo && c.finfo[m.key];
+    if (info && info.combo) {
+      // 三连的第三下直接演大招：前面还没开演的同款先不演（状态变化照常放出来）
+      var tk = fxParse(m.body).tok, keep = [];
+      fxQueue.forEach(function (q) {
+        var qp = fxParse(q.m.body);
+        if (!q.replay && q.m.sender_id === m.sender_id && qp && qp.tok === tk) releaseBev(q.key); else keep.push(q);
+      });
+      fxQueue = keep;
+      // 正在演的也是同一个人连发的同款：直接切到大招
+      if (fxBusy && fxCurMsg && !fxCurReplay && fxCurMsg.sender_id === m.sender_id && fxParse(fxCurMsg.body).tok === tk && curAbort) curAbort();
+    }
+    fxQueue.push({ m: m, key: m.key, replay: !!replay });
     if (!fxBusy) nextFx();
   }
   function stopFx() {
-    fxToken++; fxQueue = []; fxBusy = false; fxCurKey = null;
+    fxToken++; fxQueue = []; fxBusy = false; fxCurKey = null; fxCurMsg = null; curAbort = null;
     var st = $('fxStage'); st.hidden = true; clear(st);
   }
   function nextFx() {
-    var m = fxQueue.shift();
-    if (!m || !S.chat) { fxBusy = false; return; }
+    var q = fxQueue.shift();
+    if (!q || !S.chat) { fxBusy = false; return; }
     fxBusy = true;
-    fxCurKey = m.key;
+    fxCurKey = q.key; fxCurMsg = q.m; fxCurReplay = q.replay;
     var token = ++fxToken;
-    runFx(m, token).then(function () { fxCurKey = null; releaseBev(m.key); if (token === fxToken) nextFx(); });
+    runFx(q.m, token, q.replay).then(function () { fxCurKey = null; releaseBev(q.key); if (token === fxToken) nextFx(); });
   }
-  function runFx(m, token) {
+  function runFx(m, token, replay) {
     return new Promise(function (done) {
-      var fx = fxOf(m.body);
+      var c = S.chat, fx = fxOf(m.body), p = fxParse(m.body);
       var own = m.sender_id === S.me.id;
       var other = own ? m.receiver_id : m.sender_id;
+      var otherP = profileOf(other) || (convOf(other) ? peerFromConv(convOf(other)) : null);
       // 我发的：喷对方的头像；对方发的：喷我的头像
-      var target = own ? (profileOf(other) || (convOf(other) ? peerFromConv(convOf(other)) : null)) : S.me;
+      var target = own ? otherP : S.me;
+      var info = (!replay && c && c.finfo && c.finfo[m.key]) || {};
+      var mode = replay ? 'plain' : (info.combo ? 'combo' : (info.counter ? 'battle' : 'plain'));
       var st = $('fxStage');
       clear(st);
-      var av = makeAvatar(target, 116);
-      var wrap = h('div', { class: 'fx-av' }, av);
-      st.appendChild(wrap);
-      st.appendChild(h('div', { class: 'fx-cap', text: (own ? fx.own : fx.peer).replace('{n}', nameOf(other)) }));
+      var cap = (own ? fx.own : fx.peer).replace('{n}', nameOf(other));
+      if (mode === 'battle') cap = '你和 ' + nameOf(other) + ' 的' + fx.name + '对战';
+      var av = null;
+      if (mode !== 'battle') { av = makeAvatar(target, 116); st.appendChild(h('div', { class: 'fx-av' }, av)); }
+      st.appendChild(h('div', { class: 'fx-cap', text: cap }));
       st.hidden = false;
       st.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180 });
-      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var total = 1400;
-      if (!reduced && st.animate) { try { total = fx.play(st, av); } catch (e) { /* 动画失败就静态展示 */ } }
-      setTimeout(function () {
-        if (token !== fxToken) return done();
+      var cb = mode === 'combo' ? COMBO[p.tok] : null;
+      if (isVisible()) { if (cb) unlockRecipe(cb.id); if (mode === 'battle') unlockRecipe('battle'); }
+      if (!reduced() && st.animate) {
+        try {
+          if (mode === 'battle') total = fxBattle(st, fx, otherP);
+          else if (cb) { total = cb.play(st, av); stageTag(st, cb.name, 300); }
+          else {
+            total = fx.play(st, av, info);
+            if (!replay) total = Math.max(total, stageExtra(st, av, fx, info));
+          }
+        } catch (e) { /* 动画失败就静态展示 */ }
+      }
+      var ended = false;
+      function end() { if (ended) return; ended = true; if (curAbort === abort) curAbort = null; done(); }
+      var tm = setTimeout(function () {
+        if (token !== fxToken) return end();
         var a = st.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: 'forwards' });
-        a.onfinish = function () { a.cancel(); if (token === fxToken) { st.hidden = true; clear(st); } done(); };
+        a.onfinish = function () { a.cancel(); if (token === fxToken) { st.hidden = true; clear(st); } end(); };
       }, total);
+      function abort() { clearTimeout(tm); if (token === fxToken) { st.hidden = true; clear(st); } end(); }
+      curAbort = abort;
     });
   }
 
@@ -1829,57 +2088,625 @@
     return 2400;
   }
 
-  // ===== 气泡状态：特效表情会改变“被打中的人”的所有气泡 =====
+
+  // 雪球：从右上扔来一个雪球，头像被冻上一层霜，抖一抖
+  function fxSnow(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth;
+    var sx = Math.min(W - 30, c.x + c.r + 110), sy = c.y - 40;
+    var tx = c.x + c.r * .3 - sx, ty = c.y - c.r * .1 - sy;
+    var ball = part(st, '', 'fx-snowball', sx, sy, 0);
+    anim(ball, [{ transform: tf(0, 0, 'scale(.7) rotate(0)'), opacity: 1 }, { transform: tf(tx * .5, ty * .5 - 56, 'scale(1) rotate(180deg)'), opacity: 1, offset: .55 },
+      { transform: tf(tx, ty, 'scale(1.1) rotate(360deg)'), opacity: 1, offset: .96 }, { transform: tf(tx, ty, 'scale(1.4)'), opacity: 0 }], 540, 160, 'ease-in');
+    var ice = h('div', { class: 'fx-ice' });
+    av.appendChild(ice);
+    anim(ice, [{ opacity: 0 }, { opacity: .9 }], 900, 720, 'ease-in');
+    squash(av, 700, .2);
+    anim(av, [{ transform: 'translateX(0)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(0)' }], 90, 1000, null, false, 12);
+    for (var i = 0; i < 12; i++) {
+      var f = part(st, '❄️', '', c.x + c.r * .3, c.y - c.r * .1, rnd(14, 24)), a = rnd(0, Math.PI * 2), d = rnd(40, 90);
+      anim(f, [{ transform: tf(0, 0, 'scale(.3)'), opacity: 1 }, { transform: tf(Math.cos(a) * d, Math.sin(a) * d, 'scale(1) rotate(120deg)'), opacity: 1, offset: .6 },
+        { transform: tf(Math.cos(a) * d * 1.1, Math.sin(a) * d * 1.1 + 20, 'scale(.7) rotate(180deg)'), opacity: 0 }], 800, 700, 'ease-out', true);
+    }
+    for (var k = 0; k < 10; k++) {
+      var sn = part(st, '❄️', '', c.x + rnd(-1.4, 1.4) * c.r, c.y - c.r * 1.6, rnd(12, 20));
+      anim(sn, [{ transform: tf(0, 0), opacity: 0 }, { transform: tf(rnd(-12, 12), 40, 'rotate(60deg)'), opacity: .9, offset: .3 }, { transform: tf(rnd(-24, 24), 170, 'rotate(200deg)'), opacity: 0 }], 1500, 900 + k * 150, 'ease-in-out', true);
+    }
+    say(st, '好冷！', c.x - c.r - 20, c.y - c.r * .5, 1000);
+    return 2800;
+  }
+
+  // 辣椒：塞一个辣椒进嘴，脸红冒烟喷火
+  function fxPepper(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth;
+    var sx = Math.min(W - 40, c.x + c.r + 100), sy = c.y + 20;
+    var pp = part(st, '🌶️', '', sx, sy, 56);
+    var dx = c.x + c.r * .25 - sx, dy = c.y + c.r * .35 - sy;
+    anim(pp, [{ transform: tf(120, 0, 'rotate(-30deg)'), opacity: 0 }, { transform: tf(0, 0, 'rotate(-20deg)'), opacity: 1, offset: .35 }, { transform: tf(dx, dy, 'rotate(-60deg) scale(.8)'), opacity: 1, offset: .78 }, { transform: tf(dx, dy, 'rotate(-60deg) scale(.1)'), opacity: 0 }], 760, 0, 'ease-in-out');
+    var hot = h('div', { class: 'fx-hotov' });
+    av.appendChild(hot);
+    anim(hot, [{ opacity: 0 }, { opacity: .85 }], 800, 760, 'ease-in');
+    squash(av, 760, .2);
+    anim(av, [{ transform: 'translateX(0) rotate(0)' }, { transform: 'translateX(-3px) rotate(-2deg)' }, { transform: 'translateX(3px) rotate(2deg)' }, { transform: 'translateX(0) rotate(0)' }], 130, 1000, null, false, 9);
+    for (var i = 0; i < 8; i++) {
+      var side = i % 2 ? 1 : -1;
+      var sm = part(st, '💨', '', c.x + side * c.r * .8, c.y - c.r * .1, rnd(20, 28));
+      anim(sm, [{ transform: tf(0, 0, 'scale(.4)'), opacity: 0 }, { transform: tf(side * 14, -30, 'scale(1)'), opacity: .9, offset: .35 }, { transform: tf(side * 30, -86, 'scale(1.3)'), opacity: 0 }], 1000, 1000 + i * 150, 'ease-out', true);
+    }
+    for (var f = 0; f < 3; f++) {
+      var fl = part(st, '🔥', '', c.x + (f - 1) * c.r * .5, c.y - c.r - 6, 30 + f % 2 * 8);
+      anim(fl, [{ transform: tf(0, 10, 'scale(.2)'), opacity: 0 }, { transform: tf(0, -4, 'scale(1.15)'), opacity: 1, offset: .3 }, { transform: tf(0, -10, 'scale(.9)'), opacity: 1, offset: .6 }, { transform: tf(0, -22, 'scale(.3)'), opacity: 0 }], 1100, 1200 + f * 260, 'ease-out', true);
+    }
+    for (var s = 0; s < 4; s++) {
+      var sw = part(st, '💦', '', c.x + (s % 2 ? 1 : -1) * c.r * rnd(.6, .95), c.y - c.r * .5, 18);
+      anim(sw, [{ transform: tf(0, 0, 'scale(.3)'), opacity: 0 }, { transform: tf(0, 10, 'scale(1)'), opacity: 1, offset: .3 }, { transform: tf(0, 60), opacity: 0 }], 800, 1300 + s * 200, 'ease-in', true);
+    }
+    say(st, '好辣！', c.x - c.r - 16, c.y - c.r * .6, 1100);
+    return 2900;
+  }
+
+  // 吹风机：一阵风从右边吹来，头发乱飞，头像被吹得歪来歪去
+  function fxDryer(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth;
+    var gx = Math.min(W - 40, c.x + c.r + 100), gy = c.y - 8;
+    var src = part(st, '🌬️', '', gx, gy, 62);
+    anim(src, [{ transform: tf(140, 0), opacity: 0 }, { transform: tf(0, 0), opacity: 1 }], 340, 0, 'cubic-bezier(0.22,1,0.36,1)');
+    anim(src, [{ transform: tf(0, 0), opacity: 1 }, { transform: tf(3, 0, 'rotate(4deg)'), opacity: 1 }, { transform: tf(0, 0), opacity: 1 }], 120, 400, null, false, 14);
+    anim(src, [{ transform: tf(0, 0), opacity: 1 }, { transform: tf(140, 0), opacity: 0 }], 340, 2150, 'ease-in');
+    for (var i = 0; i < 16; i++) {
+      var y = c.y + rnd(-1.1, 1.1) * c.r, w = rnd(50, 110);
+      var g = part(st, '', 'fx-gust', gx - 30, y, 0);
+      g.style.width = w + 'px';
+      anim(g, [{ transform: tf(0, 0), opacity: 0 }, { transform: tf(-(gx - c.x) * .6, rnd(-8, 8)), opacity: .9, offset: .4 }, { transform: tf(-(gx - 40) - 40, rnd(-12, 12)), opacity: 0 }], 600, 420 + i * 100, 'linear', true);
+    }
+    anim(av, [{ transform: 'rotate(0) translateX(0)' }, { transform: 'rotate(-9deg) translateX(-8px)' }, { transform: 'rotate(6deg) translateX(-3px)' }, { transform: 'rotate(0) translateX(0)' }], 360, 520, 'ease-in-out', false, 5);
+    for (var k = 0; k < 7; k++) {
+      var lf = part(st, k % 2 ? '🍃' : '〰️', '', gx - 20, c.y + rnd(-1.2, 1.2) * c.r, rnd(14, 22));
+      anim(lf, [{ transform: tf(0, 0, 'rotate(0)'), opacity: 0 }, { transform: tf(-(gx - c.x) * .7, rnd(-30, 30), 'rotate(260deg)'), opacity: 1, offset: .45 }, { transform: tf(-(gx + 20), rnd(-50, 50), 'rotate(520deg)'), opacity: 0 }], 1100, 560 + k * 200, 'ease-in-out', true);
+    }
+    say(st, '呼～', gx - 10, gy - 64, 500);
+    return 2700;
+  }
+
+  // 投喂：一根胡萝卜递到嘴边，嚼嚼嚼，腮帮子鼓起来
+  function fxFeed(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth;
+    var sx = Math.min(W - 40, c.x + c.r + 100), sy = c.y + c.r * .2;
+    var cr = part(st, '🥕', '', sx, sy, 58);
+    var dx = c.x + c.r * .3 - sx, dy = c.y + c.r * .3 - sy;
+    anim(cr, [{ transform: tf(120, 0, 'rotate(-20deg)'), opacity: 0 }, { transform: tf(0, 0, 'rotate(-20deg)'), opacity: 1, offset: .4 }, { transform: tf(dx, dy, 'rotate(-35deg)'), opacity: 1, offset: .8 }, { transform: tf(dx, dy, 'rotate(-35deg) scale(.1)'), opacity: 0 }], 800, 0, 'ease-in-out');
+    for (var i = 0; i < 4; i++) anim(av, [{ transform: 'scale(1,1)' }, { transform: 'scale(1.08,.94)' }, { transform: 'scale(.97,1.03)' }, { transform: 'scale(1,1)' }], 330, 820 + i * 330, 'ease-in-out', false, 1);
+    for (var b = 0; b < 2; b++) {
+      var bl = h('div', { class: 'fx-blush' });
+      bl.style[b ? 'right' : 'left'] = '10%';
+      av.appendChild(bl);
+      anim(bl, [{ opacity: 0 }, { opacity: 1 }], 500, 900);
+    }
+    anim(av, [{ transform: 'scale(1,1)' }, { transform: 'scale(1.12,1.12)' }], 600, 2150, 'cubic-bezier(0.22,1,0.36,1)');
+    for (var k = 0; k < 9; k++) {
+      var fd = part(st, k % 3 === 0 ? '🥕' : '✨', '', c.x + rnd(-1.3, 1.3) * c.r, c.y - c.r * 1.7, rnd(16, 26));
+      anim(fd, [{ transform: tf(0, 0, 'rotate(0)'), opacity: 0 }, { transform: tf(rnd(-10, 10), 60, 'rotate(90deg)'), opacity: 1, offset: .3 }, { transform: tf(rnd(-20, 20), 230, 'rotate(260deg)'), opacity: 0 }], 1300, 700 + k * 190, 'cubic-bezier(.5,0,.9,.6)', true);
+    }
+    say(st, '嚼嚼嚼', c.x - c.r - 22, c.y - c.r * .5, 900);
+    return 2900;
+  }
+
+  // 晚安：天暗下来，月亮升起，头像摇摇晃晃，飘出 zzz
+  function fxNight(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    var ov = overlay(st, 'fx-night', true);
+    anim(ov, [{ opacity: 0 }, { opacity: .96 }], 800, 0, 'ease-in');
+    var moon = part(st, '🌙', '', Math.min(W - 50, c.x + c.r + 40), c.y - c.r - 50, 64);
+    anim(moon, [{ transform: tf(0, -120, 'rotate(-30deg)'), opacity: 0 }, { transform: tf(0, 0, 'rotate(0)'), opacity: 1 }], 800, 300, 'cubic-bezier(0.22,1,0.36,1)');
+    for (var i = 0; i < 14; i++) {
+      var s = part(st, i % 3 ? '✨' : '⭐', '', rnd(W * .06, W * .94), rnd(H * .06, H * .7), rnd(10, 18));
+      anim(s, [{ transform: tf(0, 0, 'scale(.4)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1)'), opacity: 1 }, { transform: tf(0, 0, 'scale(.6)'), opacity: .3 }], 900, 500 + i * 90, 'ease-in-out', false, 3);
+    }
+    anim(av, [{ transform: 'rotate(0)' }, { transform: 'rotate(-4deg) translateY(4px)' }, { transform: 'rotate(4deg) translateY(4px)' }, { transform: 'rotate(0)' }], 1400, 700, 'ease-in-out', false, 2);
+    for (var z = 0; z < 5; z++) {
+      var zz = part(st, z % 2 ? 'z' : 'Z', 'fx-zz', c.x + c.r * .5, c.y - c.r * .6, 18 + z * 4);
+      anim(zz, [{ transform: tf(0, 0, 'scale(.5)'), opacity: 0 }, { transform: tf(24 + z * 8, -40 - z * 12, 'scale(1)'), opacity: 1, offset: .35 }, { transform: tf(40 + z * 12, -90 - z * 18, 'scale(1.2)'), opacity: 0 }], 1500, 900 + z * 320, 'ease-out', true);
+    }
+    say(st, '晚安～', c.x - c.r - 22, c.y - c.r * .4, 1000);
+    return 3000;
+  }
+
+  // 送花：捧着花束过来，花瓣飘落，头上戴一圈小花
+  function fxFlower(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth;
+    var sx = Math.min(W - 44, c.x + c.r + 100), sy = c.y + c.r * .3;
+    var bq = part(st, '💐', '', sx, sy, 64);
+    anim(bq, [{ transform: tf(140, 20, 'rotate(20deg)'), opacity: 0 }, { transform: tf(0, 0, 'rotate(-8deg)'), opacity: 1 }], 520, 0, 'cubic-bezier(0.22,1,0.36,1)');
+    anim(bq, [{ transform: tf(0, 0, 'rotate(-8deg)'), opacity: 1 }, { transform: tf(-6, -6, 'rotate(-14deg)'), opacity: 1 }, { transform: tf(0, 0, 'rotate(-8deg)'), opacity: 1 }], 600, 700, 'ease-in-out', false, 3);
+    anim(bq, [{ transform: tf(0, 0, 'rotate(-8deg)'), opacity: 1 }, { transform: tf(140, 20, 'rotate(20deg)'), opacity: 0 }], 360, 2500, 'ease-in');
+    for (var i = 0; i < 7; i++) {
+      var an = Math.PI * (1.08 + i * .14), fl = part(st, i % 2 ? '🌼' : '🌸', '', c.x + Math.cos(an) * c.r * .98, c.y + Math.sin(an) * c.r * .98, 24);
+      anim(fl, [{ transform: tf(0, 0, 'scale(0)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1.3)'), opacity: 1, offset: .6 }, { transform: tf(0, 0, 'scale(1)'), opacity: 1 }], 380, 900 + i * 110, 'cubic-bezier(0.22,1,0.36,1)');
+    }
+    for (var b = 0; b < 2; b++) {
+      var bl = h('div', { class: 'fx-blush' });
+      bl.style[b ? 'right' : 'left'] = '10%';
+      av.appendChild(bl);
+      anim(bl, [{ opacity: 0 }, { opacity: 1 }], 500, 1200);
+    }
+    for (var k = 0; k < 16; k++) {
+      var pt = part(st, '🌸', '', rnd(c.x - 130, c.x + 130), c.y - c.r * 1.8, rnd(14, 24));
+      anim(pt, [{ transform: tf(0, 0, 'rotate(0)'), opacity: 0 }, { transform: tf(rnd(-20, 20), 70, 'rotate(120deg)'), opacity: 1, offset: .25 }, { transform: tf(rnd(-50, 50), 280, 'rotate(360deg)'), opacity: 0 }], 1700, 500 + k * 120, 'ease-in-out', true);
+    }
+    anim(av, [{ transform: 'scale(1)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }], 400, 1300, 'ease-out', false, 2);
+    say(st, '送你花花', c.x - c.r - 28, c.y - c.r * .6, 1000);
+    return 2900;
+  }
+
+  function overlay(st, cls, behind) {
+    var o = h('div', { class: cls, 'aria-hidden': 'true' });
+    if (behind && st.firstChild) st.insertBefore(o, st.firstChild); else st.appendChild(o);
+    return o;
+  }
+  // 配方名牌：命中某个有名字的变化时，在说明下面亮一个小标签
+  function stageTag(st, name, delay) {
+    var tg = h('div', { class: 'fx-tag', text: name });
+    st.appendChild(tg);
+    anim(tg, [{ opacity: 0, transform: 'translateX(-50%) translateY(8px)' }, { opacity: 1, transform: 'translateX(-50%) translateY(0)' }], 320, delay, 'cubic-bezier(0.22,1,0.36,1)');
+  }
+  // 有名字的状态变化（蒸汽浴、碎冰、打嗝、吹不散……）在舞台上也补一层粒子，时间对准“命中”那一刻
+  function stageExtra(st, av, fx, info) {
+    var c = centerOf(st, av), start = fx.at || 800, end = 0, named = null;
+    if (info.ev && RC_IDX[info.ev] != null) named = info.ev; else if (info.x && RC_IDX[info.x] != null) named = info.x;
+    if (named) stageTag(st, RECIPES[RC_IDX[named]].name, start);
+    if (info.ev && RC_IDX[info.ev] != null) end = Math.max(end, stageParts(st, c, info.ev, start));
+    if (info.x) end = Math.max(end, stageParts(st, c, info.x, start + 300));
+    return end ? end + 300 : 0;
+  }
+  function stageParts(st, c, ev, start) {
+    var def = BEV[ev], end = start;
+    if (!def) return end;
+    [def.a, def.b].forEach(function (p) {
+      if (!p) return;
+      var n = Math.min(p[1] * 2, 14);
+      for (var i = 0; i < n; i++) end = Math.max(end, stageOne(st, c, p[0], p[2], start + i * 55, i, n));
+    });
+    return end;
+  }
+  function stageOne(st, c, emoji, how, delay, idx, n) {
+    var size = rnd(20, 30), x = c.x + rnd(-.7, .7) * c.r, y = c.y + rnd(-.5, .5) * c.r, dx = 0, dy = 0, dur = 1000, fr;
+    if (how === 'orbit') {
+      var a0 = idx / n * Math.PI * 2, R = c.r * 1.3;
+      fr = [];
+      for (var s = 0; s <= 12; s++) {
+        var an = a0 + s / 12 * Math.PI * 2;
+        fr.push({ transform: tf(Math.cos(an) * R - (x - c.x), Math.sin(an) * R * .8 - (y - c.y), 'scale(' + (s === 0 || s === 12 ? .5 : 1) + ')'), opacity: s === 0 || s === 12 ? 0 : 1 });
+      }
+      anim(part(st, emoji, '', x, y, size), fr, 1700, delay, 'ease-in-out', true);
+      return delay + 1700;
+    }
+    if (how === 'up' || how === 'steam') { dx = rnd(-20, 20); dy = rnd(-100, -50); }
+    else if (how === 'fall') { y = c.y - c.r * .3; dx = rnd(-30, 30); dy = rnd(90, 150); }
+    else if (how === 'spray') { y = c.y + c.r * .5; dx = rnd(-40, 40); dy = rnd(40, 90); }
+    else if (how === 'fling') { dx = (idx % 2 ? 1 : -1) * rnd(90, 150); dy = rnd(-20, 40); }
+    else if (how === 'spit') { x = c.x + c.r * .2; y = c.y + c.r * .35; dx = (idx % 2 ? 1 : -1) * rnd(100, 150); dy = rnd(-30, 20); }
+    else { var ag = rnd(0, Math.PI * 2), d = rnd(60, 110); x = c.x; y = c.y; dx = Math.cos(ag) * d; dy = Math.sin(ag) * d - 10; }
+    var el = part(st, emoji, '', x, y, size);
+    anim(el, [{ transform: tf(0, 0, 'scale(.4)'), opacity: 0 }, { transform: tf(dx * .45, dy * .45 - (how === 'spit' ? 40 : 0), 'scale(1)'), opacity: 1, offset: .3 },
+      { transform: tf(dx, dy, 'scale(.9) rotate(' + rnd(-90, 90) + 'deg)'), opacity: 0 }], dur, delay, how === 'fall' ? 'cubic-bezier(.5,0,.9,.6)' : 'ease-out', true);
+    return delay + dur;
+  }
+
+  // 对战：两个头像面对面，特效来回飞，最后各中一发
+  function fxBattle(st, fx, otherP) {
+    var W = st.clientWidth, H = st.clientHeight, ay = H * .4, ax = W * .24, bx = W * .76, mid = (ax + bx) / 2;
+    function side(prof, xp) {
+      var a = makeAvatar(prof, 88), w = h('div', { class: 'fx-av' }, a);
+      w.style.left = xp + 'px';
+      st.appendChild(w);
+      return a;
+    }
+    var la = side(S.me, ax), lb = side(otherP, bx);
+    anim(la, [{ transform: 'rotate(0)' }, { transform: 'rotate(8deg)' }], 300, 0, 'ease-out');
+    anim(lb, [{ transform: 'rotate(0)' }, { transform: 'rotate(-8deg)' }], 300, 0, 'ease-out');
+    var pa = part(st, fx.icon, '', ax, ay, 44), pb = part(st, fx.icon, '', bx, ay, 44);
+    var dm = mid - ax;
+    function round(t, dur) {
+      anim(pa, [{ transform: tf(0, 0, 'scale(.6)'), opacity: 1 }, { transform: tf(dm, 0, 'scale(1.1)'), opacity: 1 }], dur, t, 'ease-in');
+      anim(pb, [{ transform: tf(0, 0, 'scale(.6) scaleX(-1)'), opacity: 1 }, { transform: tf(-dm, 0, 'scale(1.1) scaleX(-1)'), opacity: 1 }], dur, t, 'ease-in');
+    }
+    function back(t, dur) {
+      anim(pa, [{ transform: tf(dm, 0, 'scale(1.1)'), opacity: 1 }, { transform: tf(0, 0, 'scale(.6)'), opacity: 1 }], dur, t, 'cubic-bezier(0.22,1,0.36,1)');
+      anim(pb, [{ transform: tf(-dm, 0, 'scale(1.1) scaleX(-1)'), opacity: 1 }, { transform: tf(0, 0, 'scale(.6) scaleX(-1)'), opacity: 1 }], dur, t, 'cubic-bezier(0.22,1,0.36,1)');
+    }
+    function spark(t, size) {
+      var sp = part(st, '💥', '', mid, ay, size);
+      anim(sp, [{ transform: tf(0, 0, 'scale(.2)'), opacity: 1 }, { transform: tf(0, 0, 'scale(1.2)'), opacity: 1, offset: .5 }, { transform: tf(0, 0, 'scale(1.5)'), opacity: 0 }], 480, t, 'ease-out', true);
+      for (var i = 0; i < 6; i++) {
+        var an = rnd(0, Math.PI * 2), d = rnd(40, 80), s = part(st, '✨', '', mid, ay, rnd(14, 22));
+        anim(s, [{ transform: tf(0, 0, 'scale(.3)'), opacity: 1 }, { transform: tf(Math.cos(an) * d, Math.sin(an) * d, 'scale(1)'), opacity: 0 }], 600, t, 'ease-out', true);
+      }
+    }
+    round(300, 460); spark(760, 60); back(780, 480);
+    round(1400, 340); spark(1740, 84); back(1760, 420);
+    // 最后一轮：各自穿过去，打中对面
+    anim(pa, [{ transform: tf(0, 0, 'scale(.6)'), opacity: 1 }, { transform: tf(bx - ax, 0, 'scale(1.3)'), opacity: 1, offset: .9 }, { transform: tf(bx - ax, 0, 'scale(1.6)'), opacity: 0 }], 520, 2250, 'ease-in');
+    anim(pb, [{ transform: tf(0, 0, 'scale(.6) scaleX(-1)'), opacity: 1 }, { transform: tf(ax - bx, 0, 'scale(1.3) scaleX(-1)'), opacity: 1, offset: .9 }, { transform: tf(ax - bx, 0, 'scale(1.6) scaleX(-1)'), opacity: 0 }], 520, 2250, 'ease-in');
+    function hitAv(el, rot, t) {
+      anim(el, [{ transform: 'rotate(' + rot + 'deg) scale(1)' }, { transform: 'rotate(' + rot + 'deg) scale(1.14,.86)' }, { transform: 'rotate(' + (rot * -.5) + 'deg) scale(.94,1.06)' }, { transform: 'rotate(' + rot + 'deg) scale(1)' }], 420, t, 'cubic-bezier(0.22,1,0.36,1)');
+    }
+    hitAv(la, 8, 2720); hitAv(lb, -8, 2720);
+    for (var i = 0; i < 8; i++) {
+      var side2 = i % 2, px = side2 ? bx : ax, an = rnd(0, Math.PI * 2), d = rnd(40, 70), q = part(st, i % 3 ? '💫' : '⭐', '', px, ay, rnd(16, 24));
+      anim(q, [{ transform: tf(0, 0, 'scale(.3)'), opacity: 1 }, { transform: tf(Math.cos(an) * d, Math.sin(an) * d - 20, 'scale(1)'), opacity: 0 }], 700, 2720, 'ease-out', true);
+    }
+    var lab = part(st, '对战！', 'fx-say fx-big', mid, ay - 90, 0);
+    anim(lab, [{ transform: tf(0, 10, 'scale(.4)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1.15)'), opacity: 1, offset: .3 }, { transform: tf(0, 0, 'scale(1)'), opacity: 1 }], 420, 2300, 'cubic-bezier(0.22,1,0.36,1)');
+    return 3500;
+  }
+
+  // ===== 连发三次的大招（三连） =====
+  var FOODS = ['🥕', '🍎', '🍞', '🍰', '🍙', '🍓', '🍩'];
+  function cmbWater(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    var fl = overlay(st, 'fx-flood');
+    anim(fl, [{ transform: 'translateY(100%)', easing: 'cubic-bezier(0.22,1,0.36,1)' }, { transform: 'translateY(16%)', offset: .45 }, { transform: 'translateY(16%)', offset: .68, easing: 'ease-in-out' }, { transform: 'translateY(106%)' }], 3200, 0, 'linear');
+    for (var i = 0; i < 18; i++) {
+      var b = part(st, '🫧', '', rnd(W * .05, W * .95), H + 10, rnd(16, 30));
+      anim(b, [{ transform: tf(0, 0), opacity: 0 }, { transform: tf(rnd(-16, 16), -H * .35), opacity: .9, offset: .4 }, { transform: tf(rnd(-24, 24), -H * rnd(.6, .85)), opacity: 0 }], 1500, 500 + i * 90, 'ease-out', true);
+    }
+    anim(av, [{ transform: 'translateY(0)' }, { transform: 'translateY(-16px)' }, { transform: 'translateY(0)' }], 1100, 1000, 'ease-in-out', false, 2);
+    say(st, '咕噜咕噜', c.x, c.y - c.r - 34, 1200);
+    return 3400;
+  }
+  function cmbKiss(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight, hs = ['💗', '💕', '💖', '❤️', '💘'];
+    for (var i = 0; i < 56; i++) {
+      var x = rnd(0, W), hr = part(st, hs[i % 5], '', x, -30, rnd(18, 36));
+      anim(hr, [{ transform: tf(0, 0, 'rotate(-10deg)'), opacity: 0 }, { transform: tf(rnd(-20, 20), H * .15, 'rotate(10deg)'), opacity: 1, offset: .12 }, { transform: tf(rnd(-40, 40), H * .6, 'rotate(-10deg)'), opacity: 1, offset: .7 }, { transform: tf(rnd(-30, 30), H + 60, 'rotate(10deg)'), opacity: 0 }], rnd(1500, 2200), rnd(0, 1600), 'cubic-bezier(.4,0,.8,.7)', true);
+    }
+    anim(av, [{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], 420, 400, 'ease-out', false, 5);
+    say(st, 'mua～', c.x, c.y - c.r - 30, 600);
+    return 3600;
+  }
+  function cmbHammer(st, av) {
+    var c = centerOf(st, av), chat = $('chat');
+    for (var i = 0; i < 3; i++) anim(chat, [{ transform: 'none' }, { transform: 'translate(-7px,4px)' }, { transform: 'translate(6px,-5px)' }, { transform: 'translate(-4px,-3px)' }, { transform: 'translate(3px,3px)' }, { transform: 'none' }], 360, 300 + i * 520, 'linear', false, 1);
+    for (var s = 0; s < 3; s++) { squash(av, 300 + s * 520, .2); say(st, '咚！', c.x + (s - 1) * 60, c.y - c.r - 30 - s * 12, 320 + s * 520); }
+    var N = 10;
+    for (var k = 0; k < N; k++) {
+      var fr = [], a0 = k / N * Math.PI * 2, R = c.r * 1.45;
+      for (var q = 0; q <= 16; q++) {
+        var an = a0 + q / 16 * Math.PI * 4;
+        fr.push({ transform: tf(Math.cos(an) * R - (R), Math.sin(an) * R * .55, 'scale(' + (q === 0 || q === 16 ? .3 : 1) + ') rotate(' + (q * 45) + 'deg)'), opacity: q === 0 || q === 16 ? 0 : 1 });
+      }
+      var star = part(st, k % 2 ? '⭐' : '🌟', '', c.x + R, c.y, 24);
+      anim(star, fr, 2100, 500, 'linear', true);
+    }
+    return 3000;
+  }
+  function cmbSnow(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    var wh = overlay(st, 'fx-white');
+    anim(wh, [{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .75 }, { opacity: 0 }], 3000, 0, 'ease-in-out');
+    for (var i = 0; i < 90; i++) {
+      var x = rnd(0, W * 1.4), f = part(st, '❄️', '', x, -20, rnd(12, 26));
+      anim(f, [{ transform: tf(0, 0, 'rotate(0)'), opacity: 0 }, { transform: tf(-60, H * .1, 'rotate(60deg)'), opacity: 1, offset: .1 }, { transform: tf(-W * .5 - rnd(0, 120), H + 40, 'rotate(360deg)'), opacity: .8 }], rnd(800, 1400), rnd(0, 1900), 'linear', true);
+    }
+    anim(av, [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], 90, 400, null, false, 22);
+    say(st, '暴风雪！', c.x, c.y - c.r - 34, 500);
+    return 3200;
+  }
+  function cmbPepper(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    var fr = overlay(st, 'fx-fire');
+    anim(fr, [{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: .7, offset: .3 }, { opacity: 1, offset: .45 }, { opacity: .75, offset: .6 }, { opacity: 1, offset: .75 }, { opacity: 0 }], 3000, 0, 'ease-in-out');
+    for (var i = 0; i < 30; i++) {
+      var side = i % 3, x, y;
+      if (side === 0) { x = (i / 3 + .5) / 10 * W; y = H - 10; } else if (side === 1) { x = 8; y = H * (1 - (i + 2) / 33); } else { x = W - 8; y = H * (1 - (i + 1) / 33); }
+      var fl = part(st, '🔥', '', x, y, rnd(26, 40));
+      anim(fl, [{ transform: tf(0, 6, 'scale(.3)'), opacity: 0 }, { transform: tf(0, -6, 'scale(1.1)'), opacity: 1, offset: .2 }, { transform: tf(0, -2, 'scale(.85)'), opacity: 1, offset: .4 }, { transform: tf(0, -8, 'scale(1.15)'), opacity: 1, offset: .6 }, { transform: tf(0, -4, 'scale(.9)'), opacity: 1, offset: .8 }, { transform: tf(0, -18, 'scale(.3)'), opacity: 0 }], 2500, 200 + rnd(0, 400), 'ease-in-out', true);
+    }
+    anim(av, [{ transform: 'translateX(0) rotate(0)' }, { transform: 'translateX(-3px) rotate(-2deg)' }, { transform: 'translateX(3px) rotate(2deg)' }, { transform: 'translateX(0) rotate(0)' }], 130, 300, null, false, 18);
+    say(st, '火辣辣！', c.x, c.y - c.r - 34, 500);
+    return 3200;
+  }
+  function cmbDryer(st, av) {
+    var W = st.clientWidth, H = st.clientHeight, cx = W / 2, glyphs = ['🍃', '🌸', '💨', '🍂', '〰️'];
+    var big = part(st, '🌪️', '', cx, H * .5, 170);
+    anim(big, [{ transform: tf(0, 40, 'scale(.3)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1)'), opacity: .9, offset: .25 }, { transform: tf(0, 0, 'scale(1.05)'), opacity: .9, offset: .75 }, { transform: tf(0, -30, 'scale(.8)'), opacity: 0 }], 3000, 0, 'ease-out');
+    for (var i = 0; i < 36; i++) {
+      var a0 = rnd(0, Math.PI * 2), turns = rnd(2.4, 3.6), fr = [], part_ = part(st, glyphs[i % 5], '', cx, H * .5, rnd(16, 28));
+      for (var s = 0; s <= 18; s++) {
+        var u = s / 18, an = a0 + u * Math.PI * 2 * turns, rad = 14 + u * W * .4;
+        fr.push({ transform: tf(Math.cos(an) * rad, H * .26 - u * H * .52 + Math.sin(an) * rad * .22, 'rotate(' + (u * 720) + 'deg) scale(' + (.6 + u * .6) + ')'), opacity: u < .08 || u > .92 ? 0 : 1 });
+      }
+      anim(part_, fr, rnd(1700, 2300), rnd(0, 900), 'linear', true);
+    }
+    anim(av, [{ transform: 'rotate(0)' }, { transform: 'rotate(-12deg)' }, { transform: 'rotate(12deg)' }, { transform: 'rotate(0)' }], 400, 300, 'ease-in-out', false, 6);
+    say(st, '龙卷风！', cx, H * .18, 500);
+    return 3400;
+  }
+  function cmbFeed(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    for (var i = 0; i < 40; i++) {
+      var row = Math.floor(i / 8), x = W * ((i % 8) + .5) / 8 + rnd(-14, 14), yEnd = H - 34 - row * 26 - rnd(0, 8);
+      var fd = part(st, FOODS[i % 7], '', x, -30, rnd(26, 36));
+      anim(fd, [{ transform: tf(0, 0, 'rotate(0)'), opacity: 1 }, { transform: tf(0, yEnd + 30, 'rotate(' + rnd(-40, 40) + 'deg)'), opacity: 1, offset: .8 }, { transform: tf(0, yEnd + 20, 'rotate(' + rnd(-20, 20) + 'deg)'), opacity: 1, offset: .9 }, { transform: tf(0, yEnd + 30, 'rotate(' + rnd(-20, 20) + 'deg)'), opacity: 1 }], rnd(700, 950), 200 + i * 55, 'cubic-bezier(.5,0,.9,.6)');
+    }
+    anim(av, [{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }], 1800, 600, 'ease-out');
+    say(st, '吃不完啦', c.x, c.y - c.r - 34, 1400);
+    return 3500;
+  }
+  function cmbFlower(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight, gl = ['🌸', '🌸', '🌺', '🌼', '💮'];
+    for (var i = 0; i < 70; i++) {
+      var y0 = rnd(0, H), fr = [], f = part(st, gl[i % 5], '', 0, y0, rnd(14, 28));
+      for (var s = 0; s <= 6; s++) fr.push({ transform: tf(-30 + s / 6 * (W + 60), Math.sin(s * 1.3 + i) * 60 + s * 10, 'rotate(' + (s * 120) + 'deg)'), opacity: s === 0 || s === 6 ? 0 : 1 });
+      anim(f, fr, rnd(1400, 2200), rnd(0, 1500), 'ease-in-out', true);
+    }
+    var bq = part(st, '💐', '', c.x, c.y - c.r - 20, 64);
+    anim(bq, [{ transform: tf(0, 0, 'scale(0)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1.2)'), opacity: 1, offset: .5 }, { transform: tf(0, 0, 'scale(1)'), opacity: 1 }], 500, 200, 'cubic-bezier(0.22,1,0.36,1)');
+    anim(bq, [{ transform: tf(0, 0), opacity: 1 }, { transform: tf(0, -20, 'scale(.6)'), opacity: 0 }], 400, 2900, 'ease-in');
+    say(st, '花瓣风暴', c.x, c.y + c.r + 30, 900);
+    return 3400;
+  }
+  function cmbPat(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight, chat = $('chat');
+    var hand = part(st, '🫳', '', W / 2, H * .38, 260);
+    anim(hand, [{ transform: tf(0, -H * .6), opacity: 0 }, { transform: tf(0, -H * .1), opacity: 1 }], 420, 0, 'ease-out');
+    for (var i = 0; i < 3; i++) {
+      var t = 460 + i * 620;
+      anim(hand, [{ transform: tf(0, -H * .1), opacity: 1 }, { transform: tf(0, H * .06, 'scale(1.1)'), opacity: 1, offset: .4 }, { transform: tf(0, -H * .1), opacity: 1 }], 560, t, 'cubic-bezier(.6,0,.4,1)');
+      anim(chat, [{ transform: 'none' }, { transform: 'translateY(10px) scaleY(.985)' }, { transform: 'none' }], 300, t + 200, 'cubic-bezier(0.22,1,0.36,1)');
+      squash(av, t + 200, .22);
+      var ring = part(st, '', 'fx-ring', W / 2, H * .5, 0);
+      anim(ring, [{ transform: tf(0, 0, 'scale(.4)'), opacity: .9 }, { transform: tf(0, 0, 'scale(' + (W / 40) + ')'), opacity: 0 }], 700, t + 200, 'ease-out', true);
+      say(st, '啪！', c.x + (i - 1) * 70, c.y - c.r - 20, t + 200);
+    }
+    anim(hand, [{ transform: tf(0, -H * .1), opacity: 1 }, { transform: tf(0, -H * .6), opacity: 0 }], 400, 2500, 'ease-in');
+    return 3000;
+  }
+  function cmbNight(st, av) {
+    var c = centerOf(st, av), W = st.clientWidth, H = st.clientHeight;
+    var ov = overlay(st, 'fx-night', true);
+    anim(ov, [{ opacity: 0 }, { opacity: 1, offset: .2 }, { opacity: 1, offset: .82 }, { opacity: 0 }], 3400, 0, 'ease-in-out');
+    for (var i = 0; i < 70; i++) {
+      var s = h('div', { class: 'fx-star', 'aria-hidden': 'true' });
+      s.style.left = rnd(0, W) + 'px'; s.style.top = rnd(0, H * .85) + 'px';
+      st.appendChild(s);
+      var sc = rnd(.6, 1.8);
+      anim(s, [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'scale(' + sc + ')' }, { opacity: .25, transform: 'scale(' + sc * .6 + ')' }], rnd(700, 1300), rnd(300, 1500), 'ease-in-out', false, 3);
+    }
+    var sh = h('div', { class: 'fx-shoot', 'aria-hidden': 'true' });
+    sh.style.left = W * .7 + 'px'; sh.style.top = H * .12 + 'px'; sh.style.transform = 'rotate(30deg)';
+    st.appendChild(sh);
+    anim(sh, [{ opacity: 0, transform: 'translate(0,0) rotate(30deg)' }, { opacity: 1, transform: 'translate(-60px,34px) rotate(30deg)', offset: .2 }, { opacity: 0, transform: 'translate(-300px,170px) rotate(30deg)' }], 900, 1500, 'ease-in');
+    var moon = part(st, '🌙', '', W * .72, H * .2, 120);
+    anim(moon, [{ transform: tf(0, -80, 'scale(.6)'), opacity: 0 }, { transform: tf(0, 0, 'scale(1)'), opacity: 1 }], 900, 300, 'cubic-bezier(0.22,1,0.36,1)');
+    anim(av, [{ transform: 'rotate(0)' }, { transform: 'rotate(-4deg) translateY(4px)' }, { transform: 'rotate(4deg) translateY(4px)' }, { transform: 'rotate(0)' }], 1500, 700, 'ease-in-out', false, 2);
+    for (var z = 0; z < 6; z++) {
+      var zz = part(st, z % 2 ? 'z' : 'Z', 'fx-zz', c.x + c.r * .5, c.y - c.r * .6, 18 + z * 4);
+      anim(zz, [{ transform: tf(0, 0, 'scale(.5)'), opacity: 0 }, { transform: tf(24 + z * 8, -40 - z * 12, 'scale(1)'), opacity: 1, offset: .35 }, { transform: tf(40 + z * 12, -90 - z * 18, 'scale(1.2)'), opacity: 0 }], 1500, 900 + z * 340, 'ease-out', true);
+    }
+    return 3600;
+  }
+  var COMBO = {
+    '[水枪]': { id: 'c_water', name: '水漫聊天框', play: cmbWater },
+    '[飞吻]': { id: 'c_kiss', name: '爱心雨', play: cmbKiss },
+    '[敲头]': { id: 'c_hammer', name: '群星环绕', play: cmbHammer },
+    '[雪球]': { id: 'c_snow', name: '暴风雪', play: cmbSnow },
+    '[辣椒]': { id: 'c_pepper', name: '烈焰边框', play: cmbPepper },
+    '[吹风]': { id: 'c_dryer', name: '龙卷风', play: cmbDryer },
+    '[投喂]': { id: 'c_feed', name: '美食堆', play: cmbFeed },
+    '[送花]': { id: 'c_flower', name: '花瓣风暴', play: cmbFlower },
+    '[拍拍]': { id: 'c_pat', name: '大手拍屏', play: cmbPat },
+    '[晚安]': { id: 'c_night', name: '星空夜', play: cmbNight }
+  };
+
+  // ===== 气泡状态：特效表情会改变“被打中的人”的所有气泡（或者定向攻击时只改一条） =====
   // 状态完全由聊天记录推出（不用改数据库）：按顺序走一遍消息，每条特效消息改变对方的状态
   // @reducer-begin
-  var NORMAL = { k: 'normal', lv: 0 };
-  function bubbleStep(st, body) {
-    var k = st.k, lv = st.lv;
-    if (body === '[水枪]') return { k: 'wet', lv: 0, ev: 'wet' };
-    if (body === '[飞吻]') return { k: 'love', lv: k === 'love' ? Math.min(3, lv + 1) : 1, ev: 'love' };
-    if (body === '[拍拍]') {
-      if (k === 'wet') return { k: 'normal', lv: 0, ev: 'dry' };
-      if (k === 'love') return { k: 'love', lv: Math.min(3, lv + 1), ev: 'lovemore' };
-      return { k: 'normal', lv: 0, ev: 'bounce' };
+  // 状态：{ k 主状态, lv 等级, as 睡着, t 主状态计时起点, ta 睡着起点 }（毫秒时间戳，全部来自消息的 created_at，所以两边看到的一样）
+  var HR = 3600000;
+  var DECAY = { wet: 12 * HR, frozen: HR, hot: 6 * HR, love: 24 * HR, passion: 24 * HR, plump: 6 * HR, bloom: 48 * HR, asleep: 12 * HR };
+  var COMBO_MS = 8000, COUNTER_MS = 10000;
+  function mkSt(k, lv, as, t, ta) { return { k: k, lv: lv, as: !!as, t: t, ta: ta }; }
+  var NORMAL = mkSt('normal', 0, false, 0, 0);
+  // 时间衰减：只看时间，不产生动画。冰冻 1 小时后变湿，湿的 12 小时计时从那一刻开始
+  function decayState(st, now) {
+    var k = st.k, lv = st.lv, t = st.t, as = st.as, n = 0;
+    while (n++ < 80 && k !== 'normal') {
+      var d = now - t;
+      if (k === 'wet' && d >= DECAY.wet) { k = 'normal'; lv = 0; }
+      else if (k === 'frozen' && d >= DECAY.frozen) { k = 'wet'; lv = 0; t += DECAY.frozen; }
+      else if (k === 'hot' && d >= DECAY.hot) { k = 'normal'; lv = 0; }
+      else if (k === 'bloom' && d >= DECAY.bloom) { k = 'normal'; lv = 0; }
+      else if (k === 'love' && d >= DECAY.love) { lv--; t += DECAY.love; if (lv <= 0) { k = 'normal'; lv = 0; } }
+      else if (k === 'passion' && d >= DECAY.passion) { k = 'love'; lv = 3; t += DECAY.passion; }
+      else if (k === 'plump' && d >= DECAY.plump) { lv--; t += DECAY.plump; if (lv <= 0) { k = 'normal'; lv = 0; } }
+      else break;
     }
-    if (body === '[敲头]') {
-      if (k === 'love') return { k: 'normal', lv: 0, ev: 'unlove' };
-      return { k: k, lv: lv, ev: 'bonk' };
-    }
-    return { k: k, lv: lv, ev: null };
+    if (as && now - st.ta >= DECAY.asleep) as = false;
+    return mkSt(k, lv, as, t, st.ta);
   }
-  function bubbleFold(msgs) {
-    var states = {}, evs = [];
+  function sameSt(a, b) { return a.k === b.k && a.lv === b.lv && !!a.as === !!b.as; }
+  // 纯函数：sticker 是 "[水枪]" 这样的 token，空（null）表示这个人自己发了普通消息
+  // 返回新状态 + ev（气泡变化动画）+ x（额外动作：wake 醒来 / gentle 轻拍睡着的人）+ before（衰减后的旧状态）
+  function bubbleStep(st0, sticker, meta) {
+    var hasTs = !!(meta && meta.ts != null), ts = hasTs ? meta.ts : 0;
+    var st = hasTs ? decayState(st0, ts) : st0;
+    var k = st.k, lv = st.lv, as = st.as, ta = st.ta, t = st.t, x = null;
+    function r(k2, l2, ev, fresh) {
+      var chg = k2 !== k || (k2 !== 'normal' && l2 !== lv);
+      var o = mkSt(k2, k2 === 'normal' ? 0 : l2, as, (chg || fresh) ? ts : t, ta);
+      o.ev = ev; o.x = x; o.before = st;
+      return o;
+    }
+    function up() { return Math.min(3, lv + 1); }
+    if (!sticker) { if (as) { as = false; x = 'wake'; } return r(k, lv, null, false); }
+    switch (sticker) {
+      case '[水枪]':
+        if (as) { as = false; x = 'wake'; }
+        if (k === 'passion') return r('passion', 0, 'evap', false);
+        if (k === 'frozen') return r('frozen', 0, 'moreice', true);
+        if (k === 'hot') return r('normal', 0, 'steambath', false);
+        if (k === 'bloom') return r('wet', 0, 'soaked', false);
+        return r('wet', 0, 'wet', true);
+      case '[敲头]':
+        if (k === 'love') return r('normal', 0, 'unlove', false);
+        if (k === 'passion') return r('love', 3, 'knockflowers', false);
+        if (k === 'frozen') return r('normal', 0, 'shatter', false);
+        if (k === 'plump') return lv > 1 ? r('plump', lv - 1, 'carrot', false) : r('normal', 0, 'carrot', false);
+        return r(k, lv, 'bonk', false);
+      case '[飞吻]':
+        if (k === 'passion') return r('passion', 0, 'heartburst', false);
+        if (k === 'frozen') return r('wet', 0, 'meltwarm', false);
+        if (k === 'love') return r('love', up(), 'lovemore', true);
+        return r('love', 1, 'love', false);
+      case '[拍拍]':
+        if (as) x = 'gentle';
+        if (k === 'wet') return r('normal', 0, 'dry', false);
+        if (k === 'love') return r('love', up(), 'lovemore', true);
+        if (k === 'plump') return r('normal', 0, 'burp', false);
+        if (k === 'frozen') return r('frozen', 0, 'shiver', false);
+        return r(k, lv, 'bounce', false);
+      case '[雪球]':
+        if (k === 'hot') return r('normal', 0, 'hiss', false);
+        if (k === 'passion') return r('love', 3, 'cooldown', false);
+        if (k === 'wet') return r('frozen', 0, 'freezewet', false);
+        if (k === 'frozen') return r('frozen', 0, 'freeze', true);
+        return r('frozen', 0, 'freeze', false);
+      case '[辣椒]':
+        if (k === 'frozen') return r('wet', 0, 'melt', false);
+        if (k === 'wet') return r('normal', 0, 'steam', false);
+        if (k === 'love') return r('love', up(), 'spicylove', true);
+        if (k === 'passion') return r('passion', 0, 'spicy', false);
+        if (k === 'hot') return r('hot', 0, 'bigflame', true);
+        if (k === 'bloom') return r('hot', 0, 'wilt', false);
+        return r('hot', 0, 'heat', false);
+      case '[吹风]':
+        if (k === 'wet') return r('normal', 0, 'blowdry', false);
+        if (k === 'frozen') return r('wet', 0, 'thaw', false);
+        if (k === 'bloom') return r('normal', 0, 'petalsaway', false);
+        if (k === 'love' || k === 'passion') return r(k, lv, 'nodisperse', false);
+        if (k === 'hot') return r('hot', 0, 'flare', false);
+        return r(k, lv, 'wobble', false);
+      case '[投喂]':
+        if (k === 'plump') return r('plump', up(), 'feedmore', true);
+        return r('plump', 1, 'feed', false);
+      case '[晚安]':
+        as = true; ta = ts;
+        return r(k, lv, 'sleep', false);
+      case '[送花]':
+        if (k === 'love') return lv < 3 ? r('love', lv + 1, 'petalburst', false) : r('passion', 0, 'passion', false);
+        if (k === 'bloom') return r('bloom', 0, 'morebloom', true);
+        if (k === 'passion') return r('passion', 0, 'petalburst', false);
+        if (k === 'frozen') return r('frozen', 0, 'frostflower', false);
+        if (k === 'hot') return r('hot', 0, 'flowerwilt', false);
+        return r('bloom', 0, 'bloom', false);
+    }
+    return r(k, lv, null, false);
+  }
+  function keepSt(o) { return mkSt(o.k, o.lv, o.as, o.t, o.ta); }
+  function tsOf(m) { var v = Date.parse(m.created_at); return isNaN(v) ? 0 : v; }
+  // 走一遍消息，推出：每个人的状态 states、定向攻击只影响某条气泡的状态 tstates（按消息 id）、变化事件 evs、
+  // 以及每条特效消息的附加信息 info（combo 三连、counter 对战）。now：最后一步按这个时间衰减
+  function bubbleFold(msgs, now) {
+    var states = {}, tstates = {}, evs = [], info = {}, runs = {}, prev = null, byId = {}, id, uid;
+    if (now == null) now = Date.now();
+    msgs.forEach(function (m) { if (m.id != null) byId[m.id] = m; });
     msgs.forEach(function (m) {
-      if (m.status === 'failed' || !fxOf(m.body) || m.sender_id === m.receiver_id) return;
-      var uid = m.receiver_id; // 被打中的是收到的人
-      var nx = bubbleStep(states[uid] || NORMAL, m.body);
-      states[uid] = { k: nx.k, lv: nx.lv };
-      evs.push({ m: m, uid: uid, ev: nx.ev, after: states[uid] });
+      if (m.status === 'failed' || m.sender_id === m.receiver_id) return;
+      var p = fxParse(m.body), ts = tsOf(m), nx, i;
+      if (!p) {
+        // 睡着的人自己发了消息就醒了（连带他被定向攻击过的气泡）
+        uid = m.sender_id;
+        nx = bubbleStep(states[uid] || NORMAL, null, { ts: ts });
+        states[uid] = keepSt(nx);
+        for (id in tstates) if (tstates[id].uid === uid) tstates[id].st = keepSt(bubbleStep(tstates[id].st, null, { ts: ts }));
+        if (nx.x) evs.push({ m: m, uid: uid, tid: null, ev: null, x: nx.x, before: nx.before, after: states[uid] });
+        return;
+      }
+      var tok = p.tok, s = m.sender_id;
+      uid = m.receiver_id; // 被打中的是收到的人
+      // 三连：同一个人 8 秒内连发三个同样的特效，第三个是 combo（用完重新数）
+      var run = runs[s];
+      if (run && run.tok === tok) run.ts.push(ts); else run = runs[s] = { tok: tok, ts: [ts] };
+      if (run.ts.length > 3) run.ts.shift();
+      var combo = false;
+      if (run.ts.length === 3 && run.ts[2] - run.ts[0] <= COMBO_MS) { combo = true; run.ts = []; }
+      // 对战：对方刚发过同样的特效，10 秒内回敬
+      var counter = !!(prev && prev.sender !== s && prev.tok === tok && ts - prev.ts >= 0 && ts - prev.ts <= COUNTER_MS);
+      prev = { sender: s, tok: tok, ts: ts };
+      var rec = info[m.key] = { combo: combo, counter: counter, ev: null, x: null, tid: null, uid: uid };
+      if (p.tid != null) {
+        var tm = byId[p.tid];
+        // 只认已加载、而且是被打中的人发的普通消息
+        if (!tm || tm.sender_id !== uid || fxParse(tm.body)) return;
+        var base = tstates[tm.id] ? tstates[tm.id].st : (states[uid] || NORMAL);
+        nx = bubbleStep(base, tok, { ts: ts });
+        tstates[tm.id] = { st: keepSt(nx), uid: uid };
+        rec.ev = nx.ev; rec.x = nx.x; rec.tid = tm.id;
+        evs.push({ m: m, uid: uid, tid: tm.id, ev: nx.ev, x: nx.x, before: nx.before, after: tstates[tm.id].st });
+      } else {
+        nx = bubbleStep(states[uid] || NORMAL, tok, { ts: ts });
+        states[uid] = keepSt(nx);
+        // 没指定目标的特效照旧影响所有气泡：包括已经被单独打过的
+        for (id in tstates) if (tstates[id].uid === uid) tstates[id].st = keepSt(bubbleStep(tstates[id].st, tok, { ts: ts }));
+        rec.ev = nx.ev; rec.x = nx.x;
+        evs.push({ m: m, uid: uid, tid: null, ev: nx.ev, x: nx.x, before: nx.before, after: states[uid] });
+      }
     });
-    return { states: states, evs: evs };
+    for (uid in states) states[uid] = decayState(states[uid], now);
+    for (id in tstates) tstates[id].st = decayState(tstates[id].st, now);
+    return { states: states, tstates: tstates, evs: evs, info: info };
   }
   // @reducer-end
 
   function reduced() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  // 一条气泡实际显示的状态：被单独打过的用自己的，否则跟着这个人走
+  function rowState(c, m) {
+    var t = m.id != null && c.btshow[m.id];
+    return t ? t.st : (c.bshow[m.sender_id] || NORMAL);
+  }
+  // 有排队中的变化动画：那个人（或那条气泡）先不动，等动画放到那一步
   function bevPending(c, uid) {
-    for (var i = 0; i < c.bev.length; i++) if (c.bev[i].uid === uid) return true;
+    for (var i = 0; i < c.bev.length; i++) if (c.bev[i].uid === uid && c.bev[i].tid == null) return true;
     return false;
   }
-  // 屏幕上显示的状态 bshow 跟着推出来的状态 bstate 走；有动画排队的人先不动，等动画放到那一步
+  function bevPendingT(c, uid, tid) {
+    for (var i = 0; i < c.bev.length; i++) if (c.bev[i].uid === uid && (c.bev[i].tid == null || String(c.bev[i].tid) === String(tid))) return true;
+    return false;
+  }
+  // 屏幕上显示的状态 bshow / btshow 跟着推出来的状态 bstate / btstate 走；返回有没有变化
   function syncShow(c) {
-    var uids = {}, k;
+    var uids = {}, k, changed = false;
     for (k in c.bstate) uids[k] = 1;
     for (k in c.bshow) uids[k] = 1;
     for (k in uids) {
       if (bevPending(c, k)) continue;
       var t = c.bstate[k] || NORMAL, o = c.bshow[k];
-      if (!o || o.k !== t.k || o.lv !== t.lv) c.bshow[k] = t;
+      if (!o || !sameSt(o, t)) { c.bshow[k] = t; changed = true; }
     }
+    var ids = {};
+    for (k in c.btstate) ids[k] = 1;
+    for (k in c.btshow) ids[k] = 1;
+    for (k in ids) {
+      var nt = c.btstate[k], ot = c.btshow[k];
+      if (!nt) { delete c.btshow[k]; changed = true; continue; }
+      if (bevPendingT(c, nt.uid, k)) continue;
+      if (!ot || !sameSt(ot.st, nt.st)) { c.btshow[k] = nt; changed = true; }
+    }
+    return changed;
   }
   function repaintRows(c) {
     c.nodes.forEach(function (el) { if (el._m) refreshCls(el); });
   }
+  // 时间衰减：每分钟重算一次，只有显示的状态真的变了才改 class（不播动画）
+  var decayTimer = 0;
+  function tickDecay() {
+    var c = S.chat; if (!c || !c.loaded) return;
+    var f = bubbleFold(c.msgs, Date.now());
+    c.bstate = f.states; c.btstate = f.tstates;
+    if (syncShow(c)) repaintRows(c);
+  }
+  function startDecay() { stopDecay(); decayTimer = setInterval(tickDecay, 60000); }
+  function stopDecay() { if (decayTimer) { clearInterval(decayTimer); decayTimer = 0; } }
   function releaseBev(key) {
     var c = S.chat; if (!c || !c.bev.length) return;
     var keep = [], hit = [];
@@ -1887,9 +2714,15 @@
     if (!hit.length) return;
     c.bev = keep;
     hit.forEach(function (e) {
-      c.bshow[e.uid] = e.after;
+      if (e.tid != null) c.btshow[e.tid] = { st: e.after, uid: e.uid };
+      else c.bshow[e.uid] = e.after;
+      syncShow(c);
       repaintRows(c);
-      bubbleEv(e.uid, e.ev);
+      bubbleEv(e);
+      if (isVisible()) {
+        if (e.ev && RC_IDX[e.ev] != null) unlockRecipe(e.ev);
+        if (e.x && RC_IDX[e.x] != null) unlockRecipe(e.x);
+      }
     });
   }
   // 没有全屏动画可等的变化（后台、连发太多、重连补上的）直接放出来
@@ -1902,58 +2735,225 @@
     });
   }
 
-  // 状态变化动画：气泡本身用 CSS 动画，小粒子（水滴、爱心、星星、蒸汽）是临时的 span
+  // 状态变化动画：气泡本身用 CSS 动画（cls），小粒子（水滴、爱心、星星、蒸汽）是临时的 span。a / b = [表情, 个数, 运动方式]
   var BEV = {
-    wet:      { a: ['💧', 5, 'spray'] },
-    love:     { a: ['💗', 4, 'up'] },
-    lovemore: { a: ['💕', 7, 'burst'] },
-    dry:      { a: ['💨', 3, 'steam'], b: ['💧', 5, 'fling'] },
-    unlove:   { a: ['💔', 3, 'fall'], b: ['💗', 3, 'fall'] },
-    bonk:     { a: ['⭐', 3, 'star'] },
-    bounce:   {}
+    wet:       { a: ['💧', 5, 'spray'], cls: 'ev-wet' },
+    love:      { a: ['💗', 4, 'up'], cls: 'ev-love' },
+    lovemore:  { a: ['💕', 7, 'burst'], cls: 'ev-love' },
+    dry:       { a: ['💨', 3, 'steam'], b: ['💧', 5, 'fling'], cls: 'ev-dry' },
+    unlove:    { a: ['💔', 3, 'fall'], b: ['💗', 3, 'fall'], cls: 'ev-unlove' },
+    bonk:      { a: ['⭐', 3, 'star'], cls: 'ev-bonk' },
+    bounce:    { cls: 'ev-bounce' },
+    evap:      { a: ['💨', 5, 'steam'], b: ['💧', 3, 'steam'], cls: 'ev-pop' },
+    moreice:   { a: ['❄️', 6, 'burst'], cls: 'ev-shiver' },
+    steambath: { a: ['💨', 9, 'steam'], b: ['♨️', 3, 'up'], cls: 'ev-puff' },
+    soaked:    { a: ['🌸', 6, 'fall'], b: ['💧', 4, 'spray'], cls: 'ev-shake' },
+    shatter:   { a: ['🧊', 8, 'burst'], b: ['✨', 4, 'burst'], cls: 'ev-bonk' },
+    carrot:    { a: ['🥕', 1, 'spit'], cls: 'ev-jelly' },
+    knockflowers: { a: ['🌸', 7, 'fall'], cls: 'ev-bonk' },
+    meltwarm:  { a: ['💧', 6, 'fall'], b: ['💗', 2, 'up'], cls: 'ev-pop' },
+    heartburst:{ a: ['💗', 8, 'burst'], cls: 'ev-pop' },
+    burp:      { a: ['💨', 3, 'fling'], cls: 'ev-jelly' },
+    shiver:    { a: ['💧', 2, 'fall'], cls: 'ev-shiver' },
+    gentle:    { a: ['💤', 2, 'up'], cls: 'ev-pop' },
+    freezewet: { a: ['❄️', 6, 'burst'], cls: 'ev-shiver' },
+    freeze:    { a: ['❄️', 5, 'burst'], cls: 'ev-shiver' },
+    hiss:      { a: ['💨', 5, 'steam'], cls: 'ev-shake' },
+    cooldown:  { a: ['❄️', 4, 'burst'], b: ['💗', 3, 'fall'], cls: 'ev-pop' },
+    melt:      { a: ['💧', 6, 'fall'], cls: 'ev-shake' },
+    steam:     { a: ['💨', 4, 'steam'], cls: 'ev-dry' },
+    spicylove: { a: ['🔥', 3, 'up'], b: ['💗', 4, 'up'], cls: 'ev-pop' },
+    spicy:     { a: ['🔥', 3, 'up'], cls: 'ev-pop' },
+    bigflame:  { a: ['🔥', 6, 'up'], cls: 'ev-flare' },
+    heat:      { a: ['🔥', 3, 'up'], cls: 'ev-flare' },
+    wilt:      { a: ['🥀', 3, 'fall'], b: ['🔥', 2, 'up'], cls: 'ev-shake' },
+    blowdry:   { a: ['💨', 5, 'fling'], b: ['💧', 4, 'fling'], cls: 'ev-dry' },
+    thaw:      { a: ['💧', 5, 'fall'], b: ['💨', 3, 'fling'], cls: 'ev-shake' },
+    petalsaway:{ a: ['🌸', 8, 'fling'], cls: 'ev-wobble' },
+    nodisperse:{ a: ['💗', 6, 'orbit'], cls: 'ev-wobble' },
+    flare:     { a: ['🔥', 5, 'up'], cls: 'ev-flare' },
+    wobble:    { cls: 'ev-wobble' },
+    feed:      { a: ['🥕', 3, 'up'], cls: 'ev-puff' },
+    feedmore:  { a: ['🥕', 4, 'up'], cls: 'ev-puff' },
+    bloom:     { a: ['🌸', 5, 'up'], cls: 'ev-pop' },
+    petalburst:{ a: ['🌸', 8, 'burst'], cls: 'ev-pop' },
+    passion:   { a: ['🌸', 6, 'burst'], b: ['💗', 6, 'burst'], cls: 'ev-pop' },
+    morebloom: { a: ['🌸', 6, 'burst'], cls: 'ev-pop' },
+    frostflower:{ a: ['❄️', 3, 'burst'], b: ['🌸', 2, 'burst'], cls: 'ev-shiver' },
+    flowerwilt:{ a: ['🥀', 3, 'fall'], cls: 'ev-shake' },
+    sleep:     { a: ['💤', 3, 'up'], cls: 'ev-pop' },
+    wake:      { a: ['✨', 4, 'burst'], cls: 'ev-stretch' }
   };
+  var FROM_VARS = {
+    wet: ['--wet-bg', '--wet-bd', '--wet-fg'], love: ['--love-bg', '--love-bd', '--love-fg'], passion: ['--love-bg', '--love-bd', '--love-fg'],
+    frozen: ['--frozen-bg', '--frozen-bd', '--frozen-fg'], hot: ['--hot-bg', '--hot-bd', '--hot-fg'],
+    plump: ['--plump-bg', '--plump-bd', '--plump-fg'], bloom: ['--bloom-bg', '--bloom-bd', '--bloom-fg']
+  };
+  function setFromTint(el, st) {
+    var v = FROM_VARS[st.k], b = el._bubble.style;
+    if (v) { b.setProperty('--from-bg', 'var(' + v[0] + ')'); b.setProperty('--from-bd', 'var(' + v[1] + ')'); b.setProperty('--from-fg', 'var(' + v[2] + ')'); }
+    else {
+      b.setProperty('--from-bg', el._m.sender_id === S.me.id ? 'var(--bub-own)' : 'var(--bub-peer)');
+      b.setProperty('--from-bd', 'var(--bub-bd)'); b.setProperty('--from-fg', 'var(--t1)');
+    }
+  }
   function bevPart(bw, t, how) {
-    var l, tp, dx, dy;
+    var l, tp, dx, dy, cls = 'bp';
     if (how === 'spray') { l = rnd(15, 85); tp = 100; dx = rnd(-24, 24); dy = rnd(20, 46); }
     else if (how === 'up') { l = rnd(15, 85); tp = 0; dx = rnd(-18, 18); dy = rnd(-46, -24); }
     else if (how === 'burst') { l = rnd(30, 70); tp = 50; dx = rnd(-64, 64); dy = rnd(-48, -6); }
     else if (how === 'steam') { l = rnd(15, 85); tp = 0; dx = rnd(-10, 10); dy = rnd(-42, -24); }
     else if (how === 'fling') { l = rnd(10, 90); tp = 50; dx = (Math.random() < .5 ? -1 : 1) * rnd(40, 72); dy = rnd(-6, 30); }
-    else if (how === 'fall') { l = rnd(10, 90); tp = 90; dx = rnd(-14, 14); dy = rnd(40, 66); }
+    else if (how === 'fall') { l = rnd(10, 90); tp = 90; dx = rnd(-14, 14); dy = rnd(40, 66); cls += ' fall'; }
+    else if (how === 'spit') { l = rnd(60, 90); tp = 60; dx = (Math.random() < .5 ? -1 : 1) * rnd(70, 100); dy = rnd(-24, 24); }
+    else if (how === 'orbit') { l = 50; tp = 50; dx = 0; dy = 0; cls += ' orbit'; }
     else { l = rnd(20, 80); tp = 0; dx = rnd(-30, 30); dy = rnd(-40, -18); } // star
-    var d = h('span', { class: 'bp' + (how === 'fall' ? ' fall' : ''), text: t, 'aria-hidden': 'true' });
+    var d = h('span', { class: cls, text: t, 'aria-hidden': 'true' });
     d.style.left = l + '%'; d.style.top = tp + '%'; d.style.marginLeft = '-8px'; d.style.marginTop = '-8px';
     d.style.setProperty('--dx', dx + 'px'); d.style.setProperty('--dy', dy + 'px'); d.style.setProperty('--rot', rnd(-60, 60) + 'deg');
+    if (how === 'orbit') { d.style.setProperty('--a', rnd(0, 360) + 'deg'); d.style.setProperty('--rad', rnd(34, 46) + 'px'); }
     d.style.animationDelay = rnd(0, 180) + 'ms';
     bw.appendChild(d);
   }
   function cleanEv(el) {
     el._evT = 0;
-    if (el._evCls) el._bw.classList.remove(el._evCls);
-    el._evCls = '';
+    if (el._evCls) el._evCls.forEach(function (n) { el._bw.classList.remove(n); });
+    el._evCls = null;
+    el._bubble.style.removeProperty('--from-bg'); el._bubble.style.removeProperty('--from-bd'); el._bubble.style.removeProperty('--from-fg');
     var ps = el._bw.querySelectorAll('.bp');
     for (var i = 0; i < ps.length; i++) ps[i].parentNode.removeChild(ps[i]);
   }
-  function bubbleEv(uid, ev) {
-    var c = S.chat, def = BEV[ev];
-    if (!c || !def || reduced() || !isVisible()) return;
+  // e：一条变化事件（uid 被打中的人，tid 只打中某条气泡时的消息 id，ev 主动画，x 额外动作，before 变化前的状态）
+  function bubbleEv(e) {
+    var c = S.chat;
+    var names = [];
+    if (e.ev && BEV[e.ev]) names.push(e.ev);
+    if (e.x && BEV[e.x]) names.push(e.x);
+    if (!c || !names.length || reduced() || !isVisible()) return;
     var mr = $('msgs').getBoundingClientRect();
     c.nodes.forEach(function (el) {
-      if (!el._m || el._m.sender_id !== uid || el._sd) return;
+      if (!el._m || el._sd) return;
+      if (e.tid != null) { if (el._m.id !== e.tid) return; }
+      else if (el._m.sender_id !== e.uid) return;
       var r = el.getBoundingClientRect();
       if (!r.height || r.bottom < mr.top || r.top > mr.bottom) return; // 只演屏幕上看得到的
       if (el._evT) { clearTimeout(el._evT); cleanEv(el); }
       void el._bw.offsetWidth; // 让同一个动画可以重新开始
-      el._evCls = 'ev-' + ev;
-      el._bw.classList.add(el._evCls);
+      el._evCls = [BEV[names[0]].cls];
+      if (!el._fxb && e.before && e.after && e.before.k !== e.after.k && names[0] !== 'dry' && names[0] !== 'unlove') { setFromTint(el, e.before); el._evCls.push('ev-tint'); }
+      el._evCls.forEach(function (n) { el._bw.classList.add(n); });
       if (!el._fxb) {
-        [def.a, def.b].forEach(function (p) {
-          if (!p) return;
-          for (var i = 0; i < p[1]; i++) bevPart(el._bw, p[0], p[2]);
+        names.forEach(function (nm) {
+          [BEV[nm].a, BEV[nm].b].forEach(function (p) {
+            if (!p) return;
+            for (var i = 0; i < p[1]; i++) bevPart(el._bw, p[0], p[2]);
+          });
         });
       }
-      el._evT = setTimeout(function () { cleanEv(el); }, 1600);
+      el._evT = setTimeout(function () { cleanEv(el); }, 1800);
     });
+  }
+
+  // ===== 配方图鉴：每个有名字的变化 / 三连 / 对战，在这台设备上第一次“现场”演出时解锁 =====
+  var RECIPES = [
+    { id: 'steambath', name: '蒸汽浴', icon: '♨️', hint: '用水枪滋一个正在发热的人' },
+    { id: 'melt', name: '化冰', icon: '💧', hint: '给冻住的人塞个辣椒' },
+    { id: 'freezewet', name: '冰封', icon: '🧊', hint: '朝湿透的人扔雪球' },
+    { id: 'shatter', name: '碎冰', icon: '🔨', hint: '敲一敲冻住的人' },
+    { id: 'passion', name: '热恋', icon: '💞', hint: '给爱到最满的人送花' },
+    { id: 'burp', name: '打嗝', icon: '🫧', hint: '拍拍圆滚滚的人' },
+    { id: 'carrot', name: '吐萝卜', icon: '🥕', hint: '敲一敲吃撑了的人' },
+    { id: 'nodisperse', name: '吹不散', icon: '💗', hint: '对满心是爱的人吹风' },
+    { id: 'petalsaway', name: '落花', icon: '🌸', hint: '对戴着花环的人吹风' },
+    { id: 'wake', name: '叫醒', icon: '⏰', hint: '水枪滋醒，或让对方发消息' },
+    { id: 'evap', name: '蒸发', icon: '☁️', hint: '用水枪滋热恋中的人' },
+    { id: 'moreice', name: '冰上加冰', icon: '❄️', hint: '用水枪滋冻住的人' },
+    { id: 'meltwarm', name: '暖暖化开', icon: '🫠', hint: '给冻住的人一个飞吻' },
+    { id: 'hiss', name: '嘶嘶对消', icon: '💨', hint: '朝发热的人扔雪球' },
+    { id: 'wilt', name: '花朵枯萎', icon: '🥀', hint: '给戴着花环的人塞辣椒' },
+    { id: 'flowerwilt', name: '花谢', icon: '🥀', hint: '给发热的人送花' },
+    { id: 'thaw', name: '解冻', icon: '🌤️', hint: '对冻住的人吹风' },
+    { id: 'soaked', name: '落花流水', icon: '🌧️', hint: '用水枪滋戴着花环的人' },
+    { id: 'gentle', name: '轻轻拍', icon: '💤', hint: '拍拍已经睡着的人' },
+    { id: 'spicylove', name: '辣味爱情', icon: '🌶️', hint: '给满怀爱意的人塞辣椒' },
+    { id: 'knockflowers', name: '落英缤纷', icon: '🌼', hint: '敲一敲热恋中的人' },
+    { id: 'cooldown', name: '冷静一下', icon: '🌨️', hint: '朝热恋中的人扔雪球' },
+    { id: 'shiver', name: '冻得发抖', icon: '🥶', hint: '拍拍冻住的人' },
+    { id: 'bigflame', name: '火上浇油', icon: '🔥', hint: '给已经发热的人再塞辣椒' },
+    { id: 'flare', name: '呼啦火苗', icon: '🔥', hint: '对发热的人吹风' },
+    { id: 'c_water', name: '水漫聊天框', icon: '🌊', hint: '8 秒内连发 3 次水枪' },
+    { id: 'c_kiss', name: '爱心雨', icon: '💞', hint: '8 秒内连发 3 次飞吻' },
+    { id: 'c_hammer', name: '群星环绕', icon: '🌟', hint: '8 秒内连发 3 次敲头' },
+    { id: 'c_snow', name: '暴风雪', icon: '🌨️', hint: '8 秒内连发 3 次雪球' },
+    { id: 'c_pepper', name: '烈焰边框', icon: '🔥', hint: '8 秒内连发 3 次辣椒' },
+    { id: 'c_dryer', name: '龙卷风', icon: '🌪️', hint: '8 秒内连发 3 次吹风' },
+    { id: 'c_feed', name: '美食堆', icon: '🍱', hint: '8 秒内连发 3 次投喂' },
+    { id: 'c_flower', name: '花瓣风暴', icon: '💮', hint: '8 秒内连发 3 次送花' },
+    { id: 'c_pat', name: '大手拍屏', icon: '🫳', hint: '8 秒内连发 3 次拍拍' },
+    { id: 'c_night', name: '星空夜', icon: '🌌', hint: '8 秒内连发 3 次晚安' },
+    { id: 'battle', name: '对战', icon: '⚔️', hint: '10 秒内回敬对方同样的表情' }
+  ];
+  var RC_IDX = {};
+  RECIPES.forEach(function (r, i) { RC_IDX[r.id] = i; });
+  function recipesGot() {
+    var out = {}, raw = lsGet('chat.recipes'), arr = [];
+    try { arr = raw ? JSON.parse(raw) : []; } catch (e) { arr = []; }
+    if (!Array.isArray(arr)) arr = [];
+    arr.forEach(function (id) { if (RC_IDX[id] != null) out[id] = 1; });
+    return out;
+  }
+  function recipeCount() { return Object.keys(recipesGot()).length; }
+  var recipeFresh = null;
+  function unlockRecipe(id) {
+    if (RC_IDX[id] == null) return;
+    var got = recipesGot();
+    if (got[id]) return;
+    got[id] = 1;
+    lsSet('chat.recipes', JSON.stringify(Object.keys(got)));
+    recipeFresh = id;
+    toast('解锁新配方：' + RECIPES[RC_IDX[id]].name, 2600);
+    if (S.tab === 'me' && !S.chat) renderMe();
+    if ($('recipeSheet')) renderRecipes();
+  }
+  function renderRecipes() {
+    var sheet = $('recipeSheet'); if (!sheet) return;
+    var got = recipesGot(), n = RECIPES.length, cnt = Object.keys(got).length;
+    var grid = clear(sheet.querySelector('.rc-grid'));
+    sheet.querySelector('.count').textContent = cnt + '/' + n;
+    RECIPES.forEach(function (r) {
+      var on = !!got[r.id];
+      grid.appendChild(h('div', { class: 'rc' + (on ? '' : ' lock') + (recipeFresh === r.id ? ' fresh' : '') },
+        h('div', { class: 'ico', text: on ? r.icon : '❔', 'aria-hidden': 'true' }),
+        h('div', { class: 'nm', text: on ? r.name : '???' }),
+        h('div', { class: 'ht', text: r.hint })));
+    });
+    recipeFresh = null;
+  }
+  function openRecipes() {
+    var ex = $('recipeSheet');
+    if (ex) { if (ex.classList.contains('show')) return; ex.parentNode.removeChild(ex); }
+    var resetBtn = h('button', { type: 'button', class: 'rc-reset', text: '重置图鉴' });
+    var armed = 0;
+    resetBtn.addEventListener('click', function () {
+      if (!armed) { armed = 1; resetBtn.textContent = '再点一次确认重置'; setTimeout(function () { armed = 0; resetBtn.textContent = '重置图鉴'; }, 3000); return; }
+      lsSet('chat.recipes', '[]'); armed = 0; resetBtn.textContent = '重置图鉴';
+      renderRecipes(); if (S.tab === 'me') renderMe();
+    });
+    var sheet = h('div', { id: 'recipeSheet', role: 'dialog', 'aria-label': '配方图鉴' },
+      h('div', { class: 'sheet' },
+        h('div', { class: 'sh-top' }, h('h3', null, '配方图鉴', h('span', { class: 'count' })),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': '关闭', onclick: closeRecipes }, svgIcon('i-x'))),
+        h('div', { class: 'rc-grid' }), resetBtn));
+    sheet.addEventListener('click', function (ev) { if (ev.target === sheet) closeRecipes(); });
+    $('shell').appendChild(sheet);
+    renderRecipes();
+    void sheet.offsetWidth;
+    sheet.classList.add('show');
+  }
+  function closeRecipes() {
+    var sheet = $('recipeSheet'); if (!sheet) return;
+    sheet.classList.remove('show');
+    setTimeout(function () { if (sheet.parentNode && !sheet.classList.contains('show')) sheet.parentNode.removeChild(sheet); }, 320);
   }
 
   // ===== 皮肤（我的 里选；只影响自己看到的样子，存在本机） =====
@@ -2116,20 +3116,38 @@
     s1.sort(byKey); s2.sort(byKey);
     var pts = s1.concat(s2), n = pts.length;
     if (n < 20) return null;
+    var kind = sandKind(el), ns1 = s1.length;
     var g = {
-      el: el, mode: mode, n: n, t0: performance.now(), end: 0, ox: 0, oy: 0,
-      x: new Float32Array(n), y: new Float32Array(n), sz: new Float32Array(n), ci: new Uint16Array(n),
+      el: el, mode: mode, n: n, kind: kind, t0: performance.now(), end: 0, ox: 0, oy: 0, gv: 150, ez: 0, shard: kind === 'frozen', fl: kind === 'hot',
+      x: new Float32Array(n), y: new Float32Array(n), sz: new Float32Array(n), ci: new Uint16Array(n), rt: new Float32Array(n),
       pa: new Float32Array(n), pb: new Float32Array(n), dl: new Float32Array(n), du: new Float32Array(n), pal: []
     };
+    // 状态联动：湿的成团直直落下；爱心 / 热恋是粉色粒子飘起；冰冻是尖尖的浅蓝碎片炸开；发热是橙色火星往上飘
+    if (kind === 'wet') { g.gv = 520; g.ez = mode === 'in' ? 1 : 0; } else if (kind === 'hot') g.gv = -70; else if (kind === 'love') g.gv = -25; else if (kind === 'frozen') g.gv = 240;
     var palIdx = {};
     for (var j = 0; j < n; j++) {
       var p = pts[j];
-      if (palIdx[p.key] == null) {
-        palIdx[p.key] = g.pal.length;
-        g.pal.push('rgb(' + (((p.key >> 10) << 3) | 4) + ',' + ((((p.key >> 5) & 31) << 3) | 4) + ',' + (((p.key & 31) << 3) | 4) + ')');
+      var col = kind ? tintColor(kind, p.key) : null, pk = col || p.key;
+      if (palIdx[pk] == null) {
+        palIdx[pk] = g.pal.length;
+        g.pal.push(col || ('rgb(' + (((p.key >> 10) << 3) | 4) + ',' + ((((p.key >> 5) & 31) << 3) | 4) + ',' + (((p.key & 31) << 3) | 4) + ')'));
       }
-      g.ci[j] = palIdx[p.key]; g.x[j] = p.x; g.y[j] = p.y; g.sz[j] = p.s;
-      if (mode === 'in') {
+      g.ci[j] = palIdx[pk]; g.x[j] = p.x; g.y[j] = p.y; g.sz[j] = p.s * (kind === 'frozen' ? 1.7 : 1); g.rt[j] = rnd(0, 6.28);
+      var cl = Math.floor(p.x / Math.max(1, w / 5)), ccx = w / 2, ccy = hh / 2;
+      if (kind === 'wet') {
+        g.pa[j] = rnd(-6, 6); g.pb[j] = mode === 'in' ? -rnd(70, 150) : rnd(0, 12);
+        g.dl[j] = cl * 70 + rnd(0, 60); g.du[j] = rnd(600, 850);
+      } else if (kind === 'love') {
+        g.pa[j] = rnd(-34, 34); g.pb[j] = mode === 'in' ? rnd(40, 100) : -rnd(45, 120);
+        g.dl[j] = rnd(0, 260) + (mode === 'in' ? 0 : (p.x / w) * 160); g.du[j] = mode === 'in' ? rnd(700, 1000) : rnd(900, 1250);
+      } else if (kind === 'frozen') {
+        var kf = mode === 'in' ? rnd(.8, 1.6) : rnd(.7, 1.5);
+        g.pa[j] = (p.x - ccx) * kf + (mode === 'in' ? 0 : rnd(-20, 20)); g.pb[j] = (p.y - ccy) * kf + (mode === 'in' ? -20 : rnd(-50, -10));
+        g.dl[j] = mode === 'in' ? rnd(0, 220) : rnd(0, 80); g.du[j] = mode === 'in' ? rnd(600, 900) : rnd(550, 850);
+      } else if (kind === 'hot') {
+        g.pa[j] = rnd(-20, 20); g.pb[j] = mode === 'in' ? rnd(40, 110) : -rnd(40, 110);
+        g.dl[j] = rnd(0, 320); g.du[j] = mode === 'in' ? rnd(700, 1000) : rnd(800, 1200);
+      } else if (mode === 'in') {
         // 从四周飘来：起点在目标点附近随机方向
         var ang = rnd(0, Math.PI * 2), dist = rnd(30, 130);
         g.pa[j] = Math.cos(ang) * dist * 1.3; g.pb[j] = Math.sin(ang) * dist * 0.7 + 18;
@@ -2142,6 +3160,24 @@
       if (g.dl[j] + g.du[j] > g.end) g.end = g.dl[j] + g.du[j];
     }
     return g;
+  }
+  // 当前这一行的状态决定粒子的样子
+  function sandKind(el) {
+    var c = S.chat; if (!c || !el._m || el._fxb) return '';
+    var k = rowState(c, el._m).k;
+    return k === 'passion' ? 'love' : (k === 'wet' || k === 'love' || k === 'frozen' || k === 'hot') ? k : '';
+  }
+  var TINT = {
+    love: [['#ffd1e1', '#ffb3cf', '#ff9cc0'], ['#c2275f', '#a81f50', '#d6376f']],
+    frozen: [['#f2faff', '#d6ecfc', '#bfe0f8'], ['#4f8fc4', '#6aa9d8', '#3f7bb0']],
+    hot: [['#ffd9a8', '#ffc07a', '#ffe9b8'], ['#e2461a', '#ff6a1f', '#c9360f']]
+  };
+  // 按原来像素的明暗，换成这个状态的配色（亮的像素用浅色，暗的用深色，文字和气泡底仍然分得开）
+  function tintColor(kind, key) {
+    var t = TINT[kind]; if (!t) return null;
+    var lum = ((key >> 10) & 31) * 8 * .3 + ((key >> 5) & 31) * 8 * .59 + (key & 31) * 8 * .11;
+    var list = t[lum > 140 ? 0 : 1];
+    return list[(Math.random() * list.length) | 0];
   }
   function sandStart(g) {
     sandFit();
@@ -2173,14 +3209,14 @@
       }
       if (t >= g.end) { sandDone(g); continue; }
       live.push(g);
-      var lastC = -1, lastA = 1;
+      var lastC = -1, lastA = 1, inPath = false, sh = g.shard;
       ctx.globalAlpha = 1;
       for (i = 0; i < g.n; i++) {
         var p = t - g.dl[i], x, y, a = 1;
         if (g.mode === 'in') {
           if (p <= 0) continue;
           var u = p / g.du[i]; if (u > 1) u = 1;
-          var e = 1 - (1 - u) * (1 - u) * (1 - u);
+          var e = g.ez ? u * u : 1 - (1 - u) * (1 - u) * (1 - u);
           x = ox + g.x[i] + g.pa[i] * (1 - e); y = oy + g.y[i] + g.pb[i] * (1 - e);
           if (u < 0.3) a = u / 0.3;
         } else if (p <= 0) {
@@ -2188,13 +3224,27 @@
         } else {
           var s = p / 1000, u2 = p / g.du[i];
           if (u2 >= 1) continue;
-          x = ox + g.x[i] + g.pa[i] * s; y = oy + g.y[i] + g.pb[i] * s + 150 * s * s;
+          x = ox + g.x[i] + g.pa[i] * s; y = oy + g.y[i] + g.pb[i] * s + g.gv * s * s;
           a = 1 - u2 * u2;
+        }
+        if (g.fl) a *= 0.65 + 0.35 * Math.sin(now * 0.02 + i);
+        if (sh) {
+          if (g.ci[i] !== lastC || a !== lastA) {
+            if (inPath) ctx.fill();
+            lastC = g.ci[i]; lastA = a; ctx.fillStyle = g.pal[lastC]; ctx.globalAlpha = a; ctx.beginPath(); inPath = true;
+          }
+          var sz = g.sz[i], an = g.rt[i] + t * 0.004, cx = x + sz / 2, cy = y + sz / 2;
+          ctx.moveTo(cx + Math.cos(an) * sz, cy + Math.sin(an) * sz);
+          ctx.lineTo(cx + Math.cos(an + 2.1) * sz * .75, cy + Math.sin(an + 2.1) * sz * .75);
+          ctx.lineTo(cx + Math.cos(an + 4.0) * sz * .9, cy + Math.sin(an + 4.0) * sz * .9);
+          ctx.closePath();
+          continue;
         }
         if (g.ci[i] !== lastC) { lastC = g.ci[i]; ctx.fillStyle = g.pal[lastC]; }
         if (a !== lastA) { lastA = a; ctx.globalAlpha = a; }
         ctx.fillRect(x, y, g.sz[i], g.sz[i]);
       }
+      if (inPath) ctx.fill();
     }
     ctx.globalAlpha = 1;
     sand.groups = live;
@@ -2239,6 +3289,155 @@
         sandOut(el, ratio === 0);
       }
     });
+  }
+
+  // ===== 长按菜单（微信风格）：复制 / 用表情打；以后加“引用”只要往 MSG_ACTIONS 里加一项 =====
+  function copyText(text) {
+    function done() { toast('已复制'); }
+    function fail() { toast('复制失败，请手动选择文字'); }
+    function fallback() {
+      var ta = h('textarea', { readonly: true, 'aria-hidden': 'true', style: 'position:fixed;left:-9999px;top:0;opacity:0;font-size:16px' });
+      ta.value = text;
+      $('shell').appendChild(ta);
+      try { ta.select(); ta.setSelectionRange(0, text.length); if (document.execCommand('copy')) done(); else fail(); } catch (e) { fail(); }
+      ta.parentNode.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+  var MSG_ACTIONS = [
+    { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body); }, run: function (m) { copyText(m.body); } },
+    { id: 'hit', label: '用表情打', icon: 'i-smile',
+      show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body)); },
+      run: function (m, el) { openFxPick(m, el); } }
+  ];
+  var menuEl = null;
+  function svgIcon(id) {
+    var s = document.createElement('span');
+    s.innerHTML = '<svg class="i" aria-hidden="true"><use href="#' + id + '"/></svg>';
+    return s.firstChild;
+  }
+  // 把浮层放在气泡上方（放不下就翻到下方），限制在聊天栏和视口里，小箭头对准气泡中心
+  function placeFloat(box, el) {
+    var chat = $('chat'), cr = chat.getBoundingClientRect(), br = el._bubble.getBoundingClientRect();
+    box.hidden = false; box.classList.remove('show'); box.classList.remove('below');
+    box.style.left = '0px'; box.style.top = '0px';
+    var mw = box.offsetWidth, mh = box.offsetHeight, topBar = chat.querySelector('.top').getBoundingClientRect().bottom;
+    var cx = br.left + br.width / 2;
+    var left = Math.max(cr.left + 8, Math.min(cx - mw / 2, cr.right - 8 - mw));
+    var top = br.top - mh - 10, below = false;
+    if (top < topBar + 4) { top = br.bottom + 10; below = true; }
+    var maxTop = cr.bottom - mh - 8;
+    if (top > maxTop) top = Math.max(topBar + 4, maxTop);
+    box.style.left = (left - cr.left) + 'px'; box.style.top = (top - cr.top) + 'px';
+    box.style.setProperty('--ax', Math.max(16, Math.min(mw - 16, cx - left)) + 'px');
+    if (below) box.classList.add('below');
+    void box.offsetWidth;
+    box.classList.add('show');
+  }
+  function hideFloat(box) { box.classList.remove('show'); box.hidden = true; }
+  function closeActMenu() {
+    if (menuEl && menuEl._bw) menuEl._bw.classList.remove('menu-on');
+    menuEl = null;
+    hideFloat($('actMenu')); hideFloat($('fxPick'));
+  }
+  function openActMenu(el) {
+    var m = el._m, c = S.chat;
+    if (!m || !c) return false;
+    var items = MSG_ACTIONS.filter(function (a) { return a.show(m); });
+    if (!items.length) return false;
+    closeActMenu();
+    var box = clear($('actMenu'));
+    items.forEach(function (a) {
+      var b = h('button', { type: 'button', role: 'menuitem' }, svgIcon(a.icon), h('span', { text: a.label }));
+      b.addEventListener('click', function () {
+        if (a.id === 'hit') { hideFloat($('actMenu')); a.run(m, el); } else { closeActMenu(); a.run(m, el); }
+      });
+      box.appendChild(b);
+    });
+    menuEl = el;
+    el._bw.classList.add('menu-on');
+    placeFloat(box, el);
+    return true;
+  }
+  function openFxPick(m, el) {
+    var box = clear($('fxPick'));
+    Object.keys(FX).forEach(function (tok) {
+      var fx = FX[tok];
+      var b = h('button', { type: 'button', role: 'menuitem', 'aria-label': fx.name, title: fx.name, text: fx.icon });
+      b.addEventListener('click', function () {
+        closeActMenu();
+        if (S.chat && m.id != null && S.chat.ids.has(m.id)) sendBody(tok + '#' + m.id);
+      });
+      box.appendChild(b);
+    });
+    placeFloat(box, el);
+  }
+  function rowOfTarget(t) {
+    var box = $('msgs'), inBubble = false;
+    while (t && t !== box) {
+      if (t.classList) {
+        if (t.classList.contains('bubble')) inBubble = true;
+        if (t.classList.contains('row')) return inBubble && t._m ? t : null;
+      }
+      t = t.parentNode;
+    }
+    return null;
+  }
+  // 点特效气泡里的引用：滚到被打中的那条消息并闪一下
+  function jumpTo(tid) {
+    var c = S.chat; if (!c) return;
+    var key = null;
+    c.msgs.forEach(function (m) { if (m.id === tid) key = m.key; });
+    var el = key && c.nodes.get(key);
+    if (!el) { toast('这条消息太早了，先往上翻翻看'); return; }
+    var box = $('msgs'), r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+    var top = box.scrollTop + (r.top + r.height / 2) - (b.top + b.height / 2);
+    try { box.scrollTo({ top: top, behavior: reduced() ? 'auto' : 'smooth' }); } catch (e) { box.scrollTop = top; }
+    el._bw.classList.remove('flash'); void el._bw.offsetWidth; el._bw.classList.add('flash');
+    setTimeout(function () { el._bw.classList.remove('flash'); }, 1300);
+  }
+  function quoteText(tid) {
+    var c = S.chat, out = '';
+    if (!c) return out;
+    c.msgs.forEach(function (m) { if (m.id === tid && !fxOf(m.body)) out = cut(String(m.body).replace(/\s+/g, ' '), 8); });
+    return out;
+  }
+  function bindLongPress() {
+    var box = $('msgs'), lp = { tm: 0, x: 0, y: 0, fired: false, at: 0 };
+    function cancel() { if (lp.tm) { clearTimeout(lp.tm); lp.tm = 0; } }
+    box.addEventListener('touchstart', function (ev) {
+      cancel(); lp.fired = false;
+      if (ev.touches.length !== 1) return;
+      var el = rowOfTarget(ev.target); if (!el) return;
+      lp.x = ev.touches[0].clientX; lp.y = ev.touches[0].clientY;
+      lp.tm = setTimeout(function () {
+        lp.tm = 0;
+        if (!el.parentNode || !openActMenu(el)) return;
+        lp.fired = true; lp.at = Date.now();
+        try { var sel = window.getSelection(); if (sel) sel.removeAllRanges(); } catch (e) { /* 忽略 */ }
+      }, 450);
+    }, { passive: true });
+    box.addEventListener('touchmove', function (ev) {
+      var t = ev.touches[0];
+      if (lp.tm && t && (Math.abs(t.clientX - lp.x) > 10 || Math.abs(t.clientY - lp.y) > 10)) cancel();
+    }, { passive: true });
+    // 只有长按真的触发之后才阻止默认行为，不影响普通的选字和滚动
+    function end(ev) { cancel(); if (lp.fired) { lp.fired = false; if (ev.cancelable) ev.preventDefault(); } }
+    box.addEventListener('touchend', end, { passive: false });
+    box.addEventListener('touchcancel', end, { passive: false });
+    box.addEventListener('contextmenu', function (ev) {
+      var el = rowOfTarget(ev.target);
+      if (!el) return;
+      if (Date.now() - lp.at < 800) { ev.preventDefault(); return; } // 安卓长按会再补一个 contextmenu
+      if (openActMenu(el)) ev.preventDefault();
+    });
+    box.addEventListener('scroll', function () { if (menuEl) closeActMenu(); }, { passive: true });
+    document.addEventListener('pointerdown', function (ev) {
+      if (!menuEl) return;
+      if ($('actMenu').contains(ev.target) || $('fxPick').contains(ev.target)) return;
+      closeActMenu();
+    }, true);
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && menuEl) closeActMenu(); });
   }
 
   // ===== 发送（乐观更新） =====
@@ -2379,7 +3578,7 @@
     if (open && isVisible()) markReadIfNeeded();
     else {
       notifyMessage(row);
-      if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(row.body, 24));
+      if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(previewOf(row.body), 24));
     }
   }
   function onMessageUpdate(row) {
@@ -2559,6 +3758,7 @@
       if (window.matchMedia('(pointer:fine)').matches) { ev.preventDefault(); sendCurrent(); } // 电脑上回车发送，手机上回车换行
     });
     $('msgs').addEventListener('scroll', function () { if ($('msgs').scrollTop < 60) loadOlder(); }, { passive: true });
+    bindLongPress();
     document.addEventListener('visibilitychange', function () {
       if (isVisible() && S.me) refreshAll();
     });
