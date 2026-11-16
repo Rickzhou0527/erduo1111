@@ -33,6 +33,11 @@ function reply(req: Request, status: number, body: Record<string, unknown>): Res
   });
 }
 
+// 特效表情 "[雪球]" 或定向的 "[雪球]#123"：去掉结尾的 #数字，不让原始 id 出现在通知里
+function stripStickerId(s: string): string {
+  return s.replace(/^(\[[^\[\]]{1,6}\])#\d+$/, "$1");
+}
+
 function cut(s: string, n: number): string {
   const chars = Array.from(s);
   return chars.length > n ? chars.slice(0, n).join("") + "…" : s;
@@ -94,13 +99,19 @@ Deno.serve(async (req) => {
   let refId: number;
 
   if (ev.type === "message") {
-    const { data: m } = await admin.from("messages").select("id,sender_id,receiver_id,body,created_at").eq("id", ev.id).maybeSingle();
+    const { data: m } = await admin.from("messages").select("id,sender_id,receiver_id,body,created_at,reply_to").eq("id", ev.id).maybeSingle();
     if (!m || m.sender_id !== me) return reply(req, 403, { error: "forbidden" });
     if (!isFresh(m.created_at)) return reply(req, 400, { error: "too_old" });
     const { data: p } = await admin.from("profiles").select("nickname").eq("id", me).maybeSingle();
     recipient = m.receiver_id;
     refId = m.id;
-    payload = { title: p?.nickname ?? "新消息", body: cut(m.body, 80), tag: "msg-" + me, peer: me };
+    // 引用回复：推送正文前加上 回复「被引用的内容」
+    let prefix = "";
+    if (typeof m.reply_to === "number") {
+      const { data: q } = await admin.from("messages").select("body").eq("id", m.reply_to).maybeSingle();
+      if (q && typeof q.body === "string") prefix = "回复「" + cut(stripStickerId(q.body).replace(/^\[([^\[\]]{1,6})\]$/, "$1").replace(/\s+/g, " "), 20) + "」"; // 特效表情 "[水枪]" 显示成 水枪
+    }
+    payload = { title: p?.nickname ?? "新消息", body: cut(prefix + stripStickerId(m.body), 80), tag: "msg-" + me, peer: me };
   } else {
     const { data: f } = await admin.from("friendships").select("id,requester_id,addressee_id,status,updated_at").eq("id", ev.id).maybeSingle();
     if (!f) return reply(req, 403, { error: "forbidden" });
