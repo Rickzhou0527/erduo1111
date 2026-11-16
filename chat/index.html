@@ -178,9 +178,9 @@
   .row{display:flex;flex-direction:column;margin-bottom:8px}
   .line{display:flex;gap:8px;align-items:flex-start;max-width:100%}
   .row.own .line{flex-direction:row-reverse}
-  .av-slot{flex:none;width:34px;height:34px}
-  .row .avatar{width:34px;height:34px}
-  .col{display:flex;flex-direction:column;min-width:0;max-width:calc(100% - 44px)}
+  .av-slot{flex:none;width:44px;height:44px}
+  .row .avatar{width:44px;height:44px}
+  .col{display:flex;flex-direction:column;min-width:0;max-width:calc(100% - 52px)}
   .row.own .col{align-items:flex-end}
   .row.peer .col{align-items:flex-start}
   .stamp{align-self:center;font-size:11px;opacity:.55;margin:8px 0 6px}
@@ -1108,7 +1108,7 @@
     // 头像：资料重新加载后头像路径变了就重建
     var ap = own ? S.me : (profileOf(m.sender_id) || (convOf(m.sender_id) ? peerFromConv(convOf(m.sender_id)) : null));
     var akey = (own ? 'o|' : 'p|') + (ap && ap.avatar_path || '');
-    if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 34)); }
+    if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 44)); }
     if (el._body !== m.body) { el._bubble.textContent = m.body; el._body = m.body; }
     if (!own) { el._meta.hidden = true; return; }
     el._meta.hidden = false;
