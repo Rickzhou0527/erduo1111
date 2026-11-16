@@ -357,6 +357,46 @@
   .meta.fail{color:var(--red-text);font-weight:500}
   .meta button{font-size:var(--fs-xs);font-weight:500;text-decoration:underline;color:var(--t2)}
 
+  /* 引用回复：气泡下面的小引用条、输入栏上的引用提示、右滑回复、原文大图 */
+  #msgs{overflow-x:hidden}
+  .line{position:relative}
+  .qt{
+    display:block;max-width:100%;min-width:0;margin-top:4px;padding:4px 10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;
+    font-size:var(--fs-xs);line-height:1.5;color:var(--t2);border:1px solid var(--hair);border-radius:10px;
+    background:var(--hair);background:color-mix(in srgb,var(--t1) 6%,transparent);
+  }
+  .qt.pend,.qt.gone{color:var(--t3)}
+  .qt.gone{font-style:italic}
+  .qt:active{background:color-mix(in srgb,var(--t1) 11%,transparent)}
+  #msgs.sand .qt{transition:opacity .35s}
+  .row.sand-gone .qt{opacity:0}
+  .bw.qflash .bubble{animation:qflash 1.5s ease-out}
+  @keyframes qflash{
+    0%,55%{box-shadow:0 0 0 3px color-mix(in srgb,var(--pink) 55%,transparent),0 0 18px color-mix(in srgb,var(--pink) 45%,transparent)}
+    100%{box-shadow:0 0 0 3px transparent,0 0 18px transparent}
+  }
+  .rep{position:absolute;left:-44px;top:50%;width:32px;height:32px;margin-top:-16px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;color:var(--t2);background:var(--g-chip);border:1px solid var(--rim);box-shadow:inset 0 1px 0 var(--hi),var(--sh-1);opacity:0;pointer-events:none}
+  .rep .i{width:18px;height:18px}
+  .rep.on{color:var(--pink-text)}
+  #composer{flex-wrap:wrap}
+  #qbar{
+    flex:0 0 100%;display:flex;align-items:center;gap:4px;min-width:0;padding:2px 2px 2px 12px;border-radius:10px;
+    font-size:var(--fs-sm);color:var(--t2);border:1px solid var(--hair);background:var(--hair);background:color-mix(in srgb,var(--t1) 6%,transparent);
+  }
+  #qbarText{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  #qbarX{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--t3);border-radius:50%}
+  #qbarX:active{color:var(--t1)}
+  #qsheet{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:24px 20px;background:color-mix(in srgb,var(--t1) 30%,transparent)}
+  #qsheet .qs{
+    width:100%;max-width:360px;max-height:70%;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--r-card);
+    background:var(--g-card);border:1px solid var(--rim);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-2);
+    -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  }
+  #qsheet .qs-name{font-size:var(--fs-sm);color:var(--t2);font-weight:500}
+  #qsheet .qs-text{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;font-size:var(--fs-lg);line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text}
+  #qsheet .btn{align-self:flex-end}
+
   #composer{
     flex:none;display:flex;align-items:flex-end;gap:8px;border-width:1px 0 0;border-radius:0;
     padding:8px calc(var(--safe-r) + 12px) calc(var(--safe-b) + 8px) calc(var(--safe-l) + 12px);
@@ -653,6 +693,8 @@
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  <symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
@@ -746,10 +788,12 @@
     <div id="actMenu" role="menu" hidden></div>
     <div id="fxPick" role="menu" aria-label="选一个表情" hidden></div>
     <div id="composer">
+      <div id="qbar" hidden><span id="qbarText"></span><button type="button" id="qbarX" aria-label="取消引用"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg></button></div>
       <button type="button" class="icon-btn" id="emojiBtn" aria-label="表情"><svg class="i" aria-hidden="true"><use href="#i-smile"/></svg></button>
       <textarea id="input" rows="1" maxlength="2000" placeholder="说点什么…" enterkeyhint="send"></textarea>
       <button type="button" class="btn" id="sendBtn">发送</button>
     </div>
+    <div id="qsheet" hidden><div class="qs" role="dialog" aria-label="被引用的消息"><div class="qs-name" id="qsName"></div><div class="qs-text" id="qsText"></div><button type="button" class="btn small ghost" id="qsClose">关闭</button></div></div>
   </section>
 
   <div id="toast" role="status" aria-live="polite"></div>
@@ -938,6 +982,7 @@
     not_friends: '你们还不是好友，不能发消息',
     empty_message: '消息不能是空的',
     message_too_long: '消息太长啦（最多 2000 字）',
+    invalid_reply: '引用的消息已经不存在了，请重新发送',
     invalid_nickname: '昵称需要 1 到 20 个字',
     invalid_avatar: '头像保存失败，请换一张图片试试',
     not_authenticated: '登录已过期，请重新登录',
@@ -1529,11 +1574,11 @@
       (await reg.getNotifications({ tag: tag })).forEach(function (n) { n.close(); });
     } catch (e) { /* 忽略 */ }
   }
-  function notifyMessage(m) {
+  function notifyMessage(m, prefix) {
     var p = profileOf(m.sender_id);
     notify({
       title: p ? p.nickname : '新消息',
-      body: cut(previewOf(m.body), 80),
+      body: cut((prefix || '') + previewOf(m.body), 80),
       tag: 'msg-' + m.sender_id,
       icon: p && avatarUrl(p.avatar_path),
       data: { peer: m.sender_id }
@@ -1564,6 +1609,7 @@
     $('emojiPanel').hidden = true;
     $('input').value = '';
     autosize();
+    resetQuoteUi();
     clear($('rows'));
     clear($('chatEmpty'));
     $('olderRow').hidden = true;
@@ -1581,12 +1627,13 @@
     sandDisable();
     $('chat').hidden = true;
     $('emojiPanel').hidden = true;
+    resetQuoteUi();
     $('input').blur();
     loadAll();
   }
 
   function msgFromRow(r) {
-    return { key: 'm' + r.id, id: r.id, sender_id: r.sender_id, receiver_id: r.receiver_id, body: r.body, created_at: r.created_at, read_at: r.read_at, status: 'sent' };
+    return { key: 'm' + r.id, id: r.id, sender_id: r.sender_id, receiver_id: r.receiver_id, body: r.body, created_at: r.created_at, read_at: r.read_at, reply_to: r.reply_to == null ? null : r.reply_to, status: 'sent' };
   }
   function peerFilter(peer) {
     var me = S.me.id;
@@ -1600,6 +1647,7 @@
       if (c.ids.has(r.id)) {
         var ex = c.msgs.find(function (m) { return m.id === r.id; });
         if (ex && ex.read_at !== r.read_at) { ex.read_at = r.read_at; changed = true; }
+        if (ex && markReplyGone(ex, r)) changed = true;
         return;
       }
       // 乐观消息已经被确认成同一个 id 的情况在 confirmSent 里处理，这里只加新的
@@ -1711,12 +1759,16 @@
     var col = h('div', { class: 'col' });
     el._deco = h('div', { class: 'deco', 'aria-hidden': 'true' });
     el._bw = h('div', { class: 'bw' }, el._bubble, el._deco);
+    el._qt = h('button', { type: 'button', class: 'qt', hidden: true });
+    el._qt.addEventListener('click', function () { if (el._m) jumpToQuote(el._m); });
     el.style.setProperty('--sd', (Math.random() * 7).toFixed(1) + 's');
     col.appendChild(el._bw);
+    col.appendChild(el._qt);
     col.appendChild(el._meta);
     var line = h('div', { class: 'line' });
     line.appendChild(el._av);
     line.appendChild(col);
+    el._line = line;
     el.appendChild(el._stamp);
     el.appendChild(line);
     return el;
@@ -1798,7 +1850,7 @@
     if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 40)); }
     el._m = m;
     var pf = fxParse(m.body);
-    var q = pf && pf.tid != null ? quoteText(pf.tid) : '';
+    var q = pf && pf.tid != null ? targetQuoteText(pf.tid) : '';
     var bsig = m.body + '|' + q;
     if (el._body !== bsig) {
       el._body = bsig;
@@ -1820,6 +1872,7 @@
         el._bubble.removeAttribute('title');
       }
     }
+    updateQuote(el, m);
     refreshCls(el);
     if (!own) { el._meta.hidden = true; return; }
     el._meta.hidden = false;
@@ -3306,6 +3359,8 @@
   }
   var MSG_ACTIONS = [
     { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body); }, run: function (m) { copyText(m.body); } },
+    // 引用：自己和对方已发出的消息都能引用（发送中的还没有 id，不显示）
+    { id: 'quote', label: '引用', icon: 'i-reply', show: function (m) { return !!(S.chat && m.id != null); }, run: function (m) { startQuote(m); } },
     { id: 'hit', label: '用表情打', icon: 'i-smile',
       show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body)); },
       run: function (m, el) { openFxPick(m, el); } }
@@ -3396,7 +3451,7 @@
     el._bw.classList.remove('flash'); void el._bw.offsetWidth; el._bw.classList.add('flash');
     setTimeout(function () { el._bw.classList.remove('flash'); }, 1300);
   }
-  function quoteText(tid) {
+  function targetQuoteText(tid) {
     var c = S.chat, out = '';
     if (!c) return out;
     c.msgs.forEach(function (m) { if (m.id === tid && !fxOf(m.body)) out = cut(String(m.body).replace(/\s+/g, ' '), 8); });
@@ -3454,7 +3509,8 @@
   }
   function sendBody(body) {
     var c = S.chat; if (!c) return;
-    var m = { key: 't' + (++S.tempSeq), seq: S.tempSeq, id: null, sender_id: S.me.id, receiver_id: c.peer, body: body, created_at: new Date().toISOString(), read_at: null, status: 'sending' };
+    var m = { key: 't' + (++S.tempSeq), seq: S.tempSeq, id: null, sender_id: S.me.id, receiver_id: c.peer, body: body, created_at: new Date().toISOString(), read_at: null, reply_to: c.quote ? c.quote.id : null, status: 'sending' };
+    if (c.quote) clearQuote();
     c.msgs.push(m);
     renderMsgs({ stick: true });
     doSend(m);
@@ -3464,12 +3520,15 @@
     var c = S.chat;
     m.status = 'sending';
     var r;
-    try { r = await sb.rpc('send_message', { p_peer: m.receiver_id, p_body: m.body }); }
+    var args = { p_peer: m.receiver_id, p_body: m.body };
+    if (m.reply_to != null) args.p_reply_to = m.reply_to; // 不引用时保持旧的两参数调用
+    try { r = await sb.rpc('send_message', args); }
     catch (e) { r = { error: e }; }
     if (r.error) {
       m.status = 'failed';
       if (S.chat && S.chat.peer === m.receiver_id) renderMsgs({ stick: false });
       if (r.error.message === 'not_friends') toast(ERR_TEXT.not_friends);
+      if (r.error.message === 'invalid_reply') { m.reply_to = null; m.reply_gone = true; toast(ERR_TEXT.invalid_reply); if (S.chat && S.chat.peer === m.receiver_id) renderMsgs({ stick: false }); }
       return;
     }
     var row = r.data;
@@ -3577,12 +3636,17 @@
     renderChats(); updateBadges();
     if (open && isVisible()) markReadIfNeeded();
     else {
-      notifyMessage(row);
-      if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(previewOf(row.body), 24));
+      var rp = await replyPrefix(row);
+      notifyMessage(row, rp);
+      if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(rp + previewOf(row.body), rp ? 44 : 24));
     }
   }
   function onMessageUpdate(row) {
     var me = S.me.id;
+    if (S.chat && (row.sender_id === S.chat.peer || row.receiver_id === S.chat.peer)) {
+      var rx = S.chat.msgs.find(function (m) { return m.id === row.id; });
+      if (rx && markReplyGone(rx, row)) renderMsgs({ stick: false }); // 被引用的消息删除后 reply_to 变空
+    }
     if (row.sender_id === me) {
       // 对方读了我的消息
       if (S.chat && S.chat.peer === row.receiver_id) {
@@ -3675,16 +3739,236 @@
   async function logout() {
     await pushUnsubscribe();
     stopRealtime();
-    S.chat = null; sandDisable(); $('chat').hidden = true;
+    S.chat = null; sandDisable(); $('chat').hidden = true; resetQuoteUi();
     try { await sb.auth.signOut(); } catch (e) { /* 本地状态照样清掉 */ }
     resetState();
     setAuthMode('login');
     showAuth();
   }
   function resetState() {
-    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null;
+    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null; resetQuoteUi();
     document.title = '耳朵聊天';
     try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) { /* 忽略 */ }
+  }
+
+  // ===== 引用回复 =====
+  // 入口：startQuote(m)，m 是当前聊天 msgs 里的一条消息（长按菜单的"引用"直接调用它）
+  function quoteText(body) {
+    var fx = fxOf(body);
+    return fx ? fx.name : String(body || '');
+  }
+  function quoteName(sid) {
+    if (S.me && sid === S.me.id) return S.me.nickname || '我';
+    var p = profileOf(sid) || (convOf(sid) ? peerFromConv(convOf(sid)) : null);
+    return p ? p.nickname : '好友';
+  }
+  // 被引用消息的显示信息：null 没有引用；{state:'ok'|'pend'|'gone'}
+  function quoteInfo(m) {
+    var c = S.chat;
+    if (m.reply_to == null) return m.reply_gone ? { state: 'gone' } : null;
+    if (!c) return { state: 'pend' };
+    var id = m.reply_to;
+    var src = c.msgs.find(function (x) { return x.id === id; });
+    if (!src) {
+      c.qcache = c.qcache || {};
+      var hit = c.qcache[id];
+      if (hit === 0) return { state: 'gone' };
+      if (!hit) { queueQuote(id); return { state: 'pend' }; }
+      src = hit;
+    }
+    var full = quoteText(src.body);
+    return { state: 'ok', name: quoteName(src.sender_id), full: full, text: full.replace(/\s+/g, ' ') };
+  }
+  function updateQuote(el, m) {
+    var qi = quoteInfo(m);
+    var sig = qi ? qi.state + '|' + (qi.name || '') + '|' + (qi.text || '') : '';
+    if (el._qsig === sig) return;
+    el._qsig = sig;
+    if (!qi) { el._qt.hidden = true; return; }
+    el._qt.hidden = false;
+    el._qt.className = 'qt' + (qi.state === 'ok' ? '' : ' ' + qi.state);
+    el._qt.textContent = qi.state === 'gone' ? '原消息已删除' : qi.state === 'pend' ? '加载中…' : qi.name + '：' + qi.text;
+  }
+  function refreshQuotes() {
+    var c = S.chat; if (!c) return;
+    c.nodes.forEach(function (el) { if (el._m) updateQuote(el, el._m); });
+  }
+  function markReplyGone(ex, row) {
+    if (ex.reply_to != null && row.reply_to == null) { ex.reply_to = null; ex.reply_gone = true; return true; }
+    return false;
+  }
+  // 列表里没有的被引用消息：批量按 id 取（RLS 允许读自己会话里的消息）
+  function queueQuote(id) {
+    var c = S.chat; if (!c) return;
+    c.qpend = c.qpend || {};
+    if (c.qpend[id]) return;
+    c.qpend[id] = true;
+    c.qwant = c.qwant || [];
+    c.qwant.push(id);
+    clearTimeout(c.qtimer);
+    c.qtimer = setTimeout(fetchQuotes, 0);
+  }
+  function fetchQuotes() {
+    var c = S.chat; if (!c) return Promise.resolve();
+    var ids = (c.qwant || []).splice(0);
+    if (!ids.length) return c.qflight || Promise.resolve();
+    var peer = c.peer;
+    var run = (async function () {
+      var r;
+      try { r = await sb.from('messages').select('id,sender_id,receiver_id,body').in('id', ids); }
+      catch (e) { r = { error: e }; }
+      if (S.chat !== c || c.peer !== peer) return;
+      if (r.error) { ids.forEach(function (id) { delete c.qpend[id]; }); return; }
+      var got = {};
+      (r.data || []).forEach(function (x) { got[x.id] = x; });
+      ids.forEach(function (id) { c.qcache[id] = got[id] || 0; delete c.qpend[id]; });
+      refreshQuotes();
+    })();
+    c.qflight = run;
+    return run;
+  }
+  function renderQuoteBar() {
+    var c = S.chat, bar = $('qbar');
+    var nb = c ? nearBottom() : false;
+    bar.hidden = !(c && c.quote);
+    if (c && c.quote) $('qbarText').textContent = quoteName(c.quote.sender_id) + '：' + c.quote.text;
+    if (nb) scrollToBottom();
+  }
+  function startQuote(m) {
+    var c = S.chat;
+    if (!c || !m || m.id == null || m.sender_id !== c.peer && m.sender_id !== S.me.id) return false;
+    c.quote = { id: m.id, sender_id: m.sender_id, text: quoteText(m.body).replace(/\s+/g, ' ').slice(0, 200) };
+    renderQuoteBar();
+    $('input').focus();
+    return true;
+  }
+  function clearQuote() {
+    var c = S.chat;
+    if (c) c.quote = null;
+    renderQuoteBar();
+  }
+  function resetQuoteUi() {
+    if (S.chat) S.chat.quote = null;
+    $('qbar').hidden = true;
+    $('qsheet').hidden = true;
+  }
+  async function replyPrefix(row) {
+    if (row.reply_to == null) return '';
+    var src = S.chat && S.chat.msgs.find(function (x) { return x.id === row.reply_to; });
+    var body = src ? src.body : null;
+    if (body == null) {
+      try {
+        var r = await sb.from('messages').select('body').eq('id', row.reply_to).maybeSingle();
+        if (r.data) body = r.data.body;
+      } catch (e) { /* 取不到就不加前缀 */ }
+    }
+    return body == null ? '' : '回复「' + cut(quoteText(body).replace(/\s+/g, ' '), 20) + '」';
+  }
+  function scrollToRow(el) {
+    var box = $('msgs'), r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+    var top = box.scrollTop + (r.top - b.top) - (box.clientHeight - r.height) / 2;
+    var calm = reduced();
+    box.scrollTo({ top: Math.max(0, top), behavior: calm ? 'auto' : 'smooth' });
+    setTimeout(function () {
+      var bw = el._bw; if (!bw) return;
+      bw.classList.remove('qflash'); void bw.offsetWidth; bw.classList.add('qflash');
+      setTimeout(function () { bw.classList.remove('qflash'); }, 1600);
+    }, calm ? 0 : 350);
+  }
+  function showQuoteSheet(qi) {
+    $('qsName').textContent = qi.name;
+    $('qsText').textContent = qi.full;
+    $('qsheet').hidden = false;
+  }
+  async function jumpToQuote(m) {
+    var c = S.chat; if (!c || c.jumping) return;
+    var qi = quoteInfo(m);
+    if (!qi || qi.state === 'gone') return toast('原消息已删除');
+    var id = m.reply_to;
+    c.jumping = true;
+    try {
+      if (!c.ids.has(id)) {
+        toast('正在找原消息…', 1500);
+        var pages = 0, waits = 0;
+        while (pages < 8 && waits < 40 && S.chat === c && !c.ids.has(id) && c.hasMore) {
+          if (c.loadingOlder) { waits++; await sleep(150); continue; }
+          pages++;
+          await loadOlder();
+        }
+        if (S.chat !== c) return;
+      }
+      var el = c.nodes.get('m' + id);
+      if (el) return scrollToRow(el);
+      queueQuote(id);
+      await fetchQuotes();
+      if (c.qflight) await c.qflight;
+      if (S.chat !== c) return;
+      qi = quoteInfo(m);
+      if (qi && qi.state === 'ok') showQuoteSheet(qi);
+      else toast(qi && qi.state === 'gone' ? '原消息已删除' : '暂时取不到原消息');
+    } finally { c.jumping = false; }
+  }
+  // 向右滑一条消息 = 引用它：行跟着手指走，松手弹回，滑过 56px 触发
+  function bindSwipeQuote() {
+    var rows = $('rows'), sw = null, TH = 56;
+    function setX(x) {
+      var el = sw.el;
+      if (!el._rep) {
+        el._rep = h('span', { class: 'rep', 'aria-hidden': 'true' });
+        el._rep.innerHTML = '<svg class="i"><use href="#i-reply"/></svg>';
+        el._line.appendChild(el._rep);
+      }
+      el._line.style.transform = x ? 'translateX(' + x + 'px)' : '';
+      el._rep.style.opacity = String(Math.min(1, x / TH));
+      el._rep.classList.toggle('on', x >= TH);
+    }
+    function pull(dx) { return dx <= 0 ? 0 : dx < TH ? dx : Math.min(TH + (dx - TH) * 0.25, TH + 24); }
+    function release() {
+      if (!sw) return;
+      var el = sw.el, line = el._line;
+      if (sw.lock) {
+        line.style.transition = 'transform .3s cubic-bezier(0.22,1,0.36,1)';
+        line.style.transform = '';
+        if (el._rep) el._rep.style.opacity = '0';
+        setTimeout(function () { line.style.transition = ''; }, 320);
+      }
+      sw = null;
+    }
+    rows.addEventListener('touchstart', function (ev) {
+      if (ev.touches.length !== 1) { release(); return; }
+      var row = ev.target.closest ? ev.target.closest('.row') : null;
+      if (!row || !row._m || row._m.id == null || !row._line) return;
+      row._line.style.transition = '';
+      sw = { el: row, x0: ev.touches[0].clientX, y0: ev.touches[0].clientY, lock: false, dead: false, dx: 0 };
+    }, { passive: true });
+    rows.addEventListener('touchmove', function (ev) {
+      if (!sw || sw.dead) return;
+      var t = ev.touches[0], dx = t.clientX - sw.x0, dy = t.clientY - sw.y0;
+      if (!sw.lock) {
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx) * 0.4) { sw.dead = true; return; }
+        if (dx < -12) { sw.dead = true; return; }
+        if (dx > 12 && Math.abs(dy) < dx * 0.4) sw.lock = true;
+        else return;
+      }
+      sw.dx = dx;
+      if (ev.cancelable) ev.preventDefault(); // 横滑时不要让列表跟着竖向滚动
+      setX(pull(dx));
+    }, { passive: false });
+    rows.addEventListener('touchend', function () {
+      if (!sw) return;
+      var hit = sw.lock && !sw.dead && sw.dx >= TH, m = sw.el._m;
+      release();
+      if (hit && m) { try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) { /* 忽略 */ } startQuote(m); }
+    });
+    rows.addEventListener('touchcancel', release);
+    $('qbarX').addEventListener('click', function () { clearQuote(); $('input').focus(); });
+    $('qsClose').addEventListener('click', function () { $('qsheet').hidden = true; });
+    $('qsheet').addEventListener('click', function (ev) { if (ev.target === $('qsheet')) $('qsheet').hidden = true; });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Escape') return;
+      if (!$('qsheet').hidden) { $('qsheet').hidden = true; return; }
+      if (S.chat && S.chat.quote) clearQuote();
+    });
   }
 
   // ===== 输入栏 =====
@@ -3758,6 +4042,7 @@
       if (window.matchMedia('(pointer:fine)').matches) { ev.preventDefault(); sendCurrent(); } // 电脑上回车发送，手机上回车换行
     });
     $('msgs').addEventListener('scroll', function () { if ($('msgs').scrollTop < 60) loadOlder(); }, { passive: true });
+    bindSwipeQuote();
     bindLongPress();
     document.addEventListener('visibilitychange', function () {
       if (isVisible() && S.me) refreshAll();
