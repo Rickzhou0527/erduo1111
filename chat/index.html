@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>耳朵聊天</title>
+<meta name="theme-color" content="#FF8FAB">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="耳朵聊天">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+  :root{
+    --cream:#FFF8E7; --pink:#FF8FAB; --pink2:#FFC2D1; --choco:#6B3E26;
+    --biscuit:#E9B872; --ink:#4a3426; --yellow:#FFF1BF; --red:#e5484d;
+    --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    background:radial-gradient(circle at 50% 0%,#FFE3EC 0%,var(--cream) 60%) fixed;
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Apple SD Gothic Neo","Noto Sans KR","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-user-select:none;user-select:none;
+  }
+  input,textarea,button{font:inherit;color:inherit}
+  input,textarea{-webkit-user-select:text;user-select:text;font-size:16px}
+  button{cursor:pointer;background:none;border:0}
+  [hidden]{display:none!important}
+  img{-webkit-user-drag:none}
+
+  /* 外壳：手机全屏，桌面居中 480px；高度由 visualViewport 修正，键盘弹出时输入栏不被挡住 */
+  #shell{
+    position:fixed;top:0;left:50%;width:100%;max-width:480px;height:100vh;height:100dvh;
+    transform:translateX(-50%);overflow:hidden;
+    display:flex;flex-direction:column;
+    background:var(--cream);
+  }
+  @media (min-width:481px){ #shell{border-left:3px solid var(--ink);border-right:3px solid var(--ink)} }
+  .screen{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+  .center{align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px}
+
+  /* 通用小零件 */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:10px 18px;min-height:44px;font-weight:800;font-size:16px;
+    background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);
+    transition:transform .08s,box-shadow .08s;
+  }
+  .btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn.ghost{background:#fff;color:var(--ink)}
+  .btn.small{min-height:36px;padding:6px 12px;font-size:14px;border-radius:12px;box-shadow:0 3px 0 var(--ink)}
+  .btn.danger{background:#fff;color:var(--red)}
+  .field{
+    width:100%;padding:11px 14px;background:#fff;border:3px solid var(--ink);border-radius:16px;outline:none;
+  }
+  .field:focus{border-color:var(--pink);box-shadow:0 0 0 3px var(--pink2)}
+  .bob{animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-6px)}}
+  @keyframes pop{from{opacity:0;transform:scale(.85) translateY(10px)}}
+
+  /* Usagi 图片 + 加载失败时的占位 */
+  .usagi{display:block;object-fit:contain}
+  .usagi-fallback{display:inline-block;line-height:1}
+
+  /* 头像 */
+  .avatar{
+    flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    border:3px solid var(--ink);border-radius:50%;background:var(--pink2);
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar.default img{object-fit:contain;padding:2px}
+
+  /* 登录 / 注册 */
+  #auth{overflow-y:auto;padding:calc(var(--safe-t) + 18px) 24px calc(var(--safe-b) + 24px);align-items:center}
+  #auth .hub-link{align-self:flex-start}
+  .hero{width:150px;height:150px;margin-top:6px}
+  .hero img,.hero .usagi-fallback{width:100%;height:100%;font-size:110px;text-align:center}
+  .hero.cheer{animation:cheer .7s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes cheer{0%{transform:scale(.8) rotate(-6deg)}50%{transform:scale(1.18) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+  #auth h1{font-size:28px;font-weight:900;color:var(--choco);letter-spacing:2px;margin-top:2px}
+  #auth .sub{font-size:14px;color:var(--pink);font-weight:700;margin:4px 0 14px}
+  .seg{display:flex;width:100%;border:3px solid var(--ink);border-radius:16px;overflow:hidden;background:#fff;margin-bottom:14px}
+  .seg button{flex:1;padding:9px;font-weight:800;font-size:15px}
+  .seg button.on{background:var(--pink);color:#fff}
+  #authForm{width:100%;display:flex;flex-direction:column;gap:12px}
+  .hint{font-size:12px;opacity:.7;line-height:1.5;text-align:left}
+  .msg{font-size:14px;font-weight:700;color:var(--red);text-align:left;line-height:1.5;min-height:0}
+  .msg.ok{color:#2f8f5b}
+  .hub-link{font-size:14px;font-weight:800;color:var(--ink);text-decoration:none;opacity:.75;padding:6px 2px}
+
+  /* 主界面 */
+  #app{background:transparent}
+  #views{flex:1;min-height:0;position:relative}
+  .view{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
+  .top{
+    flex:none;display:flex;align-items:center;gap:10px;
+    padding:calc(var(--safe-t) + 10px) 14px 10px;background:var(--pink2);border-bottom:3px solid var(--ink);
+  }
+  .top h2{flex:1;font-size:20px;font-weight:900;color:var(--choco);letter-spacing:1px}
+  .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px}
+  .section-title{font-size:14px;font-weight:900;color:var(--choco);margin:6px 2px 10px;display:flex;align-items:center;gap:6px}
+  .section-title .count{background:var(--pink);color:#fff;border:2px solid var(--ink);border-radius:10px;padding:0 7px;font-size:12px}
+
+  .card{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    padding:10px 12px;margin-bottom:12px;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);
+    animation:pop .4s cubic-bezier(.3,1.6,.5,1) both;
+  }
+  button.card:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .card .avatar{width:48px;height:48px}
+  .card .info{flex:1;min-width:0}
+  .card .name{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .line2{font-size:13px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .card .side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .card .time{font-size:11px;opacity:.6}
+  .card .actions{flex:none;display:flex;gap:8px}
+  .badge{
+    min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;
+    border:2px solid var(--ink);font-size:12px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;
+  }
+
+  .empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 16px;text-align:center}
+  .empty .usagi,.empty .usagi-fallback{width:96px;height:96px;font-size:72px}
+  .empty p{font-size:14px;font-weight:700;color:var(--choco);opacity:.85;line-height:1.6}
+  .empty.tiny{padding:10px}
+  .empty.tiny .usagi,.empty.tiny .usagi-fallback{width:64px;height:64px;font-size:46px}
+
+  /* 底部标签栏 */
+  #tabbar{
+    flex:none;display:flex;background:#fff;border-top:3px solid var(--ink);
+    padding:0 var(--safe-r) var(--safe-b) var(--safe-l);
+  }
+  #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;font-size:12px;font-weight:800;opacity:.55;position:relative}
+  #tabbar button .ico{font-size:22px;line-height:1.1}
+  #tabbar button.on{opacity:1;color:var(--pink)}
+  #tabbar button.on .ico{animation:bob 1.8s ease-in-out infinite}
+  #tabbar .badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:20px;height:20px;font-size:11px}
+
+  /* 好友页 */
+  .search{display:flex;gap:10px;margin-bottom:14px}
+  .search .field{flex:1}
+  #searchResult{margin-bottom:6px}
+
+  /* 我的 */
+  .me-head{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 18px}
+  .me-head .avatar{width:104px;height:104px;position:relative}
+  .me-head .uname{font-size:13px;opacity:.7;font-weight:700}
+  .panel{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);padding:14px;margin-bottom:16px}
+  .panel h3{font-size:15px;font-weight:900;color:var(--choco);margin-bottom:10px}
+  .row-flex{display:flex;gap:10px;align-items:center}
+  .row-flex .field{flex:1}
+  .switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .switch-row .state{font-size:13px;font-weight:700;opacity:.75}
+  .toggle{
+    width:58px;height:34px;border:3px solid var(--ink);border-radius:20px;background:#fff;position:relative;flex:none;transition:background .15s;
+  }
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .15s}
+  .toggle[aria-checked="true"]{background:var(--pink)}
+  .toggle[aria-checked="true"]::after{transform:translateX(24px);background:#fff;box-shadow:0 0 0 2px var(--ink)}
+  .toggle:disabled{opacity:.45}
+
+  /* 聊天页 */
+  #chat{position:absolute;inset:0;z-index:5;background:var(--cream)}
+  #chat .top{gap:8px}
+  #chat .back{font-size:26px;font-weight:900;padding:0 8px 2px 0;line-height:1;color:var(--choco)}
+  #chat .top .avatar{width:40px;height:40px;border-width:2.5px}
+  #chat .who{flex:1;min-width:0}
+  #chat .who b{display:block;font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #chat .who span{font-size:12px;opacity:.65}
+  #msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 12px 6px}
+  #olderRow{text-align:center;font-size:12px;opacity:.6;padding:6px}
+  .row{display:flex;flex-direction:column;margin-bottom:8px}
+  .row.own{align-items:flex-end}
+  .row.peer{align-items:flex-start}
+  .stamp{align-self:center;font-size:11px;opacity:.55;margin:8px 0 6px}
+  .bubble{
+    max-width:78%;padding:8px 12px;font-size:16px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;
+    border:2px solid var(--ink);border-radius:18px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;
+  }
+  .row.own .bubble{background:var(--pink);color:#fff;border-bottom-right-radius:5px;text-shadow:0 1px 0 rgba(74,52,38,.35)}
+  .row.peer .bubble{background:#fff;border-bottom-left-radius:5px}
+  .row.sending .bubble{opacity:.65}
+  .row.failed .bubble{background:#ffd9da;color:var(--ink);text-shadow:none}
+  .meta{font-size:11px;opacity:.65;margin-top:2px;padding:0 4px;display:flex;gap:8px;align-items:center}
+  .meta.read{color:#2f8f5b;opacity:.95;font-weight:700}
+  .meta.fail{color:var(--red);opacity:1;font-weight:800}
+  .meta button{font-size:12px;font-weight:800;text-decoration:underline;color:var(--ink)}
+
+  #composer{
+    flex:none;display:flex;align-items:flex-end;gap:8px;background:#fff;border-top:3px solid var(--ink);
+    padding:8px calc(var(--safe-r) + 10px) calc(var(--safe-b) + 8px) calc(var(--safe-l) + 10px);
+  }
+  #composer textarea{
+    flex:1;min-width:0;max-height:112px;resize:none;padding:8px 12px;line-height:1.4;
+    border:3px solid var(--ink);border-radius:16px;outline:none;background:var(--cream);font-size:16px;
+  }
+  #composer textarea:focus{border-color:var(--pink)}
+  .icon-btn{width:44px;height:44px;flex:none;font-size:24px;border:3px solid var(--ink);border-radius:14px;background:var(--yellow)}
+  #sendBtn{height:44px;padding:0 14px;min-height:44px}
+  #emojiPanel{
+    flex:none;background:#fff;border-top:3px solid var(--ink);padding:8px 8px 4px;
+    display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:168px;overflow-y:auto;
+  }
+  #emojiPanel button{font-size:25px;line-height:1;padding:7px 0;border-radius:10px}
+  #emojiPanel button:active{background:var(--pink2)}
+
+  /* 提示 */
+  #toast{
+    position:absolute;top:calc(var(--safe-t) + 12px);left:50%;transform:translate(-50%,-140%);z-index:30;
+    max-width:calc(100% - 32px);padding:10px 16px;background:var(--ink);color:#fff;border-radius:16px;font-size:14px;font-weight:700;
+    box-shadow:0 4px 0 rgba(0,0,0,.25);text-align:center;pointer-events:none;
+    /* 收起时完全隐藏：只靠位移的话，空的提示框会在屏幕顶上露出一条边 */
+    opacity:0;visibility:hidden;
+    transition:transform .25s cubic-bezier(.3,1.4,.5,1),opacity .2s,visibility 0s linear .25s;
+  }
+  #toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .25s cubic-bezier(.3,1.4,.5,1),opacity .2s,visibility 0s}
+  /* 开心的时候 Usagi 蹦出来喊一声 */
+  #pop{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+  #pop .yaha{display:flex;flex-direction:column;align-items:center;animation:yahaPop 1.6s cubic-bezier(.3,1.6,.5,1) both}
+  #pop .usagi,#pop .usagi-fallback{width:170px;height:170px;font-size:120px;filter:drop-shadow(0 6px 0 rgba(74,52,38,.25))}
+  #pop .shout{margin-top:-6px;padding:4px 18px;background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink);font-size:26px;font-weight:900;color:var(--pink)}
+  @keyframes yahaPop{0%{opacity:0;transform:scale(.3) translateY(60px) rotate(-8deg)}22%{opacity:1;transform:scale(1.15) translateY(-14px) rotate(4deg)}38%{transform:scale(1) translateY(0)}78%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.8) translateY(-30px)}}
+  @media (prefers-reduced-motion:reduce){
+    .bob,#tabbar button.on .ico,.card,.hero.cheer{animation:none!important}
+    #pop .yaha{animation-duration:.01s;animation-delay:1.2s}
+  }
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <section id="boot" class="screen center">
+    <div class="hero bob" id="bootHero"></div>
+    <p class="hint" style="text-align:center">载入中…</p>
+  </section>
+
+  <section id="unconfigured" class="screen center" hidden>
+    <div class="hero" id="unconfHero"></div>
+    <h1 style="font-size:24px;font-weight:900;color:var(--choco)">后端未配置</h1>
+    <p class="hint" style="text-align:center">这个页面还没有连上 Supabase。部署时会自动填入地址；本地调试请在浏览器控制台设置 chat.devSupabaseUrl 和 chat.devSupabaseAnonKey（localStorage）后刷新。</p>
+    <a class="hub-link" href="../">‹ 回到小程序</a>
+  </section>
+
+  <section id="auth" class="screen" hidden>
+    <a class="hub-link" href="../">‹ 小程序</a>
+    <div class="hero bob" id="heroBox"></div>
+    <h1>耳朵聊天</h1>
+    <p class="sub">和好朋友说说话 ♡</p>
+    <div class="seg" role="tablist">
+      <button type="button" id="segLogin" class="on" role="tab">登录</button>
+      <button type="button" id="segRegister" role="tab">注册</button>
+    </div>
+    <form id="authForm" novalidate>
+      <input class="field" id="fUser" type="text" placeholder="用户名（小写字母、数字、下划线）" maxlength="20"
+             autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">
+      <input class="field" id="fNick" type="text" placeholder="昵称（可选，最多 20 个字）" maxlength="20" autocomplete="nickname" hidden>
+      <input class="field" id="fPass" type="password" placeholder="密码（至少 6 位）" maxlength="72"
+             autocomplete="current-password" enterkeyhint="go">
+      <p class="hint" id="regHint" hidden>用户名注册后不能修改，好友会用它来找到你。</p>
+      <p class="msg" id="authMsg" role="alert"></p>
+      <button class="btn" type="submit" id="authSubmit">登录</button>
+    </form>
+  </section>
+
+  <section id="app" class="screen" hidden>
+    <div id="views">
+      <div class="view" id="view-chats">
+        <div class="top"><a class="hub-link" href="../">‹ 小程序</a><h2>消息</h2></div>
+        <div class="scroll" id="chatList"></div>
+      </div>
+      <div class="view" id="view-friends" hidden>
+        <div class="top"><a class="hub-link" href="../">‹ 小程序</a><h2>好友</h2></div>
+        <div class="scroll">
+          <form class="search" id="searchForm" novalidate>
+            <input class="field" id="searchInput" type="text" placeholder="输入对方的用户名" maxlength="20"
+                   autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="search">
+            <button class="btn small" type="submit" id="searchBtn" style="min-height:48px">搜索</button>
+          </form>
+          <div id="searchResult"></div>
+          <div id="friendsBody"></div>
+        </div>
+      </div>
+      <div class="view" id="view-me" hidden>
+        <div class="top"><a class="hub-link" href="../">‹ 小程序</a><h2>我的</h2></div>
+        <div class="scroll" id="meBody"></div>
+      </div>
+    </div>
+    <nav id="tabbar">
+      <button type="button" data-tab="chats" class="on"><span class="ico">💬</span>消息<span class="badge" id="badgeChats" hidden></span></button>
+      <button type="button" data-tab="friends"><span class="ico">👯</span>好友<span class="badge" id="badgeFriends" hidden></span></button>
+      <button type="button" data-tab="me"><span class="ico">🥕</span>我的</button>
+    </nav>
+  </section>
+
+  <section id="chat" class="screen" hidden>
+    <div class="top">
+      <button type="button" class="back" id="chatBack" aria-label="返回">‹</button>
+      <div id="chatAvatar"></div>
+      <div class="who"><b id="chatName"></b><span id="chatUser"></span></div>
+    </div>
+    <div id="msgs">
+      <div id="olderRow" hidden>加载更早的消息…</div>
+      <div id="rows"></div>
+      <div id="chatEmpty"></div>
+    </div>
+    <div id="emojiPanel" hidden></div>
+    <div id="composer">
+      <button type="button" class="icon-btn" id="emojiBtn" aria-label="表情">😊</button>
+      <textarea id="input" rows="1" maxlength="2000" placeholder="说点什么…" enterkeyhint="send"></textarea>
+      <button type="button" class="btn" id="sendBtn">发送</button>
+    </div>
+  </section>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="pop" hidden></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ===== 配置 =====
+  // 部署时由 GitHub Actions 用仓库变量替换这两个占位符；本地调试从 localStorage 读取
+  var CFG_URL = '__SUPABASE_URL__';
+  var CFG_KEY = '__SUPABASE_ANON_KEY__';
+  // 用户名对应的邮箱后缀：email = 用户名 + "@" + EMAIL_DOMAIN（如果 Supabase 拒绝这个域名，改这里）
+  var EMAIL_DOMAIN = 'users.local';
+  var USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+  var PAGE = 50;
+  var EMOJIS = ['😀','😂','🥹','😍','🥰','😘','😋','😎','🤗','🤔','😴','😭','😡','🥺','😅','🙈',
+    '👍','👏','🙏','💪','🎉','✨','💗','💕','💖','❤️','🔥','🌟','🌸','🍫','🍓','🍰',
+    '🥕','🐰','🐱','🐶','🌈','☀️','🌙','⭐','🎀','🎁','🍀','☕','🍜','🍙','🧸','👋'];
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 隐私模式等 */ } }
+
+  function resolveConfig() {
+    var u = CFG_URL, k = CFG_KEY;
+    if (!u || !k || u.indexOf('__SUPABASE_') === 0 || k.indexOf('__SUPABASE_') === 0) {
+      u = lsGet('chat.devSupabaseUrl') || '';
+      k = lsGet('chat.devSupabaseAnonKey') || '';
+    }
+    if (!/^https?:\/\//.test(u) || !k) return null;
+    return { url: u.replace(/\/+$/, ''), key: k };
+  }
+
+  // ===== 小工具 =====
+  function $(id) { return document.getElementById(id); }
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    if (props) for (var k in props) {
+      var v = props[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c == null || c === false) continue;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function isVisible() { return document.visibilityState === 'visible'; }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+  function fmtTime(iso) {
+    var d = new Date(iso), now = new Date();
+    if (sameDay(d, now)) return hhmm(d);
+    var y = new Date(now.getTime() - 86400000);
+    if (sameDay(d, y)) return '昨天 ' + hhmm(d);
+    if (d.getFullYear() === now.getFullYear()) return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+  }
+  function fmtStamp(iso) {
+    var d = new Date(iso), now = new Date();
+    if (sameDay(d, now)) return hhmm(d);
+    return fmtTime(iso).indexOf(' ') > 0 ? fmtTime(iso) : fmtTime(iso) + ' ' + hhmm(d);
+  }
+  function cut(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; }
+
+  var toastTimer = null;
+  function toast(text, ms) {
+    var t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 2600);
+  }
+
+  // ===== Usagi 图片（加载失败时退化成 emoji，不出现裂图） =====
+  var IMG_NORMAL = 'usagi.png', IMG_YAHA = 'usagi-yaha.png';
+  function usagi(kind, cls) {
+    var wrap = document.createDocumentFragment();
+    var img = h('img', { class: 'usagi ' + (cls || ''), src: kind === 'yaha' ? IMG_YAHA : IMG_NORMAL, alt: '', draggable: 'false' });
+    img.addEventListener('error', function () {
+      var f = h('span', { class: 'usagi-fallback ' + (cls || ''), text: '🐰', 'aria-hidden': 'true' });
+      if (img.parentNode) img.parentNode.replaceChild(f, img);
+    });
+    wrap.appendChild(img);
+    return wrap;
+  }
+  function setUsagi(box, kind) { clear(box).appendChild(usagi(kind)); }
+  function emptyState(text, tiny) {
+    return h('div', { class: 'empty' + (tiny ? ' tiny' : '') }, usagi('normal', 'bob'), h('p', { text: text }));
+  }
+  function popYaha(text) {
+    var pop = $('pop');
+    clear(pop).appendChild(h('div', { class: 'yaha' }, usagi('yaha'), h('div', { class: 'shout', text: text || '呀哈！' })));
+    pop.hidden = false;
+    setTimeout(function () { pop.hidden = true; clear(pop); }, 1700);
+  }
+
+  // ===== 状态 =====
+  var sb = null, cfg = null;
+  var S = {
+    me: null,
+    profiles: new Map(),     // id -> {id, username, nickname, avatar_path}
+    convs: [],               // list_conversations() 的结果（每个好友一行）
+    friendships: [],         // 我的所有 friendships 行
+    tab: 'chats',
+    chat: null,              // 当前打开的会话
+    channel: null,
+    hadSubscribed: false,
+    tempSeq: 0
+  };
+
+  function avatarUrl(path) {
+    if (!path) return null;
+    try { return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl; } catch (e) { return null; }
+  }
+  function profileOf(id) {
+    return S.profiles.get(id) || null;
+  }
+  function nameOf(id) {
+    var p = profileOf(id);
+    return p ? p.nickname : '好友';
+  }
+  // 头像：有自定义头像就用，没有（或加载失败）就用 Usagi
+  function makeAvatar(p, size) {
+    var box = h('div', { class: 'avatar', style: size ? 'width:' + size + 'px;height:' + size + 'px' : null });
+    var custom = p && avatarUrl(p.avatar_path);
+    function useDefault() {
+      box.classList.add('default');
+      clear(box).appendChild(usagi('normal'));
+    }
+    if (custom) {
+      var img = h('img', { src: custom, alt: '', draggable: 'false' });
+      img.addEventListener('error', useDefault);
+      box.appendChild(img);
+    } else {
+      useDefault();
+    }
+    return box;
+  }
+
+  // ===== 错误翻译 =====
+  var ERR_TEXT = {
+    user_not_found: '没有找到这个用户',
+    cannot_add_self: '不能加自己为好友哦',
+    already_friends: '你们已经是好友啦',
+    request_already_sent: '已经发过请求了，等对方回应吧',
+    request_not_found: '这条请求已经处理过了',
+    not_friends: '你们还不是好友，不能发消息',
+    empty_message: '消息不能是空的',
+    message_too_long: '消息太长啦（最多 2000 字）',
+    invalid_nickname: '昵称需要 1 到 20 个字',
+    invalid_avatar: '头像保存失败，请换一张图片试试',
+    not_authenticated: '登录已过期，请重新登录',
+    invalid_argument: '操作无效'
+  };
+  function errText(e) {
+    var m = (e && e.message) || '';
+    if (ERR_TEXT[m]) return ERR_TEXT[m];
+    if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return '网络不太好，稍后再试';
+    if (/JWT|expired/i.test(m)) return ERR_TEXT.not_authenticated;
+    return '出错了，请稍后再试';
+  }
+  function authErrText(e) {
+    var code = (e && (e.code || e.error_code)) || '', m = ((e && e.message) || '').toLowerCase();
+    if (code === 'invalid_credentials' || /invalid login credentials/.test(m)) return '用户名或密码不对';
+    if (code === 'user_already_exists' || code === 'email_exists' || /already (been )?registered|already exists/.test(m)) return '这个用户名已经被占用了';
+    if (code === 'weak_password' || /password should be at least|weak/.test(m)) return '密码太简单，至少需要 6 位（建议字母加数字）';
+    if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit' || (e && e.status === 429) || /rate limit|too many/.test(m)) return '操作太频繁了，请过一会儿再试';
+    if (code === 'email_not_confirmed' || /email not confirmed/.test(m)) return '账号还没有通过邮箱验证。请管理员在 Supabase 后台关闭 “Confirm email”。';
+    if (code === 'email_address_invalid' || /email address .*invalid|invalid email|unable to validate email/.test(m)) {
+      return '服务器不接受这个邮箱格式（' + EMAIL_DOMAIN + '）。请管理员修改页面里的 EMAIL_DOMAIN。';
+    }
+    if (/database error saving new user/.test(m)) return '这个用户名不能用，请用 3 到 20 位小写字母、数字或下划线';
+    if (code === 'signup_disabled' || /signups? not allowed|signup is disabled/.test(m)) return '当前不开放注册';
+    if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return '网络不太好，稍后再试';
+    return '出错了，请稍后再试';
+  }
+
+  // ===== 界面切换 =====
+  function show(screenId) {
+    ['boot', 'unconfigured', 'auth', 'app'].forEach(function (id) { $(id).hidden = id !== screenId; });
+    if (screenId !== 'app') $('chat').hidden = true;
+  }
+
+  // ===== 登录 / 注册 =====
+  var authMode = 'login', authBusy = false;
+  function setAuthMode(mode) {
+    authMode = mode;
+    $('segLogin').classList.toggle('on', mode === 'login');
+    $('segRegister').classList.toggle('on', mode === 'register');
+    $('fNick').hidden = mode !== 'register';
+    $('regHint').hidden = mode !== 'register';
+    $('fPass').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
+    $('authSubmit').textContent = mode === 'login' ? '登录' : '注册';
+    authMsg('');
+  }
+  function authMsg(text, ok) {
+    var el = $('authMsg');
+    el.textContent = text;
+    el.classList.toggle('ok', !!ok);
+  }
+  function showAuth() {
+    show('auth');
+    setUsagi($('heroBox'), 'normal');
+    $('heroBox').classList.add('bob');
+    $('heroBox').classList.remove('cheer');
+    $('fPass').value = '';
+    authBusy = false;
+    $('authSubmit').disabled = false;
+  }
+  async function submitAuth(ev) {
+    ev.preventDefault();
+    if (authBusy) return;
+    var username = $('fUser').value.trim().toLowerCase();
+    var password = $('fPass').value;
+    if (!USERNAME_RE.test(username)) return authMsg('用户名需要 3 到 20 位，只能用小写字母、数字和下划线');
+    if (password.length < 6) return authMsg('密码至少需要 6 位');
+    var email = username + '@' + EMAIL_DOMAIN;
+    authBusy = true;
+    $('authSubmit').disabled = true;
+    authMsg('');
+    try {
+      var res;
+      if (authMode === 'register') {
+        var av = await sb.rpc('username_available', { p_username: username });
+        if (!av.error && av.data === false) { authMsg('这个用户名已经被占用了，换一个吧'); return finishAuthFail(); }
+        var nickname = $('fNick').value.trim().slice(0, 20);
+        res = await sb.auth.signUp({ email: email, password: password, options: { data: nickname ? { nickname: nickname } : {} } });
+        if (res.error) { authMsg(authErrText(res.error)); return finishAuthFail(); }
+        if (!res.data.session) {
+          authMsg('注册成功，但服务器要求邮箱验证，暂时无法登录。请管理员在 Supabase 后台（Authentication，Sign In / Providers，Email）关闭 “Confirm email”。');
+          return finishAuthFail();
+        }
+      } else {
+        res = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (res.error) { authMsg(authErrText(res.error)); return finishAuthFail(); }
+      }
+      // 成功：Usagi 喊一声“呀哈”，再进入
+      var hero = $('heroBox');
+      setUsagi(hero, 'yaha');
+      hero.classList.remove('bob');
+      hero.classList.add('cheer');
+      authMsg(authMode === 'register' ? '注册成功，欢迎！' : '登录成功！', true);
+      await sleep(900);
+      $('fPass').value = '';
+      await enterApp();
+    } catch (e) {
+      authMsg(authErrText(e));
+      finishAuthFail();
+    }
+  }
+  function finishAuthFail() { authBusy = false; $('authSubmit').disabled = false; }
+
+  // ===== 数据加载 =====
+  async function loadProfile() {
+    var u = (await sb.auth.getUser()).data.user;
+    if (!u) throw new Error('not_authenticated');
+    var r = await sb.from('profiles').select('id,username,nickname,avatar_path').eq('id', u.id).maybeSingle();
+    if (r.error) throw r.error;
+    if (!r.data) throw new Error('profile_missing');
+    S.me = r.data;
+    S.profiles.set(S.me.id, S.me);
+  }
+  var loadingAll = null, loadAgain = false;
+  function loadAll() {
+    // 合并并发调用：正在加载时只记一个“再来一次”
+    if (loadingAll) { loadAgain = true; return loadingAll; }
+    loadingAll = (async function () {
+      try {
+        do {
+          loadAgain = false;
+          var rs = await Promise.all([
+            sb.rpc('list_conversations'),
+            sb.from('friendships').select('id,requester_id,addressee_id,status,updated_at'),
+            sb.from('profiles').select('id,username,nickname,avatar_path')
+          ]);
+          var bad = rs.find(function (r) { return r.error; });
+          if (bad) { if (isVisible()) toast(errText(bad.error)); return false; }
+          S.convs = rs[0].data || [];
+          S.friendships = rs[1].data || [];
+          var map = new Map();
+          (rs[2].data || []).forEach(function (p) { map.set(p.id, p); });
+          if (S.me && !map.has(S.me.id)) map.set(S.me.id, S.me);
+          S.profiles = map;
+          if (S.me && map.get(S.me.id)) S.me = map.get(S.me.id);
+          renderAll();
+        } while (loadAgain);
+        return true;
+      } finally { loadingAll = null; }
+    })();
+    return loadingAll;
+  }
+
+  // ===== 渲染：消息列表 =====
+  function convOf(peerId) {
+    for (var i = 0; i < S.convs.length; i++) if (S.convs[i].peer_id === peerId) return S.convs[i];
+    return null;
+  }
+  function peerFromConv(c) {
+    return { id: c.peer_id, username: c.peer_username, nickname: c.peer_nickname, avatar_path: c.peer_avatar_path };
+  }
+  function totalUnread() {
+    return S.convs.reduce(function (n, c) { return n + (Number(c.unread_count) || 0); }, 0);
+  }
+  function incomingRequests() {
+    return S.friendships.filter(function (f) { return f.status === 'pending' && S.me && f.addressee_id === S.me.id; });
+  }
+  function outgoingRequests() {
+    return S.friendships.filter(function (f) { return f.status === 'pending' && S.me && f.requester_id === S.me.id; });
+  }
+
+  function renderChats() {
+    var box = clear($('chatList'));
+    var list = S.convs.filter(function (c) { return c.last_id != null; });
+    if (!list.length) {
+      box.appendChild(emptyState('还没有聊天呢，去「好友」里找朋友打个招呼吧'));
+      return;
+    }
+    list.forEach(function (c) {
+      var own = S.me && c.last_sender_id === S.me.id;
+      var unread = Number(c.unread_count) || 0;
+      var side = h('div', { class: 'side' }, h('span', { class: 'time', text: fmtTime(c.last_at) }));
+      if (unread > 0) side.appendChild(h('span', { class: 'badge', text: unread > 99 ? '99+' : String(unread) }));
+      box.appendChild(h('button', { type: 'button', class: 'card', onclick: function () { openChat(c.peer_id); } },
+        makeAvatar(peerFromConv(c)),
+        h('div', { class: 'info' },
+          h('div', { class: 'name', text: c.peer_nickname }),
+          h('div', { class: 'line2', text: (own ? '你: ' : '') + c.last_body })),
+        side));
+    });
+  }
+
+  // ===== 渲染：好友页 =====
+  var searchState = null; // {username, result|null}
+  function renderFriends() {
+    var box = clear($('friendsBody'));
+    var inc = incomingRequests(), out = outgoingRequests();
+
+    box.appendChild(h('div', { class: 'section-title' }, '好友请求', inc.length ? h('span', { class: 'count', text: String(inc.length) }) : null));
+    if (!inc.length) box.appendChild(emptyState('暂时没有新的好友请求', true));
+    inc.forEach(function (f) {
+      var p = profileOf(f.requester_id) || { id: f.requester_id, nickname: '新朋友', username: '' };
+      box.appendChild(h('div', { class: 'card' },
+        makeAvatar(p),
+        h('div', { class: 'info' }, h('div', { class: 'name', text: p.nickname }), h('div', { class: 'line2', text: '@' + p.username })),
+        h('div', { class: 'actions' },
+          h('button', { type: 'button', class: 'btn small ghost', text: '拒绝', onclick: function (ev) { respond(f.id, false, ev.currentTarget); } }),
+          h('button', { type: 'button', class: 'btn small', text: '接受', onclick: function (ev) { respond(f.id, true, ev.currentTarget); } }))));
+    });
+
+    if (out.length) {
+      box.appendChild(h('div', { class: 'section-title' }, '等待对方回应'));
+      out.forEach(function (f) {
+        var p = profileOf(f.addressee_id) || { id: f.addressee_id, nickname: '好友', username: '' };
+        box.appendChild(h('div', { class: 'card' },
+          makeAvatar(p),
+          h('div', { class: 'info' }, h('div', { class: 'name', text: p.nickname }), h('div', { class: 'line2', text: '@' + p.username })),
+          h('span', { class: 'line2', text: '等待中…' })));
+      });
+    }
+
+    box.appendChild(h('div', { class: 'section-title' }, '我的好友', S.convs.length ? h('span', { class: 'count', text: String(S.convs.length) }) : null));
+    if (!S.convs.length) box.appendChild(emptyState('还没有好友，搜索对方的用户名把 Ta 请进来吧'));
+    S.convs.slice().sort(function (a, b) { return a.peer_nickname.localeCompare(b.peer_nickname, 'zh'); }).forEach(function (c) {
+      box.appendChild(h('button', { type: 'button', class: 'card', onclick: function () { openChat(c.peer_id); } },
+        makeAvatar(peerFromConv(c)),
+        h('div', { class: 'info' }, h('div', { class: 'name', text: c.peer_nickname }), h('div', { class: 'line2', text: '@' + c.peer_username })),
+        h('span', { class: 'line2', text: '发消息 ›' })));
+    });
+  }
+
+  function renderSearchResult() {
+    var box = clear($('searchResult'));
+    if (!searchState) return;
+    var r = searchState.result;
+    if (!r) {
+      box.appendChild(emptyState('没有找到 @' + searchState.username + '，再确认一下用户名吧'));
+      return;
+    }
+    var p = { id: r.user_id, username: r.username, nickname: r.nickname, avatar_path: r.avatar_path };
+    var action;
+    if (r.relation === 'none') action = h('button', { type: 'button', class: 'btn small', text: '加好友', onclick: function (ev) { addFriend(r.username, ev.currentTarget); } });
+    else if (r.relation === 'friend') action = h('button', { type: 'button', class: 'btn small ghost', text: '发消息', onclick: function () { openChat(r.user_id); } });
+    else if (r.relation === 'outgoing') action = h('span', { class: 'line2', text: '已发送请求' });
+    else if (r.relation === 'incoming') action = h('span', { class: 'line2', text: 'Ta 已请求你，见下方' });
+    else action = h('span', { class: 'line2', text: '这是你自己' });
+    box.appendChild(h('div', { class: 'card' },
+      makeAvatar(p),
+      h('div', { class: 'info' }, h('div', { class: 'name', text: r.nickname }), h('div', { class: 'line2', text: '@' + r.username })),
+      action));
+  }
+
+  async function doSearch(ev) {
+    ev.preventDefault();
+    var u = $('searchInput').value.trim().toLowerCase().replace(/^@/, '');
+    if (!u) return;
+    var btn = $('searchBtn');
+    btn.disabled = true;
+    try {
+      if (!USERNAME_RE.test(u)) { searchState = { username: u, result: null }; return renderSearchResult(); }
+      var r = await sb.rpc('find_user', { p_username: u });
+      if (r.error) return toast(errText(r.error));
+      searchState = { username: u, result: (r.data && r.data[0]) || null };
+      renderSearchResult();
+    } finally { btn.disabled = false; }
+  }
+  async function addFriend(username, btn) {
+    btn.disabled = true;
+    var r = await sb.rpc('send_friend_request', { p_username: username });
+    if (r.error) { btn.disabled = false; toast(errText(r.error)); if (r.error.message === 'already_friends') await refreshSearch(username); return; }
+    toast(r.data === 'accepted' ? '你们已经是好友啦！' : '好友请求已发送，等 Ta 通过吧');
+    if (r.data === 'accepted') popYaha('呀哈！');
+    await loadAll();
+    await refreshSearch(username);
+  }
+  async function refreshSearch(username) {
+    var r = await sb.rpc('find_user', { p_username: username });
+    if (!r.error && searchState && searchState.username === username) {
+      searchState.result = (r.data && r.data[0]) || null;
+      renderSearchResult();
+    }
+  }
+  async function respond(id, accept, btn) {
+    btn.disabled = true;
+    var r = await sb.rpc('respond_friend_request', { p_id: id, p_accept: accept });
+    if (r.error) { btn.disabled = false; toast(errText(r.error)); await loadAll(); return; }
+    if (accept) { toast('已添加为好友'); popYaha('呀哈！'); }
+    await loadAll();
+    if (searchState && searchState.result) refreshSearch(searchState.username);
+  }
+
+  // ===== 渲染：我的 =====
+  var iosHint = '在 iPhone / iPad 上，请先用 Safari 点「分享」，选「添加到主屏幕」（需要 iOS 16.4 或更高），再从主屏幕图标打开本页，才能开启通知。';
+  function notifSupported() { return 'Notification' in window && 'serviceWorker' in navigator; }
+  function notifOn() {
+    return notifSupported() && Notification.permission === 'granted' && lsGet('chat.notify') !== '0';
+  }
+  function notifStateText() {
+    if (!notifSupported()) return '当前浏览器不支持';
+    if (Notification.permission === 'denied') return '已被浏览器拦截';
+    if (Notification.permission === 'granted') return notifOn() ? '已开启' : '已关闭';
+    return '未开启';
+  }
+  function renderMe() {
+    var box = clear($('meBody'));
+    if (!S.me) return;
+    var fileInput = h('input', { type: 'file', accept: 'image/*', hidden: true });
+    fileInput.addEventListener('change', function () { if (fileInput.files[0]) uploadAvatar(fileInput.files[0]); fileInput.value = ''; });
+    var avatarBtn = h('button', { type: 'button', class: 'btn small ghost', text: '更换头像', onclick: function () { fileInput.click(); } });
+    box.appendChild(h('div', { class: 'me-head' },
+      makeAvatar(S.me, 104),
+      h('div', { class: 'name', style: 'font-size:20px;font-weight:900', text: S.me.nickname }),
+      h('div', { class: 'uname', text: '用户名 @' + S.me.username + '（不可修改）' }),
+      avatarBtn, fileInput));
+
+    var nick = h('input', { class: 'field', type: 'text', maxlength: '20', value: S.me.nickname, placeholder: '昵称（1 到 20 个字）', autocomplete: 'off' });
+    var save = h('button', { type: 'button', class: 'btn small', text: '保存' });
+    save.addEventListener('click', async function () {
+      var v = nick.value.trim();
+      if (!v || v.length > 20) return toast('昵称需要 1 到 20 个字');
+      save.disabled = true;
+      var r = await sb.rpc('update_profile', { p_nickname: v, p_avatar_path: null });
+      save.disabled = false;
+      if (r.error) return toast(errText(r.error));
+      S.me = r.data; S.profiles.set(S.me.id, S.me);
+      toast('昵称已更新');
+      renderMe();
+    });
+    box.appendChild(h('div', { class: 'panel' }, h('h3', { text: '昵称' }), h('div', { class: 'row-flex' }, nick, save)));
+
+    var toggle = h('button', { type: 'button', class: 'toggle', role: 'switch', 'aria-label': '消息通知' });
+    toggle.setAttribute('aria-checked', notifOn() ? 'true' : 'false');
+    toggle.disabled = !notifSupported() || (Notification.permission === 'denied');
+    toggle.addEventListener('click', toggleNotify);
+    var panel = h('div', { class: 'panel' }, h('h3', { text: '通知' }),
+      h('div', { class: 'switch-row' }, h('div', null, h('div', { style: 'font-weight:800', text: '新消息和好友请求提醒' }), h('div', { class: 'state', text: notifStateText() })), toggle),
+      h('p', { class: 'hint', style: 'margin-top:10px', text: '只在页面开着（含后台标签页）时提醒，关掉页面后收不到。' }));
+    if (!notifSupported()) panel.appendChild(h('p', { class: 'hint', style: 'margin-top:6px', text: iosHint }));
+    else if (Notification.permission === 'denied') panel.appendChild(h('p', { class: 'hint', style: 'margin-top:6px', text: '通知被浏览器拦截了，请在浏览器的网站设置里允许通知，然后刷新页面。' }));
+    box.appendChild(panel);
+
+    box.appendChild(h('div', { class: 'panel' }, h('h3', { text: '账号' }),
+      h('button', { type: 'button', class: 'btn danger', style: 'width:100%', text: '退出登录', onclick: logout })));
+    box.appendChild(emptyState('耳朵和 Usagi 都在这里陪你', true));
+  }
+  async function toggleNotify() {
+    if (!notifSupported()) return toast('当前浏览器不支持通知');
+    if (notifOn()) { lsSet('chat.notify', '0'); renderMe(); return; }
+    if (Notification.permission === 'granted') { lsSet('chat.notify', '1'); renderMe(); return; }
+    if (Notification.permission === 'denied') return toast('通知被浏览器拦截了，请在网站设置里允许');
+    try {
+      var p = await Notification.requestPermission(); // 必须在用户点击里请求
+      if (p === 'granted') { lsSet('chat.notify', '1'); toast('通知已开启'); } else toast('没有开启通知');
+    } catch (e) { toast('当前浏览器不支持通知'); }
+    renderMe();
+  }
+
+  // ===== 头像上传：居中裁成正方形，缩到 256px，WebP（不支持则 JPEG） =====
+  function loadImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url;
+    });
+  }
+  function canvasBlob(canvas, type, q) {
+    return new Promise(function (resolve) { canvas.toBlob(resolve, type, q); });
+  }
+  async function makeAvatarBlob(file) {
+    var img = await loadImage(file);
+    var w = img.naturalWidth || img.width, hgt = img.naturalHeight || img.height;
+    if (!w || !hgt) throw new Error('decode');
+    var side = Math.min(w, hgt);
+    var canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 256;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.drawImage(img, (w - side) / 2, (hgt - side) / 2, side, side, 0, 0, 256, 256);
+    var blob = await canvasBlob(canvas, 'image/webp', 0.85);
+    if (blob && blob.type === 'image/webp') return { blob: blob, ext: 'webp', type: 'image/webp' };
+    blob = await canvasBlob(canvas, 'image/jpeg', 0.88); // Safari 等不支持 WebP 编码
+    if (!blob) throw new Error('encode');
+    return { blob: blob, ext: 'jpg', type: 'image/jpeg' };
+  }
+  async function uploadAvatar(file) {
+    if (file.size > 20 * 1024 * 1024) return toast('这张图片太大了，换一张小一点的吧');
+    toast('头像上传中…', 8000);
+    var out;
+    try { out = await makeAvatarBlob(file); } catch (e) { return toast('这张图片读不出来，换一张试试'); }
+    var old = S.me.avatar_path;
+    var path = S.me.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + out.ext;
+    var up = await sb.storage.from('avatars').upload(path, out.blob, { contentType: out.type, cacheControl: '31536000', upsert: false });
+    if (up.error) return toast('头像上传失败，请稍后再试');
+    var r = await sb.rpc('update_profile', { p_nickname: null, p_avatar_path: path });
+    if (r.error) {
+      sb.storage.from('avatars').remove([path]).catch(function () {});
+      return toast(errText(r.error));
+    }
+    S.me = r.data; S.profiles.set(S.me.id, S.me);
+    if (old && old !== path) sb.storage.from('avatars').remove([old]).catch(function () {}); // 尽力删除旧头像
+    toast('头像已更新');
+    renderMe();
+  }
+
+  // ===== 标签页 / 角标 / 标题 =====
+  function showTab(name) {
+    S.tab = name;
+    ['chats', 'friends', 'me'].forEach(function (t) { $('view-' + t).hidden = t !== name; });
+    document.querySelectorAll('#tabbar button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === name); });
+    if (name === 'me') renderMe();
+  }
+  function setBadge(el, n) {
+    el.hidden = !(n > 0);
+    el.textContent = n > 99 ? '99+' : String(n);
+  }
+  function updateBadges() {
+    var n = totalUnread();
+    setBadge($('badgeChats'), n);
+    setBadge($('badgeFriends'), incomingRequests().length);
+    document.title = (n > 0 ? '(' + (n > 99 ? '99+' : n) + ') ' : '') + '耳朵聊天';
+    try {
+      if (navigator.setAppBadge) { if (n > 0) navigator.setAppBadge(n); else navigator.clearAppBadge(); }
+    } catch (e) { /* 不支持就算了 */ }
+  }
+  function renderAll() {
+    renderChats();
+    renderFriends();
+    renderSearchResult();
+    if (S.tab === 'me') renderMe();
+    updateBadges();
+    if (S.chat) renderChatHeader();
+  }
+
+  // ===== 通知 =====
+  var swReg = null;
+  async function getReg() {
+    if (swReg) return swReg;
+    if (!('serviceWorker' in navigator)) return null;
+    try { swReg = await navigator.serviceWorker.ready; } catch (e) { swReg = null; }
+    return swReg;
+  }
+  async function notify(opts) {
+    if (!notifOn()) return;
+    try {
+      var reg = await getReg();
+      if (!reg) return;
+      await reg.showNotification(opts.title, {
+        body: opts.body,
+        tag: opts.tag,
+        renotify: true,
+        icon: opts.icon || new URL('icon-192.png', location.href).href,
+        badge: new URL('icon-192.png', location.href).href,
+        data: opts.data || {}
+      });
+    } catch (e) { /* 通知失败不影响聊天 */ }
+  }
+  async function closeNotifications(tag) {
+    try {
+      var reg = await getReg();
+      if (!reg) return;
+      (await reg.getNotifications({ tag: tag })).forEach(function (n) { n.close(); });
+    } catch (e) { /* 忽略 */ }
+  }
+  function notifyMessage(m) {
+    var p = profileOf(m.sender_id);
+    notify({
+      title: p ? p.nickname : '新消息',
+      body: cut(m.body, 80),
+      tag: 'msg-' + m.sender_id,
+      icon: p && avatarUrl(p.avatar_path),
+      data: { peer: m.sender_id }
+    });
+  }
+
+  // ===== 聊天页 =====
+  function chatKey(m) { return m.key; }
+  function renderChatHeader() {
+    var c = S.chat; if (!c) return;
+    var p = profileOf(c.peer) || (convOf(c.peer) ? peerFromConv(convOf(c.peer)) : null);
+    clear($('chatAvatar')).appendChild(makeAvatar(p, 40));
+    $('chatName').textContent = p ? p.nickname : '好友';
+    $('chatUser').textContent = p ? '@' + p.username : '';
+  }
+
+  async function openChat(peerId, fromHistory) {
+    if (!S.me || !convOf(peerId)) {
+      // 可能是刚成为好友，先刷新一次
+      await loadAll();
+      if (!convOf(peerId)) return toast('你们还不是好友');
+    }
+    if (S.chat && S.chat.peer === peerId) return;
+    S.chat = { peer: peerId, msgs: [], ids: new Set(), nodes: new Map(), hasMore: false, loadingOlder: false, loaded: false };
+    if (!fromHistory) { try { history.pushState({ chat: peerId }, ''); } catch (e) { /* 忽略 */ } }
+    $('chat').hidden = false;
+    $('emojiPanel').hidden = true;
+    $('input').value = '';
+    autosize();
+    clear($('rows'));
+    clear($('chatEmpty'));
+    $('olderRow').hidden = true;
+    renderChatHeader();
+    closeNotifications('msg-' + peerId);
+    await fetchLatest(true);
+    if (S.chat && S.chat.peer === peerId) markReadIfNeeded();
+  }
+  function closeChat() {
+    if (!S.chat) return;
+    S.chat = null;
+    $('chat').hidden = true;
+    $('emojiPanel').hidden = true;
+    $('input').blur();
+    loadAll();
+  }
+
+  function msgFromRow(r) {
+    return { key: 'm' + r.id, id: r.id, sender_id: r.sender_id, receiver_id: r.receiver_id, body: r.body, created_at: r.created_at, read_at: r.read_at, status: 'sent' };
+  }
+  function peerFilter(peer) {
+    var me = S.me.id;
+    return 'and(sender_id.eq.' + me + ',receiver_id.eq.' + peer + '),and(sender_id.eq.' + peer + ',receiver_id.eq.' + me + ')';
+  }
+  // 合并服务器返回的消息：按 id 去重，已有的更新已读状态
+  function mergeRows(rows) {
+    var c = S.chat; if (!c) return false;
+    var changed = false;
+    rows.forEach(function (r) {
+      if (c.ids.has(r.id)) {
+        var ex = c.msgs.find(function (m) { return m.id === r.id; });
+        if (ex && ex.read_at !== r.read_at) { ex.read_at = r.read_at; changed = true; }
+        return;
+      }
+      // 乐观消息已经被确认成同一个 id 的情况在 confirmSent 里处理，这里只加新的
+      c.ids.add(r.id);
+      c.msgs.push(msgFromRow(r));
+      changed = true;
+    });
+    if (changed) sortMsgs();
+    return changed;
+  }
+  function sortMsgs() {
+    var c = S.chat;
+    c.msgs.sort(function (a, b) {
+      if (a.id != null && b.id != null) return a.id - b.id;
+      if (a.id != null) return -1;
+      if (b.id != null) return 1;
+      return a.seq - b.seq;
+    });
+  }
+  async function fetchLatest(first) {
+    var c = S.chat; if (!c) return;
+    var peer = c.peer;
+    var r = await sb.from('messages').select('*').or(peerFilter(peer)).order('id', { ascending: false }).limit(PAGE);
+    if (!S.chat || S.chat.peer !== peer) return;
+    if (r.error) return toast(errText(r.error));
+    var rows = r.data || [];
+    if (first) c.hasMore = rows.length === PAGE;
+    var stick = nearBottom() || first;
+    mergeRows(rows);
+    c.loaded = true;
+    renderMsgs({ stick: stick });
+  }
+  async function loadOlder() {
+    var c = S.chat;
+    if (!c || !c.hasMore || c.loadingOlder || !c.loaded) return;
+    var oldest = c.msgs.find(function (m) { return m.id != null; });
+    if (!oldest) return;
+    c.loadingOlder = true;
+    $('olderRow').hidden = false;
+    var box = $('msgs'), prevH = box.scrollHeight, prevTop = box.scrollTop, peer = c.peer;
+    var r = await sb.from('messages').select('*').or(peerFilter(peer)).lt('id', oldest.id).order('id', { ascending: false }).limit(PAGE);
+    if (!S.chat || S.chat.peer !== peer) return;
+    c.loadingOlder = false;
+    $('olderRow').hidden = true;
+    if (r.error) return toast(errText(r.error));
+    var rows = r.data || [];
+    c.hasMore = rows.length === PAGE;
+    mergeRows(rows);
+    renderMsgs({ stick: false });
+    box.scrollTop = prevTop + (box.scrollHeight - prevH); // 保持当前位置不跳
+  }
+  function nearBottom() {
+    var b = $('msgs');
+    return b.scrollHeight - b.scrollTop - b.clientHeight < 90;
+  }
+  function scrollToBottom() { var b = $('msgs'); b.scrollTop = b.scrollHeight; }
+
+  // 增量渲染：按 key 复用 DOM 节点，新消息到来时不会打断正在进行的文字选择
+  function renderMsgs(opts) {
+    var c = S.chat; if (!c) return;
+    var rows = $('rows');
+    var alive = new Set();
+    var prev = null;
+    c.msgs.forEach(function (m, i) {
+      alive.add(m.key);
+      var el = c.nodes.get(m.key);
+      if (!el) { el = buildRow(m); c.nodes.set(m.key, el); }
+      updateRow(el, m, prev);
+      if (rows.children[i] !== el) rows.insertBefore(el, rows.children[i] || null);
+      prev = m;
+    });
+    c.nodes.forEach(function (el, k) {
+      if (!alive.has(k)) { if (el.parentNode) el.parentNode.removeChild(el); c.nodes.delete(k); }
+    });
+    var empty = clear($('chatEmpty'));
+    if (c.loaded && !c.msgs.length) empty.appendChild(emptyState('打个招呼吧', true));
+    if (opts && opts.stick) scrollToBottom();
+  }
+  function buildRow(m) {
+    var el = h('div', { class: 'row' });
+    el._stamp = h('div', { class: 'stamp', hidden: true });
+    el._bubble = h('div', { class: 'bubble' });
+    el._meta = h('div', { class: 'meta', hidden: true });
+    el.appendChild(el._stamp);
+    el.appendChild(el._bubble);
+    el.appendChild(el._meta);
+    return el;
+  }
+  function updateRow(el, m, prev) {
+    var own = m.sender_id === S.me.id;
+    el.className = 'row ' + (own ? 'own' : 'peer') + (m.status === 'sending' ? ' sending' : '') + (m.status === 'failed' ? ' failed' : '');
+    var gap = !prev || (new Date(m.created_at) - new Date(prev.created_at) > 5 * 60000);
+    el._stamp.hidden = !gap;
+    if (gap) el._stamp.textContent = fmtStamp(m.created_at);
+    if (el._body !== m.body) { el._bubble.textContent = m.body; el._body = m.body; }
+    if (!own) { el._meta.hidden = true; return; }
+    el._meta.hidden = false;
+    var sig = m.status + '|' + (m.read_at ? 1 : 0);
+    if (el._sig === sig) return;
+    el._sig = sig;
+    clear(el._meta);
+    el._meta.className = 'meta';
+    if (m.status === 'sending') el._meta.textContent = '发送中…';
+    else if (m.status === 'failed') {
+      el._meta.classList.add('fail');
+      el._meta.appendChild(h('span', { text: '发送失败' }));
+      el._meta.appendChild(h('button', { type: 'button', text: '重试', onclick: function () { retrySend(m); } }));
+      el._meta.appendChild(h('button', { type: 'button', text: '删除', onclick: function () { dropFailed(m); } }));
+    } else if (m.read_at) { el._meta.classList.add('read'); el._meta.textContent = '已读'; }
+    else el._meta.textContent = '未读';
+  }
+
+  // ===== 发送（乐观更新） =====
+  async function sendCurrent() {
+    var c = S.chat; if (!c) return;
+    var input = $('input');
+    var body = input.value.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
+    if (!body) return;
+    if (body.length > 2000) return toast(ERR_TEXT.message_too_long);
+    input.value = '';
+    autosize();
+    $('emojiPanel').hidden = true;
+    var m = { key: 't' + (++S.tempSeq), seq: S.tempSeq, id: null, sender_id: S.me.id, receiver_id: c.peer, body: body, created_at: new Date().toISOString(), read_at: null, status: 'sending' };
+    c.msgs.push(m);
+    renderMsgs({ stick: true });
+    doSend(m);
+  }
+  async function doSend(m) {
+    var c = S.chat;
+    m.status = 'sending';
+    var r;
+    try { r = await sb.rpc('send_message', { p_peer: m.receiver_id, p_body: m.body }); }
+    catch (e) { r = { error: e }; }
+    if (r.error) {
+      m.status = 'failed';
+      if (S.chat && S.chat.peer === m.receiver_id) renderMsgs({ stick: false });
+      if (r.error.message === 'not_friends') toast(ERR_TEXT.not_friends);
+      return;
+    }
+    var row = r.data;
+    var cc = S.chat && S.chat.peer === m.receiver_id ? S.chat : null;
+    if (cc) {
+      if (cc.ids.has(row.id)) {
+        // 实时推送比 RPC 返回先到：丢掉乐观的那条
+        cc.msgs = cc.msgs.filter(function (x) { return x !== m; });
+      } else {
+        cc.ids.add(row.id);
+        m.id = row.id; m.created_at = row.created_at; m.read_at = row.read_at; m.status = 'sent';
+        sortMsgs();
+      }
+      renderMsgs({ stick: true });
+    }
+    applyOwnToConv(row);
+    var flag = 'chat.firstSent.' + S.me.id;
+    if (!lsGet(flag)) { lsSet(flag, '1'); popYaha('呀哈！'); }
+  }
+  function retrySend(m) { if (m.status === 'failed') doSend(m); }
+  function dropFailed(m) {
+    var c = S.chat; if (!c) return;
+    c.msgs = c.msgs.filter(function (x) { return x !== m; });
+    renderMsgs({ stick: false });
+  }
+
+  // ===== 已读 =====
+  var marking = false;
+  async function markReadIfNeeded() {
+    var c = S.chat;
+    if (!c || !isVisible() || marking) return;
+    var conv = convOf(c.peer);
+    if (!conv || !(Number(conv.unread_count) > 0)) return;
+    marking = true;
+    try {
+      var r = await sb.rpc('mark_read', { p_peer: c.peer });
+      if (!r.error) { conv.unread_count = 0; updateBadges(); renderChats(); closeNotifications('msg-' + c.peer); }
+    } finally { marking = false; }
+    // 标记期间又来了新消息的话再标一次
+    var again = convOf(c.peer);
+    if (S.chat && again && Number(again.unread_count) > 0 && S.chat.peer === c.peer) markReadIfNeeded();
+  }
+
+  // ===== 实时 =====
+  function applyOwnToConv(row) {
+    var conv = convOf(row.receiver_id);
+    if (!conv) return;
+    if (conv.last_id != null && Number(conv.last_id) > row.id) return;
+    conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at;
+    S.convs.sort(function (a, b) { return new Date(b.last_at || b.friends_since) - new Date(a.last_at || a.friends_since); });
+    renderChats(); updateBadges();
+  }
+  async function onMessageInsert(row) {
+    var me = S.me.id;
+    if (row.sender_id === me) {
+      // 自己在别处（另一个标签页 / 设备）发的
+      if (S.chat && S.chat.peer === row.receiver_id && !S.chat.ids.has(row.id)) {
+        S.chat.ids.add(row.id); S.chat.msgs.push(msgFromRow(row)); sortMsgs(); renderMsgs({ stick: nearBottom() });
+      }
+      applyOwnToConv(row);
+      return;
+    }
+    var open = S.chat && S.chat.peer === row.sender_id;
+    var conv = convOf(row.sender_id);
+    if (!conv || !profileOf(row.sender_id)) {
+      await loadAll(); // 新好友的第一条消息：先把资料取回来
+      conv = convOf(row.sender_id);
+      if (!conv) return;
+    } else {
+      if (conv.last_id == null || Number(conv.last_id) < row.id) {
+        conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at;
+      }
+      if (!(open && isVisible())) conv.unread_count = (Number(conv.unread_count) || 0) + 1;
+      S.convs.sort(function (a, b) { return new Date(b.last_at || b.friends_since) - new Date(a.last_at || a.friends_since); });
+    }
+    if (open) {
+      var c = S.chat;
+      if (!c.ids.has(row.id)) { c.ids.add(row.id); c.msgs.push(msgFromRow(row)); sortMsgs(); renderMsgs({ stick: nearBottom() }); }
+    }
+    renderChats(); updateBadges();
+    if (open && isVisible()) markReadIfNeeded();
+    else {
+      notifyMessage(row);
+      if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(row.body, 24));
+    }
+  }
+  function onMessageUpdate(row) {
+    var me = S.me.id;
+    if (row.sender_id === me) {
+      // 对方读了我的消息
+      if (S.chat && S.chat.peer === row.receiver_id) {
+        var ex = S.chat.msgs.find(function (m) { return m.id === row.id; });
+        if (ex && ex.read_at !== row.read_at) { ex.read_at = row.read_at; renderMsgs({ stick: false }); }
+      }
+      var conv = convOf(row.receiver_id);
+      if (conv && Number(conv.last_id) === row.id) { conv.last_read_at = row.read_at; }
+    } else if (row.receiver_id === me) {
+      scheduleLoadAll(); // 在别的设备上读了：同步未读数
+    }
+  }
+  var loadTimer = null;
+  function scheduleLoadAll() { clearTimeout(loadTimer); loadTimer = setTimeout(loadAll, 300); }
+
+  async function onFriendship(payload) {
+    var f = payload.new, me = S.me.id;
+    if (!f || !f.id) return scheduleLoadAll();
+    await loadAll();
+    var other = f.requester_id === me ? f.addressee_id : f.requester_id;
+    var name = nameOf(other);
+    var relevant = !(isVisible() && S.tab === 'friends' && !S.chat);
+    if (f.addressee_id === me && f.status === 'pending') {
+      if (relevant) notify({ title: '新的好友请求', body: name + ' 想加你为好友', tag: 'req-' + other, icon: avatarUrl((profileOf(other) || {}).avatar_path), data: { tab: 'friends' } });
+      if (isVisible()) toast(name + ' 请求加你为好友');
+    } else if (f.requester_id === me && f.status === 'accepted' && payload.eventType === 'UPDATE') {
+      if (relevant) notify({ title: '好友请求已通过', body: name + ' 通过了你的好友请求', tag: 'req-' + other, icon: avatarUrl((profileOf(other) || {}).avatar_path), data: { peer: other } });
+      if (isVisible()) { toast(name + ' 通过了你的好友请求'); popYaha('呀哈！'); }
+    }
+  }
+
+  function startRealtime() {
+    stopRealtime();
+    var me = S.me.id;
+    var ch = sb.channel('chat-' + me + '-' + Date.now());
+    function msg(event, col, handler) {
+      ch.on('postgres_changes', { event: event, schema: 'public', table: 'messages', filter: col + '=eq.' + me }, function (p) { handler(p.new); });
+    }
+    msg('INSERT', 'receiver_id', onMessageInsert);
+    msg('INSERT', 'sender_id', onMessageInsert);
+    msg('UPDATE', 'sender_id', onMessageUpdate);
+    msg('UPDATE', 'receiver_id', onMessageUpdate);
+    ['requester_id', 'addressee_id'].forEach(function (col) {
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'friendships', filter: col + '=eq.' + me }, onFriendship);
+    });
+    ch.subscribe(function (status) {
+      if (status === 'SUBSCRIBED') {
+        // 重新连上之后补一次，避免断线期间漏消息
+        refreshAll();
+        S.hadSubscribed = true;
+      }
+    });
+    S.channel = ch;
+  }
+  function stopRealtime() {
+    if (S.channel) { try { sb.removeChannel(S.channel); } catch (e) { /* 忽略 */ } }
+    S.channel = null; S.hadSubscribed = false;
+  }
+  async function refreshAll() {
+    if (!S.me) return;
+    await loadAll();
+    if (S.chat) { await fetchLatest(false); markReadIfNeeded(); }
+  }
+
+  // ===== 进入 / 退出 =====
+  async function enterApp() {
+    try {
+      await loadProfile();
+    } catch (e) {
+      if (e && e.message === 'profile_missing') toast('账号资料缺失，请退出后重新注册');
+      else toast(errText(e));
+      await sb.auth.signOut().catch(function () {});
+      S.me = null;
+      return showAuth();
+    }
+    show('app');
+    showTab('chats');
+    await loadAll();
+    startRealtime();
+    routeFromUrl();
+  }
+  function routeFromUrl() {
+    var q = new URLSearchParams(location.search);
+    var peer = q.get('peer'), tab = q.get('tab');
+    if (peer || tab) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* 忽略 */ } }
+    if (tab === 'friends' || tab === 'me' || tab === 'chats') showTab(tab);
+    if (peer && /^[0-9a-f-]{36}$/i.test(peer)) openChat(peer.toLowerCase());
+  }
+  async function logout() {
+    stopRealtime();
+    S.chat = null; $('chat').hidden = true;
+    try { await sb.auth.signOut(); } catch (e) { /* 本地状态照样清掉 */ }
+    resetState();
+    setAuthMode('login');
+    showAuth();
+  }
+  function resetState() {
+    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null;
+    document.title = '耳朵聊天';
+    try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) { /* 忽略 */ }
+  }
+
+  // ===== 输入栏 =====
+  function autosize() {
+    var t = $('input');
+    t.style.height = 'auto';
+    t.style.height = Math.min(t.scrollHeight, 112) + 'px';
+  }
+  function buildEmojiPanel() {
+    var p = $('emojiPanel');
+    EMOJIS.forEach(function (e) {
+      var b = h('button', { type: 'button', text: e, 'aria-label': e });
+      b.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 不抢输入框焦点
+      b.addEventListener('click', function () {
+        var t = $('input');
+        var s = t.selectionStart == null ? t.value.length : t.selectionStart, en = t.selectionEnd == null ? s : t.selectionEnd;
+        if (t.value.length - (en - s) + e.length > 2000) return;
+        t.value = t.value.slice(0, s) + e + t.value.slice(en);
+        t.selectionStart = t.selectionEnd = s + e.length;
+        autosize();
+      });
+      p.appendChild(b);
+    });
+  }
+
+  // ===== 键盘与视口（iOS 键盘弹出时让输入栏保持可见） =====
+  function fitViewport() {
+    var vv = window.visualViewport, shell = $('shell');
+    if (!vv) return;
+    shell.style.height = vv.height + 'px';
+    shell.style.top = vv.offsetTop + 'px';
+    if (S.chat && nearBottom()) scrollToBottom();
+  }
+
+  // ===== 事件 =====
+  function bind() {
+    $('segLogin').addEventListener('click', function () { setAuthMode('login'); });
+    $('segRegister').addEventListener('click', function () { setAuthMode('register'); });
+    $('authForm').addEventListener('submit', submitAuth);
+    $('searchForm').addEventListener('submit', doSearch);
+    document.querySelectorAll('#tabbar button').forEach(function (b) {
+      b.addEventListener('click', function () { showTab(b.dataset.tab); });
+    });
+    $('chatBack').addEventListener('click', function () {
+      if (history.state && history.state.chat) history.back(); else closeChat();
+    });
+    window.addEventListener('popstate', function () { if (S.chat) closeChat(); });
+    $('emojiBtn').addEventListener('click', function () {
+      var p = $('emojiPanel');
+      p.hidden = !p.hidden;
+      if (!p.hidden) { $('input').blur(); }
+      if (nearBottom()) setTimeout(scrollToBottom, 0);
+    });
+    var send = $('sendBtn');
+    send.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 点发送不收起键盘
+    send.addEventListener('click', sendCurrent);
+    var input = $('input');
+    input.addEventListener('input', autosize);
+    input.addEventListener('focus', function () { $('emojiPanel').hidden = true; setTimeout(function () { window.scrollTo(0, 0); if (S.chat) scrollToBottom(); }, 250); });
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || ev.keyCode === 229) return;
+      if (window.matchMedia('(pointer:fine)').matches) { ev.preventDefault(); sendCurrent(); } // 电脑上回车发送，手机上回车换行
+    });
+    $('msgs').addEventListener('scroll', function () { if ($('msgs').scrollTop < 60) loadOlder(); }, { passive: true });
+    document.addEventListener('visibilitychange', function () {
+      if (isVisible() && S.me) refreshAll();
+    });
+    window.addEventListener('online', function () { if (S.me) refreshAll(); });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitViewport);
+      window.visualViewport.addEventListener('scroll', fitViewport);
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', function (ev) {
+        var d = ev.data || {};
+        if (d.type !== 'notification-click' || !S.me) return;
+        if (d.peer && /^[0-9a-f-]{36}$/i.test(d.peer)) { showTab('chats'); openChat(d.peer.toLowerCase()); }
+        else if (d.tab) { if (S.chat) closeChat(); showTab(d.tab); }
+      });
+    }
+  }
+
+  // ===== 启动 =====
+  async function boot() {
+    setUsagi($('bootHero'), 'normal');
+    setUsagi($('unconfHero'), 'normal');
+    cfg = resolveConfig();
+    if (!cfg) return show('unconfigured');
+    if (typeof supabase === 'undefined' || !supabase.createClient) {
+      $('unconfigured').querySelector('p').textContent = '没有加载到 Supabase 脚本，请检查网络后刷新页面。';
+      return show('unconfigured');
+    }
+    sb = supabase.createClient(cfg.url, cfg.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+    buildEmojiPanel();
+    bind();
+    setAuthMode('login');
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { /* 不支持就算了 */ });
+    sb.auth.onAuthStateChange(function (event) {
+      if (event === 'SIGNED_OUT' && S.me) {
+        setTimeout(function () { stopRealtime(); resetState(); showAuth(); }, 0); // 会话失效（比如在别处退出）
+      }
+    });
+    var s = await sb.auth.getSession();
+    if (s.data && s.data.session) await enterApp(); else showAuth();
+    fitViewport();
+  }
+  boot().catch(function (e) {
+    console.error(e);
+    show('auth');
+    authMsg('启动失败，请刷新页面重试');
+  });
+})();
+</script>
+</body>
+</html>
