@@ -1,0 +1,13 @@
+/* 2. 做 Pepero（样式按顺序加载，顺序即层叠顺序，别随意调换） */
+  /* make */
+  #s-make{gap:12px;padding-top:12px;padding-bottom:12px}
+  .stage{display:flex;align-items:flex-end;justify-content:center;gap:16px;height:min(300px,34vh);flex:none}
+  .stage .bunny{width:min(120px,15vh);margin-bottom:6px}
+  .stick{position:relative;width:24px;height:100%;background:var(--biscuit);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
+  .coat{position:absolute;top:0;left:0;right:0;height:0;transition:height .9s cubic-bezier(.4,1.4,.5,1),background .3s;border-bottom:3px solid var(--ink)}
+  .coat.on{height:72%}
+  .sp{position:absolute;width:5px;height:9px;border-radius:3px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .chip{border:3px solid var(--ink);border-radius:999px;padding:7px 14px;font-weight:700;font-size:15px;background:#fff;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .chip.sel{background:var(--yellow);box-shadow:0 0 0 3px var(--pink)}
+  .chip i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid var(--ink)}
