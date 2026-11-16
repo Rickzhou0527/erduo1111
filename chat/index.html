@@ -148,12 +148,12 @@
   .i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 
   /* 玻璃：每块玻璃都有厚度（顶缘高光、底缘暗边、侧缘折光）和层级阴影 */
-  .glass,.top,#tabbar,#composer,#emojiPanel,.panel,.card,.auth-card{
+  .glass,.top,#tabbar,#composer,#emojiPanel,#plusPanel,.panel,.card,.auth-card{
     background:var(--g-card);border:1px solid var(--rim);
     box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),inset 1px 0 0 var(--side),inset -1px 0 0 var(--side),var(--sh-1);
   }
-  .top,#tabbar,#composer,#emojiPanel{background:var(--g-bar);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),inset 1px 0 0 var(--side),inset -1px 0 0 var(--side),var(--sh-2)}
-  .top,#tabbar,#composer,#emojiPanel,.panel,#view-friends .card,.auth-card{-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+  .top,#tabbar,#composer,#emojiPanel,#plusPanel{background:var(--g-bar);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),inset 1px 0 0 var(--side),inset -1px 0 0 var(--side),var(--sh-2)}
+  .top,#tabbar,#composer,#emojiPanel,#plusPanel,.panel,#view-friends .card,.auth-card{-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
 
   /* 外壳：手机全屏，桌面居中 480px；背景是窗外的光（--scene-bg，可以换成真正的插画：设置 --scene-img:url(...)） */
   #shell{
@@ -680,9 +680,89 @@
     .row.st-hot .bw>.bubble,.row.st-hot .bw>.deco{animation:none!important}
     .drp{opacity:.9;transform:translateY(8px)}
   }
+  /* "+" 工具面板（和表情面板同一个位置，互斥）、小程序层（在消息后面）、井字棋 */
+  #chat>.top,#composer,#emojiPanel,#plusPanel{position:relative;z-index:3}
+  #msgs{position:relative;z-index:2}
+  #plusBtn .i{transition:transform .28s var(--ease)}
+  #plusBtn.open .i{transform:rotate(45deg)}
+  #plusPanel{flex:none;margin:0 12px 8px;padding:12px;border-radius:var(--r-card)}
+  #toolGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  #toolGrid button{
+    display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0 10px;min-width:0;min-height:44px;
+    background:var(--g-chip);border:1px solid var(--rim);border-radius:var(--r-ctl);
+    box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1);
+    font-size:var(--fs-xs);font-weight:500;color:var(--t1);transition:transform .16s var(--ease),box-shadow .16s var(--ease);
+  }
+  #toolGrid button .i{width:28px;height:28px;color:var(--pink-text)}
+  #toolGrid button:active{transform:translateY(1px) scale(.98);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-0)}
+  .panel-up{animation:panelUp .28s var(--ease)}
+  @keyframes panelUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  #appLayer{position:absolute;inset:0;z-index:0;--app-top:56px;--app-bot:72px}
+  #appBody{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;padding:calc(var(--app-top) + 12px) 16px calc(var(--app-bot) + 12px)}
+  #appClose{
+    position:absolute;top:calc(var(--app-top) + 8px);right:12px;z-index:1;width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+    color:var(--t2);background:var(--g-card);border:1px solid var(--rim);border-radius:50%;
+    box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+    transition:transform .16s var(--ease);
+  }
+  #appClose:active{transform:scale(.94)}
+  /* 小程序打开时：消息漂在小程序上面，半透明、完全点不到；点击和长按直接穿透到下面的小程序 */
+  #msgs{transition:opacity .25s var(--ease)}
+  #chat.app-open #msgs{opacity:.4;pointer-events:none}
+  #chat.app-open #msgs *{pointer-events:none!important}
+
+  .ttt{width:100%;max-width:340px;margin:auto;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .ttt-players{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+  .ttt-vs{font-size:var(--fs-xs);color:var(--t3);flex:none}
+  .ttt-p{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid transparent;border-radius:var(--r-ctl);transition:background-color .2s var(--ease),border-color .2s var(--ease)}
+  .ttt-p.turn{background:var(--g-chip);border-color:var(--rim);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1)}
+  .ttt-av{position:relative;width:56px;height:56px}
+  .ttt-av .avatar{width:56px;height:56px}
+  .ttt-badge{position:absolute;right:-8px;bottom:-4px;width:26px;height:26px;padding:3px;border-radius:50%;background:var(--g-solid);border:1px solid var(--rim);box-shadow:var(--sh-1)}
+  .ttt-badge .mk{width:100%;height:100%}
+  .ttt-p b{max-width:100%;font-size:var(--fs-xs);font-weight:500;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttt-status{min-height:30px;font-size:var(--fs-lg);font-weight:600;color:var(--t1);text-align:center}
+  .ttt-status.you{color:var(--pink-text)}
+  .ttt-board{--cell:96px;position:relative;display:grid;grid-template-columns:repeat(3,var(--cell));grid-auto-rows:var(--cell);gap:8px}
+  @media (max-width:340px){.ttt-board{--cell:88px}}
+  .ttt-cell{
+    width:var(--cell);height:var(--cell);padding:18px;display:block;border-radius:var(--r-ctl);
+    background:var(--g-chip);border:1px solid var(--rim);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1);
+    transition:transform .16s var(--ease),box-shadow .16s var(--ease);
+  }
+  .ttt-cell.open{cursor:pointer}
+  .ttt-cell.open:active{transform:scale(.96);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-0)}
+  .ttt-cell svg{display:block;width:100%;height:100%}
+  .mk{fill:none;stroke-width:5;stroke-linecap:round}
+  .mk.x{stroke:var(--pink)}
+  .mk.o{stroke:var(--t2)}
+  .mk.anim path,.mk.anim circle{stroke-dasharray:1;stroke-dashoffset:1;animation:tttDraw .34s var(--ease) forwards}
+  .mk.anim path+path{animation-delay:.16s}
+  @keyframes tttDraw{to{stroke-dashoffset:0}}
+  .ttt-win{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .ttt-win line{stroke:var(--pink-text);stroke-width:2.4;stroke-linecap:round;opacity:.92}
+  .ttt-win.anim line{stroke-dasharray:1;stroke-dashoffset:1;animation:tttDraw .5s var(--ease) .1s forwards}
+  .ttt-board.shake{animation:tttShake .5s var(--ease)}
+  @keyframes tttShake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+  .ttt-actions{min-height:44px;display:flex;justify-content:center}
+  .ttt-actions .btn.quiet{background:none;border:0;box-shadow:none;color:var(--t2);text-decoration:underline;text-underline-offset:3px}
+  .ttt-actions .btn.quiet.sure{color:var(--red-text);font-weight:600}
+
+  /* 聊天里的井字棋卡片 */
+  .row .bubble.gcard{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .16s var(--ease)}
+  .bubble.gcard:active{transform:scale(.98)}
+  .gc-board{flex:none;display:grid;grid-template-columns:repeat(3,22px);grid-auto-rows:22px;gap:2px;padding:2px;border-radius:10px;background:color-mix(in srgb,var(--t1) 10%,transparent)}
+  .gc-cell{display:block;padding:3px;border-radius:5px;background:color-mix(in srgb,var(--chat-bg) 70%,transparent)}
+  .gc-cell .mk{display:block;width:100%;height:100%;stroke-width:6}
+  .gc-txt{display:flex;flex-direction:column;min-width:0;line-height:1.35;text-align:left}
+  .gc-txt b{font-size:var(--fs-md);font-weight:600;color:var(--t1)}
+  .gc-st{font-size:var(--fs-sm);color:var(--t2);white-space:nowrap}
+  .gc-st.you{font-weight:600;color:var(--t1)}
+  @media (prefers-reduced-motion:reduce){.panel-up,.ttt-board.shake{animation:none}.mk.anim path,.mk.anim circle,.ttt-win.anim line{animation-duration:.01s;animation-delay:0s}}
   /* 不支持 backdrop-filter 的浏览器：玻璃退成更不透明的纯色填充 */
   @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
-    .top,#tabbar,#composer,#emojiPanel,.panel,#view-friends .card,.auth-card{background:var(--g-solid)}
+    .top,#tabbar,#composer,#emojiPanel,#plusPanel,.panel,#view-friends .card,.auth-card{background:var(--g-solid)}
   }
 </style>
 </head>
@@ -692,6 +772,9 @@
   <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></symbol>
+  <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
   <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
   <symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 17 4 12l5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
@@ -773,6 +856,7 @@
       <div id="chatAvatar"></div>
       <div class="who"><b id="chatName"></b><span id="chatUser"></span></div>
     </div>
+    <div id="appLayer" hidden><div id="appBody"></div><button type="button" id="appClose" aria-label="关闭"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <div id="msgs">
       <div id="olderRow" hidden>加载更早的消息…</div>
       <div id="rows"></div>
@@ -784,6 +868,7 @@
       <div class="panel-label">表情</div>
       <div id="emojiGrid"></div>
     </div>
+    <div id="plusPanel" hidden><div id="toolGrid"></div></div>
     <div id="fxStage" hidden></div>
     <div id="actMenu" role="menu" hidden></div>
     <div id="fxPick" role="menu" aria-label="选一个表情" hidden></div>
@@ -791,6 +876,7 @@
       <div id="qbar" hidden><span id="qbarText"></span><button type="button" id="qbarX" aria-label="取消引用"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg></button></div>
       <button type="button" class="icon-btn" id="emojiBtn" aria-label="表情"><svg class="i" aria-hidden="true"><use href="#i-smile"/></svg></button>
       <textarea id="input" rows="1" maxlength="2000" placeholder="说点什么…" enterkeyhint="send"></textarea>
+      <button type="button" class="icon-btn" id="plusBtn" aria-label="更多功能" aria-expanded="false"><svg class="i" aria-hidden="true"><use href="#i-plus-circle"/></svg></button>
       <button type="button" class="btn" id="sendBtn">发送</button>
     </div>
     <div id="qsheet" hidden><div class="qs" role="dialog" aria-label="被引用的消息"><div class="qs-name" id="qsName"></div><div class="qs-text" id="qsText"></div><button type="button" class="btn small ghost" id="qsClose">关闭</button></div></div>
@@ -986,7 +1072,12 @@
     invalid_nickname: '昵称需要 1 到 20 个字',
     invalid_avatar: '头像保存失败，请换一张图片试试',
     not_authenticated: '登录已过期，请重新登录',
-    invalid_argument: '操作无效'
+    invalid_argument: '操作无效',
+    game_not_found: '找不到这局井字棋',
+    not_your_turn: '还没轮到你',
+    cell_taken: '这一格已经有人下了',
+    game_over: '这局已经结束了',
+    invalid_cell: '操作无效',
   };
   function errText(e) {
     var m = (e && e.message) || '';
@@ -1606,7 +1697,7 @@
       bstate: {}, bshow: {}, btstate: {}, btshow: {}, finfo: {}, bev: [], fxApplied: new Set() };
     if (!fromHistory) { try { history.pushState({ chat: peerId }, ''); } catch (e) { /* 忽略 */ } }
     $('chat').hidden = false;
-    $('emojiPanel').hidden = true;
+    closePanels();
     $('input').value = '';
     autosize();
     resetQuoteUi();
@@ -1622,11 +1713,12 @@
   }
   function closeChat() {
     if (!S.chat) return;
+    closeApp();
     S.chat = null;
     stopFx(); stopDecay(); closeActMenu();
     sandDisable();
     $('chat').hidden = true;
-    $('emojiPanel').hidden = true;
+    closePanels();
     resetQuoteUi();
     $('input').blur();
     loadAll();
@@ -1753,7 +1845,7 @@
     var el = h('div', { class: 'row' });
     el._stamp = h('div', { class: 'stamp', hidden: true });
     el._bubble = h('div', { class: 'bubble' });
-    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); }); // 点特效气泡再看一次
+    el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp('ttt', { id: el._gcid }); }); // 点特效气泡再看一次
     el._meta = h('div', { class: 'meta', hidden: true });
     el._av = h('div', { class: 'av-slot' });
     var col = h('div', { class: 'col' });
@@ -1855,8 +1947,11 @@
     if (el._body !== bsig) {
       el._body = bsig;
       var fx = pf && pf.fx;
-      el._fxb = !!fx;
+      var gid = tttOf(m.body);
+      el._gcid = gid; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
+      el._fxb = !!fx || gid != null;
       el._bubble.classList.toggle('fx', !!fx);
+      el._bubble.classList.toggle('gcard', gid != null);
       clear(el._bubble);
       if (fx) {
         el._bubble.appendChild(h('span', { class: 'fx-ico', text: fx.icon, 'aria-hidden': 'true' }));
@@ -1867,11 +1962,14 @@
         }
         el._bubble.appendChild(tx);
         el._bubble.title = '点一下再看一次';
+      } else if (gid != null) {
+        el._bubble.removeAttribute('title');
       } else {
         el._bubble.textContent = m.body;
         el._bubble.removeAttribute('title');
       }
     }
+    if (el._gcid != null) tttFillCard(el);
     updateQuote(el, m);
     refreshCls(el);
     if (!own) { el._meta.hidden = true; return; }
@@ -1915,7 +2013,7 @@
   }
   function fxOf(body) { var p = fxParse(body); return p ? p.fx : null; }
   // 消息列表里的预览：定向特效不显示后面的 #id
-  function previewOf(body) { var p = fxParse(body); return p ? p.tok : body; }
+  function previewOf(body) { if (tttOf(body) != null) return '井字棋'; var p = fxParse(body); return p ? p.tok : body; }
 
   var fxQueue = [], fxBusy = false, fxToken = 0;
   var fxCurKey = null, fxCurMsg = null, fxCurReplay = false, curAbort = null;
@@ -3358,11 +3456,11 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
   }
   var MSG_ACTIONS = [
-    { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body); }, run: function (m) { copyText(m.body); } },
+    { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body) && tttOf(m.body) == null; }, run: function (m) { copyText(m.body); } },
     // 引用：自己和对方已发出的消息都能引用（发送中的还没有 id，不显示）
     { id: 'quote', label: '引用', icon: 'i-reply', show: function (m) { return !!(S.chat && m.id != null); }, run: function (m) { startQuote(m); } },
     { id: 'hit', label: '用表情打', icon: 'i-smile',
-      show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body)); },
+      show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body) && tttOf(m.body) == null); },
       run: function (m, el) { openFxPick(m, el); } }
   ];
   var menuEl = null;
@@ -3397,7 +3495,7 @@
   }
   function openActMenu(el) {
     var m = el._m, c = S.chat;
-    if (!m || !c) return false;
+    if (!m || !c || APP.cur) return false;
     var items = MSG_ACTIONS.filter(function (a) { return a.show(m); });
     if (!items.length) return false;
     closeActMenu();
@@ -3504,7 +3602,7 @@
     if (body.length > 2000) return toast(ERR_TEXT.message_too_long);
     input.value = '';
     autosize();
-    $('emojiPanel').hidden = true;
+    closePanels();
     sendBody(body);
   }
   function sendBody(body) {
@@ -3692,6 +3790,9 @@
     ['requester_id', 'addressee_id'].forEach(function (col) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: 'friendships', filter: col + '=eq.' + me }, onFriendship);
     });
+    ['player_x', 'player_o'].forEach(function (col) {
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'ttt_games', filter: col + '=eq.' + me }, onTttGame);
+    });
     ch.subscribe(function (status) {
       if (status === 'SUBSCRIBED') {
         // 重新连上之后补一次，避免断线期间漏消息
@@ -3708,7 +3809,7 @@
   async function refreshAll() {
     if (!S.me) return;
     await loadAll();
-    if (S.chat) { await fetchLatest(false); markReadIfNeeded(); }
+    if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); }
   }
 
   // ===== 进入 / 退出 =====
@@ -3739,14 +3840,14 @@
   async function logout() {
     await pushUnsubscribe();
     stopRealtime();
-    S.chat = null; sandDisable(); $('chat').hidden = true; resetQuoteUi();
+    closeApp(); S.chat = null; sandDisable(); $('chat').hidden = true; resetQuoteUi();
     try { await sb.auth.signOut(); } catch (e) { /* 本地状态照样清掉 */ }
     resetState();
     setAuthMode('login');
     showAuth();
   }
   function resetState() {
-    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null; resetQuoteUi();
+    S.me = null; S.convs = []; S.friendships = []; S.profiles = new Map(); S.chat = null; searchState = null; resetQuoteUi(); tttReset();
     document.title = '耳朵聊天';
     try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) { /* 忽略 */ }
   }
@@ -3754,6 +3855,7 @@
   // ===== 引用回复 =====
   // 入口：startQuote(m)，m 是当前聊天 msgs 里的一条消息（长按菜单的"引用"直接调用它）
   function quoteText(body) {
+    if (tttOf(body) != null) return '井字棋';
     var fx = fxOf(body);
     return fx ? fx.name : String(body || '');
   }
@@ -3967,6 +4069,7 @@
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
       if (!$('qsheet').hidden) { $('qsheet').hidden = true; return; }
+      if (APP.cur) { closeApp(); return; }
       if (S.chat && S.chat.quote) clearQuote();
     });
   }
@@ -3984,7 +4087,7 @@
       var b = h('button', { type: 'button', 'aria-label': '发送' + fx.name },
         h('span', { class: 'ico', text: fx.icon, 'aria-hidden': 'true' }), fx.name);
       b.addEventListener('pointerdown', function (ev) { ev.preventDefault(); });
-      b.addEventListener('click', function () { $('emojiPanel').hidden = true; sendBody(body); });
+      b.addEventListener('click', function () { closePanels(); sendBody(body); });
       row.appendChild(b);
     });
     var p = $('emojiGrid');
@@ -4003,12 +4106,359 @@
     });
   }
 
+  // ===== "+" 工具面板 =====
+  // 以后加工具：往 TOOLS 里加一项（图标用 SVG 符号 id），run 里调用 openApp(id, params)
+  var TOOLS = [
+    { id: 'ttt', label: '井字棋', icon: 'i-grid', run: function () { tttStartHere(); } }
+  ];
+  function buildPlusPanel() {
+    var g = $('toolGrid');
+    TOOLS.forEach(function (t) {
+      var b = h('button', { type: 'button', 'aria-label': t.label }, svgIcon(t.icon), h('span', { text: t.label }));
+      b.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 不抢输入框焦点
+      b.addEventListener('click', function () { closePanels(); t.run(); });
+      g.appendChild(b);
+    });
+  }
+  // 表情面板和 + 面板互斥，占同一个位置
+  function setPanel(which) {
+    var e = $('emojiPanel'), p = $('plusPanel'), nb = nearBottom();
+    [[e, which === 'emoji'], [p, which === 'plus']].forEach(function (x) {
+      if (x[0].hidden !== x[1]) return; // 状态没变
+      x[0].hidden = !x[1];
+      x[0].classList.remove('panel-up');
+      if (x[1]) { void x[0].offsetWidth; x[0].classList.add('panel-up'); }
+    });
+    $('plusBtn').classList.toggle('open', which === 'plus');
+    $('plusBtn').setAttribute('aria-expanded', which === 'plus' ? 'true' : 'false');
+    if (which) $('input').blur();
+    layoutApp();
+    if (nb) setTimeout(scrollToBottom, 0);
+  }
+  function closePanels() { setPanel(null); }
+
+  // ===== 小程序宿主 =====
+  // 小程序是聊天页里一整层，垫在消息后面；消息半透明地漂在上面，点击和长按穿透下去。
+  // 注册：APPS[id] = { mount(box, params), unmount(), same(a, b) }；打开：openApp(id, params)；同一时间只有一个。
+  var APPS = {};
+  var APP = { cur: null };
+  function layoutApp() {
+    var layer = $('appLayer'), chat = $('chat');
+    if (layer.hidden) return;
+    var cr = chat.getBoundingClientRect();
+    var top = chat.querySelector('.top').getBoundingClientRect().bottom - cr.top;
+    var edge = $('composer').getBoundingClientRect().top;
+    [$('emojiPanel'), $('plusPanel')].forEach(function (p) { if (!p.hidden) edge = Math.min(edge, p.getBoundingClientRect().top); });
+    layer.style.setProperty('--app-top', Math.max(0, top) + 'px');
+    layer.style.setProperty('--app-bot', Math.max(0, cr.bottom - edge) + 'px');
+  }
+  function openApp(id, params) {
+    var def = APPS[id];
+    if (!def || !S.chat) return false;
+    params = params || {};
+    if (APP.cur) {
+      if (APP.cur.id === id && def.same && def.same(APP.cur.params, params)) return true; // 已经开着：保持
+      unmountApp();
+    }
+    closeActMenu();
+    var box = clear($('appBody'));
+    $('appLayer').hidden = false;
+    $('chat').classList.add('app-open');
+    APP.cur = { id: id, def: def, params: params, box: box };
+    layoutApp();
+    def.mount(box, params);
+    return true;
+  }
+  function unmountApp() {
+    var cur = APP.cur;
+    APP.cur = null;
+    if (cur) { try { cur.def.unmount(); } catch (e) { /* 小程序出错不影响聊天 */ } }
+    clear($('appBody'));
+  }
+  function closeApp() {
+    if (!APP.cur) return;
+    unmountApp();
+    $('appLayer').hidden = true;
+    $('chat').classList.remove('app-open');
+  }
+
+  // ===== 井字棋 =====
+  var TTT = { games: {}, want: [], pend: {}, tm: 0 };
+  function tttReset() { TTT.games = {}; TTT.want = []; TTT.pend = {}; }
+  function tttOf(body) {
+    var m = typeof body === 'string' ? /^\[井字棋\]#(\d{1,15})$/.exec(body) : null;
+    return m ? parseInt(m[1], 10) : null;
+  }
+  function tttRow(d) { return Array.isArray(d) ? d[0] : d; }
+  function markSvg(c, anim) {
+    var d = c === 'x' ? '<path d="M14 14 34 34" pathLength="1"/><path d="M34 14 14 34" pathLength="1"/>' : '<circle cx="24" cy="24" r="12" pathLength="1"/>';
+    return '<svg class="mk ' + c + (anim ? ' anim' : '') + '" viewBox="0 0 48 48" aria-hidden="true">' + d + '</svg>';
+  }
+  function tttStatus(g) {
+    var me = S.me.id;
+    if (!g) return { t: g === null ? '对局不可用' : '载入中…', you: false };
+    if (g.status === 'active') return g.next_player === me ? { t: '轮到你了', you: true } : { t: '等 Ta 下', you: false };
+    if (g.status === 'draw') return { t: '平局', you: false };
+    if (g.status === 'resigned') return { t: g.winner === me ? 'Ta 认输了' : '你认输了', you: false };
+    return { t: g.winner === me ? '你赢了' : 'Ta 赢了', you: false };
+  }
+  function tttFillCard(el) {
+    var m = el._m, id = el._gcid;
+    if (!m || id == null || !S.me) return;
+    var g = TTT.games[id];
+    var sig = id + '|' + (g ? [g.board, g.status, g.next_player, g.winner].join('|') : 'x') + '|' + S.me.id;
+    if (!g && !TTT.pend[id] && TTT.games[id] === undefined) queueGame(id);
+    if (el._gsig === sig) return;
+    el._gsig = sig;
+    var cells = '', i, ch, st = tttStatus(g);
+    for (i = 0; i < 9; i++) {
+      ch = g ? g.board.charAt(i) : '.';
+      cells += '<span class="gc-cell">' + (ch === 'x' || ch === 'o' ? markSvg(ch) : '') + '</span>';
+    }
+    el._bubble.innerHTML = '<div class="gc-board">' + cells + '</div><div class="gc-txt"><b>井字棋</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
+  }
+  function tttEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gcid != null) fn(el); }); }
+  function queueGame(id) {
+    if (TTT.pend[id]) return;
+    TTT.pend[id] = 1; TTT.want.push(id);
+    clearTimeout(TTT.tm);
+    TTT.tm = setTimeout(fetchGames, 0);
+  }
+  function fetchGames() {
+    var ids = TTT.want.splice(0);
+    if (!ids.length || !sb) return;
+    sb.from('ttt_games').select('*').in('id', ids).then(function (r) {
+      ids.forEach(function (id) { delete TTT.pend[id]; });
+      if (r.error) return;
+      var got = {};
+      (r.data || []).forEach(function (g) { got[g.id] = 1; putGame(g); });
+      ids.forEach(function (id) { if (!got[id] && !TTT.games[id]) TTT.games[id] = null; tttEachCard(function (el) { if (el._gcid === id) tttFillCard(el); }); });
+    }, function () { ids.forEach(function (id) { delete TTT.pend[id]; }); });
+  }
+  function tttResync() {
+    tttEachCard(function (el) { delete TTT.pend[el._gcid]; queueGame(el._gcid); });
+    if (APP.cur && APP.cur.id === 'ttt') queueGame(APP.cur.params.id);
+  }
+  // 新数据进缓存；旧的不覆盖新的
+  function putGame(g) {
+    g = tttRow(g);
+    if (!g || g.id == null) return;
+    var old = TTT.games[g.id];
+    if (old && Date.parse(old.updated_at) > Date.parse(g.updated_at)) return;
+    TTT.games[g.id] = g;
+    tttEachCard(function (el) { if (el._gcid === g.id) tttFillCard(el); });
+    if (APP.cur && APP.cur.id === 'ttt' && APP.cur.params.id === g.id) tttV.update(g);
+  }
+  function tttShowing(id) { return !!(APP.cur && APP.cur.id === 'ttt' && APP.cur.params.id === id && S.chat); }
+  function onTttGame(p) {
+    var g = p && p.new;
+    if (!g || g.id == null || !S.me) return;
+    var prev = TTT.games[g.id];
+    putGame(g);
+    if (p.eventType === 'UPDATE' && prev && g.status === 'active' && g.next_player === S.me.id && prev.board !== g.board && !tttShowing(g.id) && isVisible()) toast('轮到你了（井字棋）');
+  }
+  // + 面板：开一局（已有进行中的就直接回到那一局）
+  function tttStartHere() {
+    var c = S.chat;
+    if (!c) return;
+    if (APP.cur && APP.cur.id === 'ttt') return; // 已经开着，保持
+    var peer = c.peer;
+    sb.rpc('ttt_start', { p_peer: peer }).then(function (r) {
+      if (r.error) return toast(errText(r.error));
+      var g = tttRow(r.data);
+      putGame(g);
+      if (S.chat && S.chat.peer === peer) openApp('ttt', { id: g.id });
+    }, function (e) { toast(errText(e)); });
+  }
+
+  var TV = null; // 当前打开的这一局的界面状态
+  function tttPerson(id) {
+    if (S.me && id === S.me.id) return S.me;
+    return profileOf(id) || (convOf(id) ? peerFromConv(convOf(id)) : null);
+  }
+  var tttV = {
+    mount: function (box, params) {
+      TV = { box: box, id: params.id, g: TTT.games[params.id] || null, pending: null, built: false, prevStatus: null, sure: false, sureTm: 0, busy: false, winFor: null };
+      var t = h('div', { class: 'ttt' });
+      TV.players = h('div', { class: 'ttt-players' });
+      TV.status = h('div', { class: 'ttt-status', role: 'status' });
+      TV.board = h('div', { class: 'ttt-board' });
+      TV.cells = [];
+      for (var i = 0; i < 9; i++) (function (i) {
+        var b = h('button', { type: 'button', class: 'ttt-cell', 'aria-label': '第 ' + (i + 1) + ' 格' });
+        b.addEventListener('click', function () { tttTap(i); });
+        TV.cells.push(b); TV.board.appendChild(b);
+      })(i);
+      TV.actions = h('div', { class: 'ttt-actions' });
+      t.appendChild(TV.players); t.appendChild(TV.status); t.appendChild(TV.board); t.appendChild(TV.actions);
+      box.appendChild(t);
+      tttRender(true);
+      var id = params.id;
+      sb.from('ttt_games').select('*').eq('id', id).maybeSingle().then(function (r) {
+        if (!TV || TV.id !== id) return;
+        if (r.data) putGame(r.data);
+        else if (!TV.g) { toast('找不到这局井字棋'); closeApp(); }
+      }, function () { /* 离线：显示缓存 */ });
+    },
+    unmount: function () { if (TV) clearTimeout(TV.sureTm); TV = null; },
+    same: function (a, b) { return a.id === b.id; },
+    update: function (g) {
+      if (!TV) return;
+      TV.g = g;
+      if (TV.pending != null && g.board.charAt(TV.pending) !== '.') TV.pending = null;
+      tttRender(false);
+    }
+  };
+  APPS.ttt = tttV;
+  function tttMyMark(g) { return g.player_x === S.me.id ? 'x' : 'o'; }
+  function tttRender(initial) {
+    var g = TV.g, me = S.me.id, i;
+    if (g && !TV.built) {
+      TV.built = true;
+      clear(TV.players);
+      [g.player_x, g.player_o].forEach(function (pid, k) {
+        var p = tttPerson(pid), mk = k === 0 ? 'x' : 'o';
+        var av = h('div', { class: 'ttt-av' }, makeAvatar(p, 56));
+        var bd = h('span', { class: 'ttt-badge' }); bd.innerHTML = markSvg(mk);
+        av.appendChild(bd);
+        var box = h('div', { class: 'ttt-p', 'data-pid': pid }, av, h('b', { text: pid === me ? '你' : (p ? p.nickname : 'Ta') }));
+        if (k === 1) TV.players.appendChild(h('span', { class: 'ttt-vs', text: 'VS' }));
+        TV.players.appendChild(box);
+      });
+      var c = TV.players.children;
+      TV.pBoxes = [c[0], c[2]];
+    }
+    var board = g ? g.board : '.........';
+    var active = !!g && g.status === 'active';
+    var myTurn = active && g.next_player === me && TV.pending == null;
+    var mine = g ? tttMyMark(g) : 'x';
+    for (i = 0; i < 9; i++) {
+      var k = board.charAt(i);
+      if (TV.pending === i) k = mine;
+      var cell = TV.cells[i];
+      if (cell._k !== k) {
+        var anim = !initial && cell._k === '.' && k !== '.';
+        cell.innerHTML = k === '.' ? '' : markSvg(k, anim);
+        cell._k = k;
+      }
+      var open = myTurn && k === '.';
+      cell.classList.toggle('open', open);
+      cell.setAttribute('aria-disabled', open ? 'false' : 'true');
+    }
+    if (TV.pBoxes) {
+      // 轮到谁：我刚落子、还没确认的时候，轮到对方
+      var turnId = !active ? null : TV.pending != null ? (g.player_x === me ? g.player_o : g.player_x) : g.next_player;
+      TV.pBoxes[0].classList.toggle('turn', !!turnId && turnId === g.player_x);
+      TV.pBoxes[1].classList.toggle('turn', !!turnId && turnId === g.player_o);
+    }
+    var st = TV.pending != null ? { t: '等 Ta 下', you: false } : tttStatus(g);
+    TV.status.textContent = st.t;
+    TV.status.classList.toggle('you', st.you);
+    // 连线
+    var old = TV.board.querySelector('.ttt-win');
+    if (g && g.win_line) {
+      if (TV.winFor !== g.id) {
+        TV.winFor = g.id;
+        if (old) old.parentNode.removeChild(old);
+        var ps = g.win_line.split(',').map(function (x) { return parseInt(x, 10); });
+        var K = 0.09, W = 3 + 2 * K;
+        function ctr(n) { return [((n % 3) * (1 + K) + 0.5) / W * 100, (Math.floor(n / 3) * (1 + K) + 0.5) / W * 100]; }
+        var a = ctr(ps[0]), z = ctr(ps[2]);
+        var dx = z[0] - a[0], dy = z[1] - a[1], len = Math.sqrt(dx * dx + dy * dy), ex = dx / len * 7, ey = dy / len * 7;
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 100 100');
+        svg.setAttribute('class', 'ttt-win' + (initial ? '' : ' anim'));
+        svg.setAttribute('aria-hidden', 'true');
+        var ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        ln.setAttribute('x1', a[0] - ex); ln.setAttribute('y1', a[1] - ey); ln.setAttribute('x2', z[0] + ex); ln.setAttribute('y2', z[1] + ey);
+        ln.setAttribute('pathLength', '1');
+        svg.appendChild(ln); TV.board.appendChild(svg);
+      }
+    } else if (old) { old.parentNode.removeChild(old); TV.winFor = null; }
+    tttActions();
+    // 只有“亲眼看着结束”才有动效
+    if (g && !initial && TV.prevStatus === 'active' && g.status !== 'active') {
+      if (g.winner === me) popYaha('你赢了！');
+      else if (g.winner && g.status !== 'resigned') {
+        TV.board.classList.remove('shake'); void TV.board.offsetWidth; TV.board.classList.add('shake');
+      }
+    }
+    if (g) TV.prevStatus = g.status;
+  }
+  function tttActions() {
+    var g = TV.g, box = clear(TV.actions);
+    if (!g) return;
+    if (g.status === 'active') {
+      var b = h('button', { type: 'button', class: 'btn small quiet' + (TV.sure ? ' sure' : ''), text: TV.sure ? '再点一次确认认输' : '认输' });
+      b.addEventListener('click', tttResign);
+      box.appendChild(b);
+    } else {
+      var again = h('button', { type: 'button', class: 'btn', text: '再来一局' });
+      again.disabled = TV.busy;
+      again.addEventListener('click', tttAgain);
+      box.appendChild(again);
+    }
+  }
+  function tttSync(id) {
+    sb.from('ttt_games').select('*').eq('id', id).maybeSingle().then(function (r) { if (r.data) putGame(r.data); });
+  }
+  function tttTap(i) {
+    var g = TV && TV.g;
+    if (!g || g.status !== 'active' || g.next_player !== S.me.id || TV.pending != null || g.board.charAt(i) !== '.') return;
+    var id = g.id;
+    TV.pending = i; // 乐观：先画上去
+    tttRender(false);
+    sb.rpc('ttt_move', { p_game: id, p_cell: i }).then(function (r) {
+      if (TV && TV.id === id) TV.pending = null;
+      if (r.error) {
+        toast(errText(r.error));
+        if (TV && TV.id === id) tttRender(false); // 回滚
+        tttSync(id);
+        return;
+      }
+      putGame(r.data); // update() 会重画
+      if (TV && TV.id === id) tttRender(false);
+    }, function (e) {
+      if (TV && TV.id === id) { TV.pending = null; tttRender(false); }
+      toast(errText(e));
+    });
+  }
+  function tttResign() {
+    var g = TV && TV.g;
+    if (!g || g.status !== 'active') return;
+    if (!TV.sure) {
+      TV.sure = true; tttActions();
+      TV.sureTm = setTimeout(function () { if (TV) { TV.sure = false; tttActions(); } }, 3000);
+      return;
+    }
+    clearTimeout(TV.sureTm); TV.sure = false;
+    var id = g.id;
+    sb.rpc('ttt_resign', { p_game: id }).then(function (r) {
+      if (r.error) { toast(errText(r.error)); tttSync(id); return; }
+      putGame(r.data);
+    }, function (e) { toast(errText(e)); });
+  }
+  function tttAgain() {
+    var g = TV && TV.g;
+    if (!g || TV.busy) return;
+    var other = g.player_x === S.me.id ? g.player_o : g.player_x, id = g.id;
+    TV.busy = true; tttActions();
+    sb.rpc('ttt_start', { p_peer: other }).then(function (r) {
+      if (TV && TV.id === id) { TV.busy = false; }
+      if (r.error) { toast(errText(r.error)); if (TV) tttActions(); return; }
+      var ng = tttRow(r.data);
+      putGame(ng);
+      if (S.chat && S.chat.peer === other) openApp('ttt', { id: ng.id });
+    }, function (e) { if (TV) { TV.busy = false; tttActions(); } toast(errText(e)); });
+  }
+
   // ===== 键盘与视口（iOS 键盘弹出时让输入栏保持可见） =====
   function fitViewport() {
     var vv = window.visualViewport, shell = $('shell');
     if (!vv) return;
     shell.style.height = vv.height + 'px';
     shell.style.top = vv.offsetTop + 'px';
+    layoutApp();
     if (S.chat && nearBottom()) scrollToBottom();
   }
 
@@ -4025,18 +4475,15 @@
       if (history.state && history.state.chat) history.back(); else closeChat();
     });
     window.addEventListener('popstate', function () { if (S.chat) closeChat(); });
-    $('emojiBtn').addEventListener('click', function () {
-      var p = $('emojiPanel');
-      p.hidden = !p.hidden;
-      if (!p.hidden) { $('input').blur(); }
-      if (nearBottom()) setTimeout(scrollToBottom, 0);
-    });
+    $('emojiBtn').addEventListener('click', function () { setPanel($('emojiPanel').hidden ? 'emoji' : null); });
+    $('plusBtn').addEventListener('click', function () { setPanel($('plusPanel').hidden ? 'plus' : null); });
+    $('appClose').addEventListener('click', closeApp);
     var send = $('sendBtn');
     send.addEventListener('pointerdown', function (ev) { ev.preventDefault(); }); // 点发送不收起键盘
     send.addEventListener('click', sendCurrent);
     var input = $('input');
     input.addEventListener('input', autosize);
-    input.addEventListener('focus', function () { $('emojiPanel').hidden = true; setTimeout(function () { window.scrollTo(0, 0); if (S.chat) scrollToBottom(); }, 250); });
+    input.addEventListener('focus', function () { closePanels(); setTimeout(function () { window.scrollTo(0, 0); if (S.chat) scrollToBottom(); }, 250); });
     input.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || ev.keyCode === 229) return;
       if (window.matchMedia('(pointer:fine)').matches) { ev.preventDefault(); sendCurrent(); } // 电脑上回车发送，手机上回车换行
@@ -4076,6 +4523,7 @@
     }
     sb = supabase.createClient(cfg.url, cfg.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
     buildEmojiPanel();
+    buildPlusPanel();
     bind();
     setAuthMode('login');
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { /* 不支持就算了 */ });

@@ -38,6 +38,11 @@ function stripStickerId(s: string): string {
   return s.replace(/^(\[[^\[\]]{1,6}\])#\d+$/, "$1");
 }
 
+// 井字棋邀请 "[井字棋]#123" 推送成一句话，不暴露对局 id
+function pushText(s: string): string {
+  return /^\[井字棋\]#\d+$/.test(s) ? "邀请你下一局井字棋" : stripStickerId(s);
+}
+
 function cut(s: string, n: number): string {
   const chars = Array.from(s);
   return chars.length > n ? chars.slice(0, n).join("") + "…" : s;
@@ -111,7 +116,7 @@ Deno.serve(async (req) => {
       const { data: q } = await admin.from("messages").select("body").eq("id", m.reply_to).maybeSingle();
       if (q && typeof q.body === "string") prefix = "回复「" + cut(stripStickerId(q.body).replace(/^\[([^\[\]]{1,6})\]$/, "$1").replace(/\s+/g, " "), 20) + "」"; // 特效表情 "[水枪]" 显示成 水枪
     }
-    payload = { title: p?.nickname ?? "新消息", body: cut(prefix + stripStickerId(m.body), 80), tag: "msg-" + me, peer: me };
+    payload = { title: p?.nickname ?? "新消息", body: cut(prefix + pushText(m.body), 80), tag: "msg-" + me, peer: me };
   } else {
     const { data: f } = await admin.from("friendships").select("id,requester_id,addressee_id,status,updated_at").eq("id", ev.id).maybeSingle();
     if (!f) return reply(req, 403, { error: "forbidden" });
