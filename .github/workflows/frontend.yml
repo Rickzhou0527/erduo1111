@@ -52,7 +52,8 @@ jobs:
 
           python3 - <<'PY'
           import os, pathlib
-          for p in pathlib.Path("_site").rglob("*.html"):
+          # 页面拆成了 js/ 模块，占位符可能在 .html 也可能在 .js 里：_site 下都替换
+          for p in list(pathlib.Path("_site").rglob("*.html")) + list(pathlib.Path("_site").rglob("*.js")):
               s = p.read_text(encoding="utf-8")
               s = s.replace("__SUPABASE_URL__", os.environ.get("SUPABASE_URL", "").rstrip("/"))
               s = s.replace("__SUPABASE_ANON_KEY__", os.environ.get("SUPABASE_ANON_KEY", ""))
