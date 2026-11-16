@@ -6,7 +6,7 @@ const browser = [
   'AbortController', 'CustomEvent', 'Event', 'Promise', 'Map', 'Set', 'WeakMap', 'getComputedStyle', 'atob', 'btoa',
   'Uint8Array', 'ArrayBuffer', 'TextEncoder', 'TextDecoder', 'performance', 'alert', 'confirm', 'crypto', 'Intl',
   'HTMLElement', 'Element', 'Node', 'DOMException', 'self', 'screen', 'OffscreenCanvas', 'createImageBitmap',
-  'matchMedia', 'NodeFilter', 'URLSearchParams', 'FormData', 'Audio'
+  'matchMedia', 'innerWidth', 'innerHeight', 'NodeFilter', 'URLSearchParams', 'FormData', 'Audio'
 ];
 const globals = {};
 for (const g of browser) globals[g] = 'readonly';
