@@ -1,0 +1,15 @@
+/* 1. 拆礼物（样式按顺序加载，顺序即层叠顺序，别随意调换） */
+  /* gift */
+  .gift{position:relative;width:190px;height:265px;cursor:pointer}
+  .bunny svg,.pop svg{width:100%;height:auto;display:block}
+  .gift.shake{animation:shake 1.2s ease-in-out infinite}
+  @keyframes shake{0%,60%,100%{transform:rotate(0)}65%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}85%{transform:rotate(-3deg)}}
+  .box{position:absolute;bottom:0;left:10px;width:170px;height:130px;background:var(--pink);border:4px solid var(--ink);border-radius:10px;z-index:2}
+  .ribbon{position:absolute;bottom:0;left:84px;width:22px;height:130px;background:#FFE066;border-left:4px solid var(--ink);border-right:4px solid var(--ink);z-index:3}
+  .lid{position:absolute;bottom:118px;left:0;width:190px;height:36px;background:#FF6F94;border:4px solid var(--ink);border-radius:10px;z-index:4;transition:transform .7s cubic-bezier(.3,1.6,.5,1),opacity .7s}
+  .lid::after{content:"";position:absolute;left:80px;top:-4px;width:22px;height:36px;background:#FFE066;border-left:4px solid var(--ink);border-right:4px solid var(--ink)}
+  .gift.open .lid{transform:translate(70px,-120px) rotate(35deg);opacity:0}
+  .pop{position:absolute;left:30px;bottom:40px;width:130px;z-index:1;transform:translateY(60px) scale(.6);opacity:0;transition:all .6s cubic-bezier(.3,1.7,.5,1) .25s}
+  .gift.open .pop{transform:translateY(-78px) scale(1);opacity:1}
+  .bubble{position:absolute;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:4px 12px;font-weight:900;font-size:20px;white-space:nowrap}
+  .pop .bubble{right:-52px;top:4px;transform:rotate(8deg);z-index:2}
