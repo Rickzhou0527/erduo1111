@@ -1,0 +1,43 @@
+/* 基础：变量、背景、场景切换、通用组件（样式按顺序加载，顺序即层叠顺序，别随意调换） */
+  :root{
+    --cream:#FFF8E7; --pink:#FF8FAB; --pink2:#FFC2D1; --choco:#6B3E26;
+    --biscuit:#E9B872; --ink:#4a3426; --yellow:#FFF1BF;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(circle at 50% 0%,#FFE3EC 0%,var(--cream) 60%);
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Apple SD Gothic Neo","Noto Sans KR","Microsoft YaHei",system-ui,sans-serif;
+    overflow:hidden; user-select:none;
+  }
+  #bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+  .float{position:absolute;bottom:-40px;font-size:20px;opacity:.55;animation:up linear infinite}
+  @keyframes up{to{transform:translateY(-115vh) rotate(30deg)}}
+
+  main{position:relative;height:100%;max-width:480px;margin:0 auto}
+  /* 手机 Safari：100% 会把底部工具栏算进去，用 dvh 取实际可见高度 */
+  @supports (height:100dvh){ html,body,main{height:100dvh} }
+  .scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px 16px;text-align:center}
+  .scene.active{display:flex;animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}}
+
+  .date{font-size:72px;font-weight:900;letter-spacing:4px;color:var(--choco);line-height:1}
+  .date span{display:inline-block;animation:bob 1.6s ease-in-out infinite}
+  .date span:nth-child(2){animation-delay:.1s}.date span:nth-child(4){animation-delay:.2s}.date span:nth-child(5){animation-delay:.3s}
+  @keyframes bob{50%{transform:translateY(-8px)}}
+  .sub{font-size:20px;color:var(--pink);font-weight:700;margin-top:-8px}
+  h2{font-size:22px;color:var(--choco)}
+  .hint{font-size:16px;opacity:.85}
+  .hint.reply{opacity:1;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:8px 14px;font-weight:700;line-height:1.5;max-width:340px}
+  .hidden{visibility:hidden}
+  .visits{min-height:30px;font-size:14px;font-weight:700;opacity:0;transition:opacity .6s}
+  .visits.on{opacity:1}
+  .visits span{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:3px 12px}
+
+  .btn{
+    border:3px solid var(--ink);background:var(--pink);color:#fff;font-size:18px;font-weight:800;
+    padding:12px 28px;border-radius:999px;box-shadow:0 5px 0 var(--ink);cursor:pointer;font-family:inherit
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+  .btn.ghost{background:#fff;color:var(--ink)}
