@@ -6,7 +6,7 @@ import { h } from '../utils.js';
 // ===== 榴莲 =====
 // AGENTS 是列表：以后加别的 agent，只要在这里加一项（id 要和数据库里 messages.author 的取值一致）
 export var AGENTS = [
-  { id: 'durian', name: '榴莲', mention: '@榴莲', keys: ['榴莲', 'liulian', 'durian'], hint: '问问题 / 查资料 / 记事情' }
+  { id: 'durian', name: '榴莲', mention: '@榴莲', keys: ['榴莲', 'liulian', 'durian'] }
 ];
 export function agentById(id) {
   for (var i = 0; i < AGENTS.length; i++) if (AGENTS[i].id === id) return AGENTS[i];

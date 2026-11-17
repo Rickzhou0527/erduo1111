@@ -38,4 +38,3 @@
 #atPop .avatar{width:32px;height:32px;flex:none}
 #atPop .avatar.agent-av.drawn{font-size:15px}
 #atPop .at-name{font-weight:600}
-#atPop .at-hint{margin-left:auto;font-size:var(--fs-xs);color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
