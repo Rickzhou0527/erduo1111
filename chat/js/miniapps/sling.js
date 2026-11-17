@@ -4,6 +4,7 @@ import { errText } from '../errors.js';
 import { APP, closeApp, openApp } from './host.js';
 import { AV_R, PLAT_X, PLAT_Y, SL_AMMO, SL_ANCHOR, SLH, SLW, SlSim, slPreview } from './sling-sim.js';
 import { firePush } from '../notify.js';
+import { poolOf } from './pool.js';
 import { tttOf, tttPerson, tttRow } from './ttt.js';
 import { S, avatarUrl, makeAvatar, sb } from '../state.js';
 import { popYaha } from '../usagi.js';
@@ -22,7 +23,9 @@ export function gameKind(body) {
   var t = tttOf(body);
   if (t != null) return { k: 'ttt', id: t };
   var s = slOf(body);
-  return s != null ? { k: 'sling', id: s } : null;
+  if (s != null) return { k: 'sling', id: s };
+  var p = poolOf(body);
+  return p != null ? { k: 'pool', id: p } : null;
 }
 function slStatus(g) {
   var me = S.me.id;

@@ -3,6 +3,7 @@
 import { reduced } from './bubble/view.js';
 import { FX, fxOf } from './fx/table.js';
 import { APP } from './miniapps/host.js';
+import { poolOf } from './miniapps/pool.js';
 import { slOf } from './miniapps/sling.js';
 import { tttOf } from './miniapps/ttt.js';
 import { startQuote } from './quote.js';
@@ -24,11 +25,11 @@ function copyText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
 }
 var MSG_ACTIONS = [
-  { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null; }, run: function (m) { copyText(m.body); } },
+  { id: 'copy', label: '复制', icon: 'i-copy', show: function (m) { return !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null && poolOf(m.body) == null; }, run: function (m) { copyText(m.body); } },
   // 引用：自己和对方已发出的消息都能引用（发送中的还没有 id，不显示）
   { id: 'quote', label: '引用', icon: 'i-reply', show: function (m) { return !!(S.chat && m.id != null); }, run: function (m) { startQuote(m); } },
   { id: 'hit', label: '用表情打', icon: 'i-smile',
-    show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null); },
+    show: function (m) { var c = S.chat; return !!(c && m.id != null && c.ids.has(m.id) && m.sender_id !== S.me.id && !fxOf(m.body) && tttOf(m.body) == null && slOf(m.body) == null && poolOf(m.body) == null); },
     run: function (m, el) { openFxPick(m, el); } }
 ];
 var menuEl = null;

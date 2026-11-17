@@ -3,6 +3,7 @@
 import { refreshCls } from './view.js';
 import { fxParse } from '../fx/table.js';
 import { jumpTo, targetQuoteText } from '../menu.js';
+import { poolFillCard } from '../miniapps/pool.js';
 import { gameKind, slFillCard } from '../miniapps/sling.js';
 import { tttFillCard } from '../miniapps/ttt.js';
 import { updateQuote } from '../quote.js';
@@ -94,7 +95,7 @@ export function updateRow(el, m, prev) {
       el._bubble.removeAttribute('title');
     }
   }
-  if (el._gcid != null) { if (el._gkind === 'sling') slFillCard(el); else tttFillCard(el); }
+  if (el._gcid != null) { if (el._gkind === 'sling') slFillCard(el); else if (el._gkind === 'pool') poolFillCard(el); else tttFillCard(el); }
   updateQuote(el, m);
   refreshCls(el);
   if (!own) { el._meta.hidden = true; return; }
