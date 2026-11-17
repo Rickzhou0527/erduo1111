@@ -5,8 +5,10 @@ import { $, clear, h } from '../utils.js';
 import { AGENTS, makeAgentAvatar } from './info.js';
 
 // ===== @ 选择器 =====
-// 光标前面是 "@xxx"（@ 在开头或空白后面）时，按 xxx 过滤 AGENTS；没有匹配或已经打全了就收起
-var TOKEN_RE = /(^|\s)@([^\s@]{0,10})$/;
+// 光标前面是 "@xxx" 时，按 xxx 过滤 AGENTS；没有匹配或已经打全了就收起
+// 中文里 @ 常常紧跟在汉字后面（"你好@"），中文输入法还会打出全角 "＠"，两种都要认；
+// 只有紧跟在英文字母 / 数字 / 点 / 下划线后面时不弹（像邮箱 a@b.com）
+var TOKEN_RE = /(^|[^A-Za-z0-9_.])[@＠]([^\s@＠]{0,10})$/;
 var st = { open: false, list: [], idx: 0, start: 0 };
 
 function matches(q) {
@@ -70,7 +72,8 @@ export function bindAtPicker() {
   input.setAttribute('aria-controls', 'atPop');
   input.setAttribute('aria-expanded', 'false');
   input.setAttribute('aria-autocomplete', 'list');
-  input.addEventListener('input', function (ev) { if (!ev.isComposing) refreshAtPicker(); });
+  // 输入法组字中也刷新：iOS 中文键盘打 @ 时 input 事件常带 isComposing，只看光标前的文字，不会打断组字
+  input.addEventListener('input', refreshAtPicker);
   input.addEventListener('compositionend', refreshAtPicker);
   input.addEventListener('click', refreshAtPicker);
   input.addEventListener('blur', function () { setTimeout(closeAtPicker, 120); });
@@ -90,5 +93,5 @@ export function bindAtPicker() {
       closeAtPicker();
     }
   }, true);
-  input.addEventListener('keyup', function (ev) { if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight' || ev.key === 'Home' || ev.key === 'End') refreshAtPicker(); });
+  input.addEventListener('keyup', function (ev) { if (ev.key !== 'Enter' && ev.key !== 'Escape' && ev.key !== 'Tab' && ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') refreshAtPicker(); });
 }
