@@ -4,7 +4,7 @@ import { reduced } from './bubble/view.js';
 import { loadOlder, nearBottom, scrollToBottom } from './chat/view.js';
 import { fxOf } from './fx/table.js';
 import { APP, closeApp } from './miniapps/host.js';
-import { poolOf } from './miniapps/pool.js';
+import { poolName, poolOf } from './miniapps/pool.js';
 import { slOf } from './miniapps/sling.js';
 import { tttOf } from './miniapps/ttt.js';
 import { S, profileOf, sb } from './state.js';
@@ -16,7 +16,7 @@ import { convOf, peerFromConv } from './views/chats.js';
 function quoteText(body) {
   if (tttOf(body) != null) return '井字棋';
   if (slOf(body) != null) return '弹弓大战';
-  if (poolOf(body) != null) return '9球台球';
+  if (poolOf(body) != null) return poolName(body);
   var fx = fxOf(body);
   return fx ? fx.name : String(body || '');
 }

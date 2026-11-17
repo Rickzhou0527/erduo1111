@@ -1,29 +1,30 @@
-// 胜场排行榜：我和好友的战绩，井字棋 / 弹弓 / 9球 三张榜（后端 game_leaderboard，见 supabase/migrations/20261123000000_leaderboard.sql）
+// 胜场排行榜：我和好友的战绩，井字棋 / 弹弓 / 9球 / 8球 四张榜（后端 game_leaderboard，见 supabase/migrations/20261123000000_leaderboard.sql）
 
 import { errText } from '../errors.js';
 import { S, makeAvatar, sb } from '../state.js';
 import { $, clear, h } from '../utils.js';
 
 // ===== 胜场排行榜 =====
-// 共用的浮层：任何小程序调 openLeaderboard('ttt' | 'sling' | 'pool') 就能打开，默认停在传进来的那张榜。
+// 共用的浮层：任何小程序调 openLeaderboard('ttt' | 'sling' | 'pool' | 'pool8') 就能打开，默认停在传进来的那张榜。
 // 每张榜缓存 30 秒（切 tab 秒开）；每次打开都会重新拉一次，数据回来前先显示缓存。
 var GAMES = [
   { id: 'ttt', label: '井字棋', note: '赢下一局算 1 胜，对方认输也算，平局不计' },
   { id: 'sling', label: '弹弓', note: '赢下一整场算 1 胜，单次击倒不算' },
-  { id: 'pool', label: '9球', note: '每赢下一盘球算 1 胜，认输算负' }
+  { id: 'pool', label: '9球', note: '9球：每赢下一盘球算 1 胜，认输算负' },
+  { id: 'pool8', label: '8球', note: '8球：每赢下一盘球算 1 胜，提前打进 8 号或认输算负' }
 ];
 var TTL = 30000;
 var LB = { card: null, el: null, game: 'ttt', cache: {}, tok: 0, keyFn: null, tabs: {}, list: null, note: null, lastFocus: null };
 export function lbReset() { LB.cache = {}; closeLeaderboard(); }
 
 function gameOf(id) { for (var i = 0; i < GAMES.length; i++) if (GAMES[i].id === id) return GAMES[i]; return GAMES[0]; }
-// 入口按钮：小圆钮，奖杯图标；图片加载失败就退成一个“榜”字
+// 入口按钮：小圆钮，奖杯图标；图片加载失败就退成一个“榜”字。game 可以是函数（点的时候才决定看哪张榜）
 export function rankButton(game, cls) {
   var b = h('button', { type: 'button', class: 'rk-btn' + (cls ? ' ' + cls : ''), 'aria-label': '排行榜', title: '排行榜' });
   var img = h('img', { src: 'rank/icon-rank.png', alt: '', draggable: 'false' });
   img.addEventListener('error', function () { clear(b).appendChild(h('span', { class: 'rk-fb', text: '榜' })); });
   b.appendChild(img);
-  b.addEventListener('click', function () { openLeaderboard(game); });
+  b.addEventListener('click', function () { openLeaderboard(typeof game === 'function' ? game() : game); });
   return b;
 }
 export function openLeaderboard(game) {
