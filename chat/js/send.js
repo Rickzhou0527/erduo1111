@@ -18,7 +18,8 @@ import { $, lsGet, lsSet, toast } from './utils.js';
 export async function sendCurrent() {
   var c = S.chat; if (!c) return;
   var input = $('input');
-  var body = input.value.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
+  // 全角 "＠榴莲"（中文输入法常见）统一成半角，才能叫到榴莲
+  var body = input.value.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '').replace(/＠榴莲/g, '@榴莲');
   if (!body) return;
   if (body.length > 2000) return toast(ERR_TEXT.message_too_long);
   input.value = '';
