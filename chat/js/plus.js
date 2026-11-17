@@ -2,13 +2,16 @@
 
 import { nearBottom, scrollToBottom } from './chat/view.js';
 import { svgIcon } from './menu.js';
-import { layoutApp } from './miniapps/host.js';
+import { APP, layoutApp } from './miniapps/host.js';
+import { openLeaderboard } from './miniapps/leaderboard.js';
 import { listMiniApps } from './miniapps/registry.js';
 import { $, h } from './utils.js';
 
 // ===== "+" 工具面板 =====
 // 以后加工具：新建 miniapps/<名字>.js，再到 miniapps/registry.js 的 listMiniApps() 里加一行即可（图标用 SVG 符号 id，run 里调用 openApp(id, params)）
-function plusTools() { return listMiniApps(); }
+// 排行榜不是小程序（没有 mount），但也放在这个面板里；开着哪个游戏就先看哪张榜
+var RANK_TOOL = { label: '排行榜', img: 'rank/icon-rank.png', run: function () { openLeaderboard(APP.cur ? APP.cur.id : 'ttt'); } };
+function plusTools() { return listMiniApps().concat([RANK_TOOL]); }
 export function buildPlusPanel() {
   var g = $('toolGrid');
   plusTools().forEach(function (t) {

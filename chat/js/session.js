@@ -5,6 +5,7 @@ import { openChat } from './chat/view.js';
 import { loadAll, loadProfile } from './data.js';
 import { errText } from './errors.js';
 import { closeApp } from './miniapps/host.js';
+import { lbReset } from './miniapps/leaderboard.js';
 import { poolReset } from './miniapps/pool.js';
 import { slReset } from './miniapps/sling.js';
 import { tttReset } from './miniapps/ttt.js';
@@ -45,7 +46,7 @@ function routeFromUrl() {
 export async function logout() {
   await pushUnsubscribe();
   stopRealtime();
-  closeApp(); S.chat = null; sandDisable(); $('chat').hidden = true; resetQuoteUi();
+  lbReset(); closeApp(); S.chat = null; sandDisable(); $('chat').hidden = true; resetQuoteUi();
   try { await sb.auth.signOut(); } catch (e) { /* 本地状态照样清掉 */ }
   resetState();
   setAuthMode('login');

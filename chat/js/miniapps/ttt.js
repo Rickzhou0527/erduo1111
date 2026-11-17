@@ -2,6 +2,7 @@
 
 import { errText } from '../errors.js';
 import { APP, closeApp, openApp } from './host.js';
+import { rankButton } from './leaderboard.js';
 import { S, makeAvatar, profileOf, sb } from '../state.js';
 import { popYaha } from '../usagi.js';
 import { clear, h, isVisible, toast } from '../utils.js';
@@ -122,6 +123,7 @@ export var tttV = {
     TV.actions = h('div', { class: 'ttt-actions' });
     t.appendChild(TV.players); t.appendChild(TV.status); t.appendChild(TV.board); t.appendChild(TV.actions);
     box.appendChild(t);
+    box.appendChild(rankButton('ttt', 'rk-fab'));
     tttRender(true);
     var id = params.id;
     sb.from('ttt_games').select('*').eq('id', id).maybeSingle().then(function (r) {

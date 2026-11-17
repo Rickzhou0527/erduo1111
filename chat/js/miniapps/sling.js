@@ -2,6 +2,7 @@
 
 import { errText } from '../errors.js';
 import { APP, closeApp, openApp } from './host.js';
+import { rankButton } from './leaderboard.js';
 import { AV_R, PLAT_X, PLAT_Y, SL_AMMO, SL_ANCHOR, SLH, SLW, SlSim, slPreview } from './sling-sim.js';
 import { firePush } from '../notify.js';
 import { poolOf } from './pool.js';
@@ -167,6 +168,7 @@ export var slV = {
     V.bar.appendChild(V.ammoRow); V.bar.appendChild(V.act);
     root.appendChild(V.hud); root.appendChild(V.stage); root.appendChild(V.bar);
     box.appendChild(root);
+    box.appendChild(rankButton('sling', 'rk-fab'));
     V.ctx = V.cv.getContext('2d');
     V.ro = window.ResizeObserver ? new ResizeObserver(function () { slResize(); }) : null;
     if (V.ro) V.ro.observe(V.stage);

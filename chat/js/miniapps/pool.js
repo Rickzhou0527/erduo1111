@@ -2,6 +2,7 @@
 
 import { errText } from '../errors.js';
 import { APP, closeApp, openApp } from './host.js';
+import { rankButton } from './leaderboard.js';
 import { BR, HEAD, PH, POCKETS, PW, PoolSim, poolCueNear, poolFromState, poolInput, poolJudge, poolLowest, poolRack } from './pool-sim.js';
 import { firePush } from '../notify.js';
 import { tttPerson, tttRow } from './ttt.js';
@@ -156,6 +157,7 @@ export var poolV = {
     V.bar = h('div', { class: 'pl-bar' });
     root.appendChild(V.hud); root.appendChild(V.main); root.appendChild(V.bar);
     box.appendChild(root);
+    box.appendChild(rankButton('pool', 'rk-fab'));
     V.ctx = V.cv.getContext('2d');
     V.ro = window.ResizeObserver ? new ResizeObserver(function () { plResize(); }) : null;
     if (V.ro) V.ro.observe(V.stage);
