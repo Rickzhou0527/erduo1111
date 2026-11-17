@@ -53,6 +53,7 @@
   }
   .name{font-size:17px;font-weight:800}
   .desc{font-size:12px;opacity:.7;line-height:1.4}
+  .app[hidden]{display:none}
   .app.soon{background:transparent;border-style:dashed;box-shadow:none;opacity:.6}
   .app.soon .icon{background:transparent;border-style:dashed}
 
@@ -68,7 +69,7 @@
   </header>
 
   <nav class="grid">
-    <a class="app" href="pepero/">
+    <a class="app" id="peperoApp" href="pepero/" hidden>
       <div class="icon" style="background:var(--pink2)">🍫</div>
       <div class="name">11.11 빼빼로</div>
       <div class="desc">Pepero Day 的小礼物</div>
@@ -88,6 +89,22 @@
   <footer>made with ♡</footer>
 </main>
 <script>
+// 빼빼로 入口只给这几个账号看（读 chat 登录后 supabase-js 存在 localStorage 的会话）
+(function(){
+  const ALLOW=['rick0527','rickzhou'];
+  let user='';
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!/^sb-.+-auth-token$/.test(k)) continue;
+      const v=JSON.parse(localStorage.getItem(k)||'null');
+      const email=(v&&(v.user||(v.currentSession&&v.currentSession.user))||{}).email||'';
+      user=email.split('@')[0].toLowerCase();
+      if(user) break;
+    }
+  }catch(e){ /* 读不到就当没登录 */ }
+  if(ALLOW.indexOf(user)>=0) document.getElementById('peperoApp').hidden=false;
+})();
 (function(){
   const bg=document.getElementById('bg'), items=['💗','🍫','✨','🎀','💕'];
   for(let i=0;i<14;i++){
