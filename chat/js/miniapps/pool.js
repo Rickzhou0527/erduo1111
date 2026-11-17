@@ -97,9 +97,11 @@ function plStartHere() {
 }
 
 // ---- 外观常量 ----
-var RAIL = 22; // 木框宽度
+var RAIL = 15; // 木框宽度（尽量窄，把屏幕留给球；袋口会被木框外沿裁掉一点）
 var CUSH = 9; // 库边橡胶厚度
 var PULL = 52; // 球杆最多往后拉多远
+var FINE = 0.0009; // 微调条：每拖 1px 转多少弧度（直接拖台面大约是它的 8 倍粗）
+var NOTE_MS = 4500; // 犯规提示停留多久
 var COL = ['#f8f4ea', '#f2c200', '#1f55d6', '#d62f2f', '#6c35b5', '#f08a1c', '#1c8c46', '#8a2234', '#1d1d1f', '#f2c200'];
 function plDark() {
   var t = document.documentElement.getAttribute('data-theme');
@@ -125,13 +127,15 @@ var PV = null; // 当前打开的这一局的界面状态
 export var poolV = {
   id: 'pool',
   label: '9球台球',
+  strip: 'compact',
+  flush: true,
   img: 'pool/icon-pool.png',
   run: function () { plStartHere(); },
   mount: function (box, params) {
     PV = {
       id: params.id, box: box, g: PG.games[params.id] || null, mode: 'idle', balls: [], lowest: null, shownTurn: -1, rack: -1, up: false,
       aim: { x: 0, y: -1 }, power: 0.6, cuePos: null, cuePlaced: true, drag: null, sim: null, local: null, replay: null, delay: 0, acc: 0, fire: null,
-      sinks: [], note: '', noteUntil: 0, raf: 0, last: 0, dirty: true, cw: 300, ch: 300, dpr: 1, s: 1, ox: 0, oy: 0,
+      sinks: [], note: '', raf: 0, last: 0, dirty: true, cw: 300, ch: 300, dpr: 1, s: 1, ox: 0, oy: 0,
       persons: [null, null], hudBuilt: false, sure: false, sureTm: 0, busy: false, fetching: false, again: false, syncTok: 0,
       wasActive: false, endShown: false, hint: lsGet('pool.hint') !== '1', cache: null, dk: null, pulse: 0
     };
@@ -140,22 +144,24 @@ export var poolV = {
     var root = h('div', { class: 'pl' });
     V.hud = h('div', { class: 'pl-hud' });
     V.cv = h('canvas', { 'aria-label': '9球台球' });
-    V.hintEl = h('div', { class: 'pl-hint', text: '拖动瞄准，右边调力度，点出杆' });
+    V.hintEl = h('div', { class: 'pl-hint', text: '拖动台面瞄准，下方滑条微调，点出杆' });
     V.hintEl.hidden = true;
     V.noteEl = h('div', { class: 'pl-note', role: 'status' });
-    V.noteEl.hidden = true;
-    V.stage = h('div', { class: 'pl-stage' }, V.cv, V.hintEl, V.noteEl);
-    V.nL = h('button', { type: 'button', class: 'pl-nudge', 'aria-label': '向左微调', text: '‹' });
-    V.nR = h('button', { type: 'button', class: 'pl-nudge', 'aria-label': '向右微调', text: '›' });
+    V.magEl = h('canvas', { class: 'pl-mag', width: 176, height: 176, 'aria-hidden': 'true' });
+    V.magEl.hidden = true;
+    V.stage = h('div', { class: 'pl-stage' }, V.cv, V.hintEl, V.noteEl, V.magEl);
+    V.fine = h('div', { class: 'pl-fine', role: 'slider', tabindex: '0', 'aria-label': '微调瞄准（左右拖动）' }, h('span', { class: 'pl-fine-l', 'aria-hidden': 'true', text: '‹' }), h('span', { class: 'pl-fine-r', 'aria-hidden': 'true', text: '›' }));
     V.pwFill = h('div', { class: 'pl-pwf' });
     V.pwKnob = h('div', { class: 'pl-pwk' });
-    V.pwTxt = h('span', { class: 'pl-pwt' });
-    V.pw = h('div', { class: 'pl-pw', role: 'slider', 'aria-label': '力度', 'aria-valuemin': '2', 'aria-valuemax': '100' }, V.pwFill, V.pwKnob);
+    V.pwTrack = h('div', { class: 'pl-pwtr' }, V.pwFill, V.pwKnob);
+    V.pw = h('div', { class: 'pl-pw', role: 'slider', tabindex: '0', 'aria-label': '力度', 'aria-valuemin': '2', 'aria-valuemax': '100' }, V.pwTrack);
     V.go = h('button', { type: 'button', class: 'btn pl-go', text: '出杆' });
-    V.side = h('div', { class: 'pl-side' }, V.nL, V.nR, V.pwTxt, V.pw, V.go);
-    V.main = h('div', { class: 'pl-main' }, V.stage, V.side);
-    V.bar = h('div', { class: 'pl-bar' });
-    root.appendChild(V.hud); root.appendChild(V.main); root.appendChild(V.bar);
+    V.rs = h('button', { type: 'button', class: 'btn quiet pl-rs', text: '认输' });
+    V.rs.addEventListener('click', plResign);
+    V.btnAgain = h('button', { type: 'button', class: 'btn pl-again', text: '再来一盘' });
+    V.btnAgain.addEventListener('click', plAgain);
+    V.bar = h('div', { class: 'pl-ctl' }, V.fine, V.pw, V.go, V.rs, V.btnAgain);
+    root.appendChild(V.hud); root.appendChild(V.stage); root.appendChild(V.bar);
     box.appendChild(root);
     box.appendChild(rankButton('pool', 'rk-fab'));
     V.ctx = V.cv.getContext('2d');
@@ -176,7 +182,7 @@ export var poolV = {
   },
   unmount: function () {
     if (PV) {
-      cancelAnimationFrame(PV.raf); clearTimeout(PV.sureTm); clearTimeout(PV.celTm); clearTimeout(PV.nudgeTm); clearInterval(PV.nudgeIv);
+      cancelAnimationFrame(PV.raf); clearTimeout(PV.sureTm); clearTimeout(PV.celTm); clearTimeout(PV.noteTm);
       if (PV.ro) PV.ro.disconnect();
       PV.dead = true;
     }
@@ -204,7 +210,7 @@ function plResize() {
   V.dpr = Math.min(window.devicePixelRatio || 1, 2);
   V.cw = Math.max(80, Math.round(r.width)); V.ch = Math.max(80, Math.round(r.height));
   V.cv.width = Math.round(V.cw * V.dpr); V.cv.height = Math.round(V.ch * V.dpr);
-  var pad = 6;
+  var pad = 2;
   V.s = Math.min((V.cw - pad * 2) / (PW + RAIL * 2), (V.ch - pad * 2) / (PH + RAIL * 2));
   V.ox = (V.cw - PW * V.s) / 2; V.oy = (V.ch - PH * V.s) / 2;
   V.cache = null; V.dirty = true;
@@ -257,21 +263,30 @@ function plDefaultAim() {
   }
   V.aim = { x: 0, y: -1 };
 }
+function plNoted(id) { var v = parseInt(lsGet('pool.noted.' + id), 10); return isNaN(v) ? 0 : v; }
+function plSetNoted(id, n) { if (n > plNoted(id)) lsSet('pool.noted.' + id, String(n)); }
+// 刚出现的新局面带着犯规：只提示一次（记下已经提示过的回合；重开小程序、实时刷新都不会再弹）
 function plNoteFor(g) {
-  var V = PV;
-  if (g.status === 'active' && g.in_hand && g.last_foul) {
-    var mine = g.next_player !== S.me.id; // 犯规的人 = 不是现在轮到的人
-    V.note = (mine ? '你' : 'Ta') + '犯规：' + FOUL_TEXT[g.last_foul] + (mine ? '' : '，你有自由球');
-    V.noteUntil = 0;
-  } else if (V.noteUntil === 0) V.note = '';
-  plNoteShow();
+  if (g.status !== 'active' || !g.in_hand || !g.last_foul || g.turn_no <= plNoted(g.id)) return;
+  plSetNoted(g.id, g.turn_no);
+  var mine = g.next_player !== S.me.id; // 犯规的人 = 不是现在轮到的人
+  plNoteShow((mine ? '你' : 'Ta') + '犯规：' + FOUL_TEXT[g.last_foul] + (mine ? '' : '，你有自由球'), NOTE_MS);
 }
+// text 为空 = 立刻收起；ms = 多久后自动淡出
 function plNoteShow(text, ms) {
   var V = PV;
-  if (text) { V.note = text; V.noteUntil = ms ? performance.now() + ms : 0; }
-  if (V.noteEl) {
-    V.noteEl.textContent = V.note;
-    V.noteEl.hidden = !V.note;
+  clearTimeout(V.noteTm);
+  if (text) {
+    V.note = text;
+    V.noteEl.textContent = text;
+    V.noteEl.hidden = false;
+    void V.noteEl.offsetWidth; // 让淡入过渡生效
+    V.noteEl.classList.add('on');
+    if (ms) V.noteTm = setTimeout(function () { plNoteShow(''); }, ms);
+  } else {
+    V.note = '';
+    V.noteEl.classList.remove('on');
+    V.noteTm = setTimeout(function () { if (PV === V && !V.note) V.noteEl.hidden = true; }, 400);
   }
 }
 
@@ -330,32 +345,27 @@ function plChips() {
   }
 }
 function plActions() {
-  var V = PV, g = V.g, box = clear(V.bar);
+  var V = PV, g = V.g;
   var active = !!g && g.status === 'active';
   var mine = plMyBase();
-  V.side.classList.toggle('off', !mine);
+  V.bar.classList.toggle('off', !mine);
+  V.bar.classList.toggle('ended', !!g && !active);
   V.go.textContent = plPlacing() ? '放好了' : '出杆';
   V.go.disabled = !mine;
-  V.nL.disabled = V.nR.disabled = !plAiming();
-  if (!g) return;
-  if (active) {
-    var b = h('button', { type: 'button', class: 'btn small quiet' + (V.sure ? ' sure' : ''), text: V.sure ? '再点确认' : '认输' });
-    b.addEventListener('click', plResign);
-    box.appendChild(b);
-  } else {
-    var again = h('button', { type: 'button', class: 'btn', text: '再来一盘' });
-    again.disabled = V.busy;
-    again.addEventListener('click', plAgain);
-    box.appendChild(again);
-  }
+  V.fine.setAttribute('aria-disabled', plAiming() ? 'false' : 'true');
+  V.rs.hidden = !active;
+  V.rs.textContent = V.sure ? '确认' : '认输';
+  V.rs.classList.toggle('sure', V.sure);
+  V.btnAgain.hidden = !g || active;
+  V.btnAgain.disabled = V.busy;
 }
 function plPower(p) {
   var V = PV;
   V.power = Math.round(Math.max(0.05, Math.min(1, p)) * 100) / 100;
   var pc = Math.round(V.power * 100);
-  V.pwFill.style.height = pc + '%';
-  V.pwKnob.style.bottom = 'calc(' + pc + '% - 6px)';
-  V.pwTxt.textContent = pc;
+  V.pwFill.style.clipPath = 'inset(0 calc(' + (100 - pc) + '% + ' + (pc * 0.36 - 18) + 'px) 0 0 round 7px)';
+  V.pwKnob.style.left = 'calc(' + pc + '% - ' + (pc * 0.36) + 'px)';
+  V.pwKnob.textContent = pc;
   V.pw.setAttribute('aria-valuenow', String(pc));
   V.dirty = true;
 }
@@ -473,8 +483,8 @@ function plEndSim() {
 }
 function plNoteForShot(foul, win, keep, mine) {
   var who = mine ? '你' : 'Ta';
-  if (foul) plNoteShow(who + '犯规：' + FOUL_TEXT[foul] + (mine ? '，Ta 有自由球' : '，你有自由球'));
-  else if (win) { plNoteShow(who + '打进了 9 号球'); if (mine) popYaha('进了！'); }
+  if (foul) { plSetNoted(PV.id, PV.shownTurn); plNoteShow(who + '犯规：' + FOUL_TEXT[foul] + (mine ? '，Ta 有自由球' : '，你有自由球'), NOTE_MS); }
+  else if (win) { plNoteShow(who + '打进了 9 号球', NOTE_MS); if (mine) popYaha('进了！'); }
   else if (keep) plNoteShow(who + '进球，继续', 2200);
 }
 function plEnded() {
@@ -574,6 +584,7 @@ function plBindInput() {
     ev.preventDefault();
     V.hint = false;
     if (V.hintEl) V.hintEl.hidden = true;
+    plNoteShow('');
     if (mode === 'aim') aimTo(ev); else moveCue(ev);
   });
   cv.addEventListener('pointermove', function (ev) {
@@ -581,14 +592,14 @@ function plBindInput() {
     if (V.drag.mode === 'aim') aimTo(ev); else moveCue(ev);
     ev.preventDefault();
   });
-  function end(ev) { if (V.drag && ev.pointerId === V.drag.id) { V.drag = null; V.dirty = true; } }
+  function end(ev) { if (V.drag && ev.pointerId === V.drag.id) { V.drag = null; V.dirty = true; plMag(false); } }
   cv.addEventListener('pointerup', end);
   cv.addEventListener('pointercancel', end);
-  // 力度条
+  // 力度条（横向）
   var pdrag = null;
   function setPw(ev) {
-    var r = V.pw.getBoundingClientRect();
-    plPower(1 - (ev.clientY - r.top) / r.height);
+    var r = V.pwTrack.getBoundingClientRect();
+    plPower((ev.clientX - r.left - 18) / Math.max(1, r.width - 36)); // 旋钮中心跟着手指
   }
   V.pw.addEventListener('pointerdown', function (ev) {
     if (!plMyBase()) return;
@@ -600,23 +611,65 @@ function plBindInput() {
   var pend = function (ev) { if (pdrag === ev.pointerId) pdrag = null; };
   V.pw.addEventListener('pointerup', pend);
   V.pw.addEventListener('pointercancel', pend);
+  V.pw.addEventListener('keydown', function (ev) {
+    if (!plMyBase() || (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight')) return;
+    plPower(V.power + (ev.key === 'ArrowRight' ? 0.05 : -0.05)); ev.preventDefault();
+  });
   V.go.addEventListener('click', plFire);
-  // 微调：点一下转 0.25 度，按住连续转
-  function nudge(sign) {
+  // 微调条：相对拖动，每 1px 只转 FINE 弧度（直接拖台面粗得多），一次拖不够可以多拖几次
+  function turn(rad) {
     if (!plAiming()) return;
-    var a = 0.0043633 * sign, c = 0.99999048, s = a, x = V.aim.x, y = V.aim.y;
+    var c = Math.cos(rad), s = Math.sin(rad), x = V.aim.x, y = V.aim.y;
     var inp = poolInput(x * c - y * s, x * s + y * c, 0.5);
     if (inp) { V.aim = { x: inp.dx, y: inp.dy }; V.dirty = true; }
   }
-  [[V.nL, -1], [V.nR, 1]].forEach(function (p) {
-    var b = p[0];
-    function stop() { clearTimeout(V.nudgeTm); clearInterval(V.nudgeIv); }
-    b.addEventListener('pointerdown', function (ev) {
-      ev.preventDefault(); stop(); nudge(p[1]);
-      V.nudgeTm = setTimeout(function () { V.nudgeIv = setInterval(function () { nudge(p[1]); }, 45); }, 350);
-    });
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (n) { b.addEventListener(n, stop); });
+  var fd = null;
+  V.fine.addEventListener('pointerdown', function (ev) {
+    if (!plAiming() || fd) return;
+    fd = { id: ev.pointerId, x: ev.clientX, off: 0 };
+    V.fineDrag = true;
+    try { V.fine.setPointerCapture(ev.pointerId); } catch (e) { /* 忽略 */ }
+    V.hint = false; if (V.hintEl) V.hintEl.hidden = true;
+    plNoteShow('');
+    ev.preventDefault();
   });
+  V.fine.addEventListener('pointermove', function (ev) {
+    if (!fd || ev.pointerId !== fd.id) return;
+    var dx = ev.clientX - fd.x;
+    fd.x = ev.clientX; fd.off = (fd.off + dx) % 12;
+    V.fine.style.backgroundPositionX = fd.off + 'px'; // 刻度跟着手指走
+    turn(dx * FINE);
+    ev.preventDefault();
+  });
+  function fend(ev) { if (fd && ev.pointerId === fd.id) { fd = null; V.fineDrag = false; V.dirty = true; plMag(false); } }
+  V.fine.addEventListener('pointerup', fend);
+  V.fine.addEventListener('pointercancel', fend);
+  V.fine.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+    turn((ev.key === 'ArrowRight' ? 1 : -1) * FINE * 6); ev.preventDefault();
+  });
+}
+// 放大镜：瞄准时在角落显示"白球落点"附近的 3 倍放大图，躲开手指
+function plMag(on) {
+  var V = PV;
+  if (!V || !V.magEl) return;
+  V.magEl.hidden = !on;
+}
+function plMagDraw(V) {
+  var p = V.magPt;
+  if (!V.magEl || !p || !(V.drag && V.drag.mode === 'aim') && !V.fineDrag) { if (V.magEl && !V.magEl.hidden) V.magEl.hidden = true; return; }
+  var m = V.magEl, c = m.getContext('2d'), W = m.width, k = V.dpr, half = 19 * k; // 取景 38 CSS px 见方，放大到 88 px（约 2.3 倍）
+  var cx = (V.ox + p.x * V.s) * k, cy = (V.oy + p.y * V.s) * k;
+  c.clearRect(0, 0, W, W);
+  c.save(); c.beginPath(); c.arc(W / 2, W / 2, W / 2 - 2, 0, 6.2832); c.clip();
+  c.drawImage(V.cv, cx - half, cy - half, half * 2, half * 2, 0, 0, W, W);
+  c.restore();
+  c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 3; c.beginPath(); c.arc(W / 2, W / 2, W / 2 - 2, 0, 6.2832); c.stroke();
+  // 摆在离落点远的一角
+  var left = p.x < PW / 2, top = p.y < PH * 0.3;
+  m.style.left = left ? 'auto' : '8px'; m.style.right = left ? '8px' : 'auto';
+  m.style.top = top ? 'auto' : '8px'; m.style.bottom = top ? '8px' : 'auto';
+  m.hidden = false;
 }
 
 // ---- 主循环 ----
@@ -652,14 +705,13 @@ function plLoop(ts) {
     busy = true;
     for (i = V.sinks.length - 1; i >= 0; i--) { V.sinks[i].t += dt / 0.3; if (V.sinks[i].t >= 1) V.sinks.splice(i, 1); }
   }
-  if (V.noteUntil && performance.now() > V.noteUntil) { V.noteUntil = 0; V.note = ''; plNoteShow(); plNoteFor(V.g || {}); }
   if (V.drag) busy = true;
   var dk = plDark();
   if (dk !== V.dk) { V.dk = dk; V.cache = null; V.dirty = true; }
   var hint = V.hint && plAiming() && !V.drag;
   if (V.hintEl && V.hintEl.hidden === hint) V.hintEl.hidden = !hint;
   if (plAiming() && V.g && V.g.status === 'active') { V.pulse += dt; busy = true; } // 目标球提示圈轻轻呼吸
-  if (busy || V.dirty) { V.dirty = false; plDraw(V); }
+  if (busy || V.dirty) { V.dirty = false; plDraw(V); plMagDraw(V); }
 }
 
 // ---- 画 ----
@@ -725,7 +777,8 @@ function plBase(V) {
   var q;
   for (q = 1; q < 4; q++) { dia(PW * q / 4, -RAIL / 2 - CUSH / 2 + 1); dia(PW * q / 4, PH + RAIL / 2 + CUSH / 2 - 1); }
   for (q = 1; q < 8; q++) if (q !== 4) { dia(-RAIL / 2 - CUSH / 2 + 1, PH * q / 8); dia(PW + RAIL / 2 + CUSH / 2 - 1, PH * q / 8); }
-  // 袋口
+  // 袋口（木框外沿以外的部分裁掉）
+  c.save(); plRound(c, -RAIL, -RAIL, PW + RAIL * 2, PH + RAIL * 2, 16); c.clip();
   POCKETS.forEach(function (p) {
     var r = p.r + 0.5;
     c.fillStyle = dk ? '#2a1a0f' : '#3c2514';
@@ -734,6 +787,7 @@ function plBase(V) {
     g.addColorStop(0, '#000'); g.addColorStop(0.7, '#0a0a0a'); g.addColorStop(1, '#1c1c1c');
     c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, r, 0, 6.2832); c.fill();
   });
+  c.restore();
   V.cache = { k: V.dpr * 1000 + V.cw + ':' + V.ch + ':' + (V.dk ? 1 : 0), cv: cv };
   return cv;
 }
@@ -802,6 +856,7 @@ function plDraw(V) {
   // 瞄准线（在球下面）
   if ((aiming || V.fire) && cue && !sim) {
     var gd = plGuide(cue, V.aim, list);
+    V.magPt = { x: gd.x, y: gd.y };
     c.save();
     c.lineCap = 'round';
     c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1.7; c.setLineDash([2.5, 6]);
