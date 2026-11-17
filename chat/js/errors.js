@@ -25,6 +25,7 @@ export var ERR_TEXT = {
   invalid_ammo: '操作无效',
   invalid_shot: '这一发无效，再试一次',
   invalid_cell: '操作无效',
+  invalid_cue: '白球不能放在这里',
 };
 export function errText(e) {
   var m = (e && e.message) || '';
