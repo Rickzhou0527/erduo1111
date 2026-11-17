@@ -27,12 +27,10 @@
 }
 #appClose:active{transform:scale(.94)}
 #appLayer.flush #appBody{padding:calc(var(--app-top) + 4px) 0 calc(var(--app-bot) + 2px)}
-/* 紧凑消息带子的开关：收起时整条带子都能点；展开时只在带子右上角留一个按钮 */
-#appStrip{position:absolute;left:0;right:0;top:var(--strip-top);height:var(--strip-h);z-index:1;display:flex;justify-content:flex-end;align-items:flex-start;padding:0 8px;font-size:var(--fs-xs);color:var(--t2);background:none;border:0}
+/* 消息开关：在顶栏右侧，不挡棋盘；收起时有新消息显示未读数 */
+#appStrip{position:relative;flex:none;margin-left:auto;margin-right:12px;min-width:56px;height:44px;padding:0 14px;border-radius:999px;font-size:var(--fs-sm);font-weight:600;color:var(--t1);background:var(--g-chip);border:1px solid var(--rim);box-shadow:inset 0 1px 0 var(--hi),inset 0 -1px 0 var(--lo),var(--sh-1)}
 #appStrip[hidden]{display:none}
-#appStrip.open{left:auto;right:0;height:48px;width:96px;padding:0}
-#appStrip::before{content:attr(aria-label);display:flex;align-items:center;height:28px;margin-top:2px;padding:0 10px;border-radius:999px;background:var(--g-card);border:1px solid var(--rim);box-shadow:var(--sh-1)}
-#appStrip.open::before{margin:8px 8px 0 0}
+#appStrip[data-n]:not([data-n=""])::after{content:attr(data-n);position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:var(--pink);color:#fff;font-size:12px;line-height:20px;text-align:center}
 /* 小程序打开时：消息漂在小程序上面，半透明、完全点不到；点击和长按直接穿透到下面的小程序 */
 #msgs{transition:opacity .25s var(--ease)}
 /* 开着小程序时：消息再淡一些（25%），对局卡片整行隐藏，避免和正在下的大棋盘叠在一起 */

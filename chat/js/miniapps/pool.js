@@ -98,6 +98,7 @@ function plStartHere() {
 
 // ---- 外观常量 ----
 var RAIL = 15; // 木框宽度（尽量窄，把屏幕留给球；袋口会被木框外沿裁掉一点）
+var MARG = 27; // 画面上要留出的边距：袋口探出台面最多这么远，不能被裁掉
 var CUSH = 9; // 库边橡胶厚度
 var PULL = 52; // 球杆最多往后拉多远
 var FINE = 0.0009; // 微调条：每拖 1px 转多少弧度（直接拖台面大约是它的 8 倍粗）
@@ -127,7 +128,7 @@ var PV = null; // 当前打开的这一局的界面状态
 export var poolV = {
   id: 'pool',
   label: '9球台球',
-  strip: 'compact',
+  strip: 'hidden',
   flush: true,
   img: 'pool/icon-pool.png',
   run: function () { plStartHere(); },
@@ -211,7 +212,7 @@ function plResize() {
   V.cw = Math.max(80, Math.round(r.width)); V.ch = Math.max(80, Math.round(r.height));
   V.cv.width = Math.round(V.cw * V.dpr); V.cv.height = Math.round(V.ch * V.dpr);
   var pad = 2;
-  V.s = Math.min((V.cw - pad * 2) / (PW + RAIL * 2), (V.ch - pad * 2) / (PH + RAIL * 2));
+  V.s = Math.min((V.cw - pad * 2) / (PW + MARG * 2), (V.ch - pad * 2) / (PH + MARG * 2));
   V.ox = (V.cw - PW * V.s) / 2; V.oy = (V.ch - PH * V.s) / 2;
   V.cache = null; V.dirty = true;
 }
@@ -777,8 +778,7 @@ function plBase(V) {
   var q;
   for (q = 1; q < 4; q++) { dia(PW * q / 4, -RAIL / 2 - CUSH / 2 + 1); dia(PW * q / 4, PH + RAIL / 2 + CUSH / 2 - 1); }
   for (q = 1; q < 8; q++) if (q !== 4) { dia(-RAIL / 2 - CUSH / 2 + 1, PH * q / 8); dia(PW + RAIL / 2 + CUSH / 2 - 1, PH * q / 8); }
-  // 袋口（木框外沿以外的部分裁掉）
-  c.save(); plRound(c, -RAIL, -RAIL, PW + RAIL * 2, PH + RAIL * 2, 16); c.clip();
+  // 袋口
   POCKETS.forEach(function (p) {
     var r = p.r + 0.5;
     c.fillStyle = dk ? '#2a1a0f' : '#3c2514';
@@ -787,7 +787,6 @@ function plBase(V) {
     g.addColorStop(0, '#000'); g.addColorStop(0.7, '#0a0a0a'); g.addColorStop(1, '#1c1c1c');
     c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, r, 0, 6.2832); c.fill();
   });
-  c.restore();
   V.cache = { k: V.dpr * 1000 + V.cw + ':' + V.ch + ':' + (V.dk ? 1 : 0), cv: cv };
   return cv;
 }
