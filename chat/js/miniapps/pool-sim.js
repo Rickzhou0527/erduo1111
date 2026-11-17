@@ -1,4 +1,4 @@
-// 9球台球的物理和规则（纯计算，不碰 DOM）
+// 9球 / 8球台球的物理和规则（纯计算，不碰 DOM）
 //
 // 跨设备一致性：这里只用 + - × ÷ 和 Math.sqrt（IEEE 754 要求结果完全一致），
 // 不用 sin / cos / atan2 / pow / exp 等（不同 JS 引擎的实现可能差最后一位）。
@@ -62,6 +62,33 @@ export function poolRack(seed) {
   var ids = [1, rest[0], rest[1], rest[2], 9, rest[3], rest[4], rest[5], rest[6]]; // pos 的顺序：0 | 1 2 | 3 4 5 | 6 7 | 8
   var out = [{ id: 0, x: HEAD.x, y: HEAD.y }];
   for (i = 0; i < 9; i++) out.push({ id: ids[i], x: pos[i].x, y: pos[i].y });
+  return out;
+}
+
+// 8球摆球：15 个球摆三角形（顶点 1 排在置球点），8 号在第 3 排正中，后排两个角一个全色一个花色，其余的用种子洗牌。
+// 全色 1-7，花色 9-15。返回球数组（含白球 id 0）
+export function poolRack8(seed) {
+  var rnd = poolRng(seed);
+  var gx = 2 * BR + 0.02, gy = Math.sqrt(3) * (BR + 0.01);
+  var pos = [], row, k, i, j, t;
+  for (row = 0; row < 5; row++) {
+    for (k = 0; k <= row; k++) pos.push({ x: FOOT.x + (k - row / 2) * gx, y: FOOT.y - row * gy });
+  }
+  // pos 的顺序：0 | 1 2 | 3 4 5 | 6 7 8 9 | 10 11 12 13 14；8 号 = 4（第 3 排正中），后排两角 = 10 和 14
+  var solids = [1, 2, 3, 4, 5, 6, 7], stripes = [9, 10, 11, 12, 13, 14, 15];
+  var s1 = solids.splice(rnd() % 7, 1)[0], s2 = stripes.splice(rnd() % 7, 1)[0];
+  var c10 = rnd() % 2 === 0 ? s1 : s2, c14 = c10 === s1 ? s2 : s1;
+  var rest = solids.concat(stripes);
+  for (i = rest.length - 1; i > 0; i--) { j = rnd() % (i + 1); t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+  var ids = [], r = 0;
+  for (i = 0; i < 15; i++) {
+    if (i === 4) ids.push(8);
+    else if (i === 10) ids.push(c10);
+    else if (i === 14) ids.push(c14);
+    else ids.push(rest[r++]);
+  }
+  var out = [{ id: 0, x: HEAD.x, y: HEAD.y }];
+  for (i = 0; i < 15; i++) out.push({ id: ids[i], x: pos[i].x, y: pos[i].y });
   return out;
 }
 
@@ -265,6 +292,72 @@ export function poolJudge(lowest, res, after) {
     if (nine) state.push([9].concat(poolRespot(state)));
   }
   return { foul: foul, objs: objs, win: win, keep: !foul && !win && objs.length > 0, state: state };
+}
+// ---- 8球规则（休闲版，不叫袋）----
+// 球组：全色 1-7，花色 9-15，8 号单独
+export function poolGroupOf(id) { return id >= 1 && id <= 7 ? 'solid' : id >= 9 && id <= 15 ? 'stripe' : null; }
+export function poolOtherGroup(g) { return g === 'solid' ? 'stripe' : g === 'stripe' ? 'solid' : null; }
+// 台面上（state 里）某个球组还剩几个球
+export function poolGroupLeft(state, group) {
+  var n = 0;
+  for (var i = 0; i < state.length; i++) if (poolGroupOf(state[i][0]) === group) n++;
+  return n;
+}
+// 这一杆第一个碰到的球可以是哪些：{ all: true, no8: bool } 或 { ids: [...] }。
+// 开球：随便碰；没分组：除 8 号外都行；已分组：自己的球组，清空之后才是 8 号
+export function poolTargets8(state, group, brk) {
+  var out = [], i, id;
+  for (i = 0; i < state.length; i++) {
+    id = state[i][0];
+    if (id === 0) continue;
+    if (brk) out.push(id);
+    else if (!group) { if (id !== 8) out.push(id); }
+    else if (poolGroupOf(id) === group) out.push(id);
+  }
+  if (group && !brk && !out.length) for (i = 0; i < state.length; i++) if (state[i][0] === 8) out.push(8);
+  return out;
+}
+// 判一杆（8球）。info = { pre: 出杆前的台面快照, group: 出杆方已有的球组或 null, brk: 是不是开球 }
+// res = sim.result()；after = 落定后的快照
+// 返回 { foul, objs, group: 这一杆新定下的出杆方球组或 null, win, lose, keep, early: 8 号提前落袋（没犯规）, respot8: 开球 8 号放回, state }
+//  - 开球：只有白球落袋 / 没碰到球算犯规；不分组、不判输赢；8 号落袋放回置球点
+//  - 没分组：第一个碰的球不能是 8 号；已分组：必须先碰自己的球组（清空后才是 8 号）；
+//    没有球进袋也没有球碰库 = 犯规；白球落袋 = 犯规
+//  - 合法进球（没分组：任何非 8 号球；已分组：自己的球组）继续出杆；没分组时第一个落袋的球定下球组
+//  - 打进 8 号（非开球）：出杆前自己的球组已经清空且没犯规 = 赢；其余（提前、或犯规）= 输
+export function poolJudge8(info, res, after) {
+  var potted = res.potted, objs = [], scratch = false, i, id;
+  for (i = 0; i < potted.length; i++) { if (potted[i] === 0) scratch = true; else objs.push(potted[i]); }
+  var group = info.group || null, brk = !!info.brk, pre = info.pre;
+  var foul = null;
+  if (scratch) foul = 'scratch';
+  else if (res.first === null) foul = 'none';
+  else if (!brk) {
+    if (!group ? res.first === 8 : (poolGroupOf(res.first) !== group && !(res.first === 8 && poolGroupLeft(pre, group) === 0))) foul = 'wrong';
+    else if (!objs.length && !res.rail) foul = 'rail';
+  }
+  var eight = objs.indexOf(8) >= 0;
+  var win = false, lose = false, early = false, respot8 = false;
+  if (eight && !brk) {
+    win = !foul && !!group && poolGroupLeft(pre, group) === 0;
+    lose = !win;
+    early = lose && !foul;
+  } else if (eight && brk) respot8 = true;
+  var assign = null, keep = false;
+  if (!foul && !win && !lose) {
+    if (!group) {
+      for (i = 0; i < objs.length; i++) {
+        id = objs[i];
+        if (id === 8) continue;
+        if (!brk && !assign) assign = poolGroupOf(id); // 开球不分组
+        keep = true;
+      }
+    } else for (i = 0; i < objs.length; i++) if (poolGroupOf(objs[i]) === group) keep = true;
+  }
+  var state = after.slice();
+  if (foul) state = state.filter(function (b) { return b[0] !== 0; }); // 对手自由球：白球拿起来
+  if (respot8) state.push([8].concat(poolRespot(state)));
+  return { foul: foul, objs: objs, group: assign, win: win, lose: lose, keep: keep, early: early, respot8: respot8, state: state };
 }
 // 自由球 / 摆白球：位置合法吗（在台内、不压球、不在袋口附近）
 export function poolCueOk(state, x, y) {

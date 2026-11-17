@@ -1,27 +1,40 @@
-// 9球台球小程序
+// 台球小程序（9球 / 8球）
 
 import { errText } from '../errors.js';
 import { APP, closeApp, openApp } from './host.js';
 import { rankButton } from './leaderboard.js';
-import { BR, HEAD, PH, POCKETS, PW, PoolSim, poolCueNear, poolFromState, poolInput, poolJudge, poolLowest, poolRack } from './pool-sim.js';
+import { BR, HEAD, PH, POCKETS, PW, PoolSim, poolCueNear, poolFromState, poolGroupOf, poolInput, poolJudge, poolJudge8, poolLowest, poolOtherGroup, poolRack, poolRack8, poolTargets8 } from './pool-sim.js';
 import { firePush } from '../notify.js';
 import { tttPerson, tttRow } from './ttt.js';
 import { S, makeAvatar, sb } from '../state.js';
 import { popYaha } from '../usagi.js';
-import { clear, h, isVisible, lsGet, lsSet, toast } from '../utils.js';
+import { $, clear, h, isVisible, lsGet, lsSet, toast } from '../utils.js';
 
-// ===== 9球台球 =====
-// 规则（标准 9 球，去掉 push-out 和三次犯规判负）：每杆白球必须先碰台面上编号最小的球；合法打进任何球可以继续出杆；
+// ===== 9球 / 8球台球 =====
+// 8球（休闲版，不叫袋）：开球不分组；开球后第一个合法进球的球组（全色 1-7 / 花色 9-15）归出杆方；之后必须先碰自己的球组（清空后才是 8 号），
+// 合法进自己的球组继续出杆；打进 8 号：自己的球组已清空且没犯规 = 赢，提前打进或打 8 号时犯规 = 输。犯规同样给对手自由球。判定在 pool-sim.js 的 poolJudge8。
+// 9球 规则（标准 9 球，去掉 push-out 和三次犯规判负）：每杆白球必须先碰台面上编号最小的球；合法打进任何球可以继续出杆；
 // 合法打进 9 号赢下这一盘（开球、组合球都算）。犯规 = 白球落袋 / 先碰错球 / 没碰到球 / 碰球后没有球进袋也没有球碰库；
 // 犯规后对手自由球（白球拿起来，拖到台面任意不压球的位置）；犯规时落袋的 9 号放回置球点。
 // 物理和判定在 pool-sim.js（确定性）；出杆方的设备模拟，把输入和落定后的台面一起上传，对手重放同一杆的动画再对齐到上传的状态。
 var PG = { games: {}, want: [], pend: {}, tm: 0 };
 export function poolReset() { PG.games = {}; PG.want = []; PG.pend = {}; }
 export function poolOf(body) {
-  var m = typeof body === 'string' ? /^\[9球台球\]#(\d{1,15})$/.exec(body) : null;
+  var m = typeof body === 'string' ? /^\[[89]球台球\]#(\d{1,15})$/.exec(body) : null;
   return m ? parseInt(m[1], 10) : null;
 }
+// 聊天里这条邀请是几球（邀请消息的开头就是 8球台球 / 9球台球）
+export function poolName(body) { return typeof body === 'string' && body.indexOf('[8') === 0 ? '8球台球' : '9球台球'; }
 var FOUL_TEXT = { scratch: '母球落袋', wrong: '没有先碰最小号球', none: '没有碰到球', rail: '没有球进袋也没有球碰库' };
+var FOUL_TEXT8 = { scratch: '母球落袋', wrong: '没有先碰自己的球', none: '没有碰到球', rail: '没有球进袋也没有球碰库' };
+var GNAME = { solid: '全色', stripe: '花色' };
+function plEight(g) { return !!g && g.mode === 'eight'; }
+function plFoulText(g, f) { return (plEight(g) ? FOUL_TEXT8 : FOUL_TEXT)[f]; }
+// 排行榜里这一局算哪张榜（给 + 面板的排行榜入口用）
+export function poolRankGame() {
+  var g = APP.cur && APP.cur.id === 'pool' ? PG.games[APP.cur.params.id] : null;
+  return plEight(g) ? 'pool8' : 'pool';
+}
 function plStatus(g) {
   var me = S.me.id;
   if (!g) return { t: g === null ? '对局不可用' : '载入中…', you: false };
@@ -34,12 +47,12 @@ export function poolFillCard(el) {
   var m = el._m, id = el._gcid;
   if (!m || id == null || !S.me) return;
   var g = PG.games[id];
-  var sig = id + '|' + (g ? [g.score_a, g.score_b, g.status, g.next_player, g.winner, g.in_hand].join('|') : 'x') + '|' + S.me.id;
+  var sig = id + '|' + (g ? [g.score_a, g.score_b, g.status, g.next_player, g.winner, g.in_hand, g.mode].join('|') : 'x') + '|' + S.me.id;
   if (!g && !PG.pend[id] && PG.games[id] === undefined) plQueue(id);
   if (el._gsig === sig) return;
   el._gsig = sig;
   var st = plStatus(g), sc = g ? plScores(g) : [0, 0];
-  el._bubble.innerHTML = '<div class="gc-pool"><span class="gc-pball" aria-hidden="true"></span><span class="gc-score">' + sc[0] + ':' + sc[1] + '</span></div><div class="gc-txt"><b>9球台球</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
+  el._bubble.innerHTML = '<div class="gc-pool"><span class="gc-pball' + (plEight(g) ? ' e8' : '') + '" aria-hidden="true"></span><span class="gc-score">' + sc[0] + ':' + sc[1] + '</span></div><div class="gc-txt"><b>' + (plEight(g) ? '8球台球' : '9球台球') + '</b><span class="gc-st' + (st.you ? ' you' : '') + '">' + st.t + '</span></div>';
 }
 function plEachCard(fn) { if (S.chat) S.chat.nodes.forEach(function (el) { if (el._gkind === 'pool' && el._gcid != null) fn(el); }); }
 function plQueue(id) {
@@ -81,19 +94,81 @@ export function onPoolGame(p) {
   if (!g || g.id == null || !S.me) return;
   var prev = PG.games[g.id];
   plPut(g);
-  if (p.eventType === 'UPDATE' && prev && g.status === 'active' && g.next_player === S.me.id && prev.turn_no !== g.turn_no && !plShowing(g.id) && isVisible()) toast('轮到你了（9球台球）');
+  if (p.eventType === 'UPDATE' && prev && g.status === 'active' && g.next_player === S.me.id && prev.turn_no !== g.turn_no && !plShowing(g.id) && isVisible()) toast('轮到你了（' + (plEight(g) ? '8球台球' : '9球台球') + '）');
 }
-function plStartHere() {
+function plStartHere(mode) {
   var c = S.chat;
   if (!c) return;
   if (APP.cur && APP.cur.id === 'pool') return;
   var peer = c.peer;
-  sb.rpc('pool_start', { p_peer: peer }).then(function (r) {
+  sb.rpc('pool_start', { p_peer: peer, p_mode: mode }).then(function (r) {
     if (r.error) return toast(errText(r.error));
     var g = tttRow(r.data);
     plPut(g);
+    if (g.mode !== mode && (g.mode === 'eight' || mode === 'eight')) toast('你们还有一局' + (plEight(g) ? '8球' : '9球') + '没打完');
     if (S.chat && S.chat.peer === peer) openApp('pool', { id: g.id });
   }, function (e) { toast(errText(e)); });
+}
+
+// ---- 开局前选玩法：9球 / 8球 ----
+var PK = { el: null, card: null, btns: {}, keyFn: null, lastFocus: null };
+var PK_MODES = [
+  { id: 'nine', label: '9球', img: 'pool/mode-9.png', desc: '最小号先碰，打进 9 号赢' },
+  { id: 'eight', label: '8球', img: 'pool/mode-8.png', desc: '全色花色，打进 8 号赢' }
+];
+export function poolLastMode() { return lsGet('pool.mode') === 'eight' ? 'eight' : 'nine'; }
+function plPickBall(m) { return h('span', { class: 'pk-ball ' + m.id, 'aria-hidden': 'true' }, h('i', { text: m.id === 'eight' ? '8' : '9' })); }
+function plBuildPicker(chat) {
+  var el = h('div', { id: 'poolPick', hidden: true });
+  el.addEventListener('click', function (ev) { if (ev.target === el) plClosePicker(); });
+  var x = h('button', { type: 'button', class: 'rk-x', 'aria-label': '关闭' });
+  x.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-x"/></svg>';
+  x.addEventListener('click', plClosePicker);
+  var row = h('div', { class: 'pk-row' });
+  PK_MODES.forEach(function (m) {
+    var img = h('img', { class: 'pk-img', src: m.img, alt: '', draggable: 'false' });
+    var holder = h('span', { class: 'pk-ic' }, img);
+    img.addEventListener('error', function () { holder.replaceChildren(plPickBall(m)); }); // 图还没生成好：退成画出来的球
+    var b = h('button', { type: 'button', class: 'pk-btn', 'data-m': m.id }, holder, h('b', { text: m.label }), h('span', { class: 'pk-desc', text: m.desc }));
+    b.addEventListener('click', function () { lsSet('pool.mode', m.id); plClosePicker(true); plStartHere(m.id); });
+    PK.btns[m.id] = b; row.appendChild(b);
+  });
+  var card = h('div', { class: 'rk-card pk-card', role: 'dialog', tabindex: '-1', 'aria-modal': 'true', 'aria-label': '选择玩法' },
+    h('div', { class: 'rk-head' }, h('h3', { text: '选玩法' }), x), row);
+  el.appendChild(card);
+  PK.card = card; PK.x = x;
+  chat.appendChild(el);
+  PK.el = el;
+}
+function plOpenPicker() {
+  var chat = $('chat');
+  if (!chat) return;
+  if (!PK.el) plBuildPicker(chat);
+  PK.lastFocus = document.activeElement;
+  PK.el.hidden = false;
+  void PK.el.offsetWidth;
+  PK.el.classList.add('show');
+  document.addEventListener('keydown', PK.keyFn = plPickKey, true);
+  var last = poolLastMode();
+  PK_MODES.forEach(function (m) { PK.btns[m.id].classList.toggle('last', m.id === last); });
+  PK.btns[last].focus({ preventScroll: true });
+}
+function plClosePicker(chosen) {
+  if (!PK.el || PK.el.hidden) return;
+  PK.el.hidden = true;
+  PK.el.classList.remove('show');
+  document.removeEventListener('keydown', PK.keyFn, true);
+  var f = PK.lastFocus;
+  PK.lastFocus = null;
+  if (!chosen && f && f.focus && document.body.contains(f)) { try { f.focus({ preventScroll: true }); } catch (e) { /* 忽略 */ } }
+}
+function plPickKey(ev) {
+  if (ev.key === 'Escape') { ev.stopPropagation(); plClosePicker(); return; }
+  if (ev.key !== 'Tab') return;
+  var order = [PK.btns.nine, PK.btns.eight, PK.x], i = order.indexOf(document.activeElement);
+  var n = order[(i + (ev.shiftKey ? order.length - 1 : 1)) % order.length]; // Tab 只在浮层里转圈
+  ev.preventDefault();
+  n.focus({ preventScroll: true });
 }
 
 // ---- 外观常量 ----
@@ -127,14 +202,14 @@ function plLoadImages() {
 var PV = null; // 当前打开的这一局的界面状态
 export var poolV = {
   id: 'pool',
-  label: '9球台球',
+  label: '台球',
   strip: 'hidden',
   flush: true,
   img: 'pool/icon-pool.png',
-  run: function () { plStartHere(); },
+  run: function () { if (APP.cur && APP.cur.id === 'pool') return; plOpenPicker(); },
   mount: function (box, params) {
     PV = {
-      id: params.id, box: box, g: PG.games[params.id] || null, mode: 'idle', balls: [], lowest: null, shownTurn: -1, rack: -1, up: false,
+      id: params.id, box: box, g: PG.games[params.id] || null, eight: plEight(PG.games[params.id]), brk: false, gs: null, gpend: null, mode: 'idle', balls: [], lowest: null, shownTurn: -1, rack: -1, up: false,
       aim: { x: 0, y: -1 }, power: 0.6, cuePos: null, cuePlaced: true, drag: null, sim: null, local: null, replay: null, delay: 0, acc: 0, fire: null,
       sinks: [], note: '', raf: 0, last: 0, dirty: true, cw: 300, ch: 300, dpr: 1, s: 1, ox: 0, oy: 0,
       persons: [null, null], hudBuilt: false, sure: false, sureTm: 0, busy: false, fetching: false, again: false, syncTok: 0,
@@ -144,7 +219,7 @@ export var poolV = {
     plLoadImages();
     var root = h('div', { class: 'pl' });
     V.hud = h('div', { class: 'pl-hud' });
-    V.cv = h('canvas', { 'aria-label': '9球台球' });
+    V.cv = h('canvas', { 'aria-label': V.eight ? '8球台球' : '9球台球' });
     V.hintEl = h('div', { class: 'pl-hint', text: '拖动台面瞄准，下方滑条微调，点出杆' });
     V.hintEl.hidden = true;
     V.noteEl = h('div', { class: 'pl-note', role: 'status' });
@@ -164,7 +239,7 @@ export var poolV = {
     V.bar = h('div', { class: 'pl-ctl' }, V.fine, V.pw, V.go, V.rs, V.btnAgain);
     root.appendChild(V.hud); root.appendChild(V.stage); root.appendChild(V.bar);
     box.appendChild(root);
-    box.appendChild(rankButton('pool', 'rk-fab'));
+    box.appendChild(rankButton(function () { return poolRankGame(); }, 'rk-fab'));
     V.ctx = V.cv.getContext('2d');
     V.ro = window.ResizeObserver ? new ResizeObserver(function () { plResize(); }) : null;
     if (V.ro) V.ro.observe(V.stage);
@@ -177,7 +252,7 @@ export var poolV = {
     sb.from('pool_games').select('*').eq('id', id).maybeSingle().then(function (r) {
       if (!PV || PV.id !== id) return;
       if (r.data) plPut(r.data);
-      else if (!PV.g) { toast('找不到这局9球台球'); closeApp(); }
+      else if (!PV.g) { toast('找不到这局台球'); closeApp(); }
     }, function () { /* 离线：显示缓存 */ });
     if (V.g) poolV.update(V.g);
   },
@@ -193,6 +268,7 @@ export var poolV = {
   update: function (g) {
     if (!PV) return;
     PV.g = g;
+    if (PV.eight !== plEight(g)) { PV.eight = plEight(g); PV.hudBuilt = false; if (PV.cv) PV.cv.setAttribute('aria-label', PV.eight ? '8球台球' : '9球台球'); }
     if (!PV.persons[0]) plPeople();
     plSync();
     plEnded();
@@ -237,9 +313,11 @@ function plPlacing() { return plMyBase() && !!PV.g.in_hand && !PV.cuePlaced; }
 function plAiming() { return plMyBase() && (!PV.g.in_hand || PV.cuePlaced); }
 function plBuildScene(g) {
   var V = PV;
-  V.balls = g.state && g.state.b ? g.state.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; }) : arrOf(poolRack(g.seed));
+  V.balls = g.state && g.state.b ? g.state.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; }) : arrOf(plRackOf(g, g.seed));
   V.rack = g.rack_no; V.shownTurn = g.turn_no; V.sim = null; V.sinks = []; V.fire = null; V.winPend = null;
-  V.lowest = poolLowest(V.balls);
+  V.brk = !(g.state && g.state.b);
+  V.gs = { game: g.id, rack: g.rack_no, a: plGroupA(g) };
+  V.lowest = V.eight ? null : poolLowest(V.balls);
   V.cuePlaced = !g.in_hand;
   V.cuePos = null;
   if (g.in_hand && g.next_player === S.me.id) {
@@ -251,16 +329,40 @@ function plBuildScene(g) {
   V.dirty = true;
   plHud();
 }
+function plRackOf(g, seed) { return plEight(g) ? poolRack8(seed) : poolRack(seed); }
+// 8球 球组：A 的球组（本地刚打出来、服务器还没回的先用本地的）和每个人的球组
+function plGroupA(g) {
+  var P = PV && PV.gpend;
+  if (!g.group_a && P && P.game === g.id && g.turn_no === P.turn) return P.a;
+  return g.group_a || null;
+}
+function plGroupFor(g, uid) { var a = plGroupA(g); return a ? (uid === g.player_a ? a : poolOtherGroup(a)) : null; }
+// 比分栏旁边显示的球组：对手这一杆还在回放时，先不显示它刚定下的球组
+function plHudGroupA(g) {
+  var V = PV;
+  if (!V.gs || V.gs.game !== g.id || V.gs.rack !== g.rack_no) return null;
+  return V.shownTurn !== g.turn_no ? V.gs.a : plGroupA(g);
+}
+// 这一杆可以先碰哪些球（球号）。9球：最小号；8球：见 poolTargets8
+function plTargetIds(V) {
+  if (!V.g) return [];
+  if (!V.eight) return V.lowest == null ? [] : [V.lowest];
+  return poolTargets8(V.balls, plGroupFor(V.g, S.me.id), V.brk);
+}
 function plDefaultAim() {
   var V = PV, i, c = null;
   if (V.cuePlaced) { var ca = plCueArr(); if (ca) c = [ca[1], ca[2]]; } else c = V.cuePos;
   if (!c) return;
+  var ids = plTargetIds(V), best = null, bd = 1e18;
   for (i = 0; i < V.balls.length; i++) {
-    if (V.balls[i][0] === V.lowest) {
-      var dx = V.balls[i][1] - c[0], dy = V.balls[i][2] - c[1];
-      var inp = poolInput(dx, dy, 0.5);
-      if (inp) { V.aim = { x: inp.dx, y: inp.dy }; return; }
+    if (ids.indexOf(V.balls[i][0]) >= 0) {
+      var dx = V.balls[i][1] - c[0], dy = V.balls[i][2] - c[1], d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = [dx, dy]; }
     }
+  }
+  if (best) {
+    var inp = poolInput(best[0], best[1], 0.5);
+    if (inp) { V.aim = { x: inp.dx, y: inp.dy }; return; }
   }
   V.aim = { x: 0, y: -1 };
 }
@@ -271,7 +373,7 @@ function plNoteFor(g) {
   if (g.status !== 'active' || !g.in_hand || !g.last_foul || g.turn_no <= plNoted(g.id)) return;
   plSetNoted(g.id, g.turn_no);
   var mine = g.next_player !== S.me.id; // 犯规的人 = 不是现在轮到的人
-  plNoteShow((mine ? '你' : 'Ta') + '犯规：' + FOUL_TEXT[g.last_foul] + (mine ? '' : '，你有自由球'), NOTE_MS);
+  plNoteShow((mine ? '你' : 'Ta') + '犯规：' + plFoulText(g, g.last_foul) + (mine ? '' : '，你有自由球'), NOTE_MS);
 }
 // text 为空 = 立刻收起；ms = 多久后自动淡出
 function plNoteShow(text, ms) {
@@ -299,19 +401,23 @@ function plHud() {
   if (!V.hudBuilt) {
     V.hudBuilt = true; V.hudScored = false;
     clear(V.hud);
-    V.hAv = []; V.hSc = [];
+    V.hAv = []; V.hSc = []; V.hGrp = [];
+    V.hud.classList.toggle('e8', V.eight);
     var cols = [];
     [0, 1].forEach(function (k) {
       var pid = k === 0 ? g.player_a : g.player_b, p = V.persons[k] || tttPerson(pid);
       var av = h('div', { class: 'pl-av', title: pid === me ? '你' : (p ? p.nickname : 'Ta') }, makeAvatar(p, 36));
       var sc = h('b', { class: 'pl-score', text: '0' });
-      V.hAv.push(av); V.hSc.push(sc);
-      cols.push(h('div', { class: 'pl-pl' + (k ? ' r' : '') }, k ? sc : av, k ? av : sc));
+      var gr = h('i', { class: 'pl-grp' });
+      gr.hidden = true;
+      V.hAv.push(av); V.hSc.push(sc); V.hGrp.push(gr);
+      var num = V.eight ? h('div', { class: 'pl-sc' }, sc, gr) : sc;
+      cols.push(h('div', { class: 'pl-pl' + (k ? ' r' : '') }, k ? num : av, k ? av : num));
     });
     V.hStat = h('span', { class: 'pl-stat', role: 'status' });
-    V.hChips = h('div', { class: 'pl-chips', 'aria-hidden': 'true' });
+    V.hChips = h('div', { class: 'pl-chips' + (V.eight ? ' e8' : ''), 'aria-hidden': 'true' });
     V.chip = [];
-    for (var n = 1; n <= 9; n++) {
+    for (var n = 1; n <= (V.eight ? 15 : 9); n++) {
       var c = h('i', { class: 'pl-chip n' + n });
       V.chip[n] = c; V.hChips.appendChild(c);
     }
@@ -326,6 +432,14 @@ function plHud() {
     if (up) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   });
   V.hudScored = true;
+  if (V.eight) {
+    var ga = plHudGroupA(g);
+    [g.player_a, g.player_b].forEach(function (pid, k) {
+      var gp = ga ? (k === 0 ? ga : poolOtherGroup(ga)) : null, el = V.hGrp[k];
+      el.hidden = !gp;
+      if (gp) { el.textContent = GNAME[gp]; el.className = 'pl-grp ' + gp; }
+    });
+  }
   var active = g.status === 'active';
   if (active) V.wasActive = true;
   var turnId = !active ? null : (V.up ? (g.player_a === me ? g.player_b : g.player_a) : g.next_player);
@@ -343,14 +457,15 @@ function plHud() {
   V.dirty = true;
 }
 // 比分栏显示的分数：跟着球台走，不等服务器
-// - 自己这一杆：9 号球一落袋（而且到这一刻还算合法）就先加 1；之后白球也掉袋就收回；服务器的新状态到了就以服务器为准
-// - 对手这一杆的回放：服务器的分数已经含这一盘，回放里 9 号球落袋之前先减掉，不剧透
+// - 自己这一杆：决胜球（9球 的 9 号 / 8球 的 8 号）一落袋，按到这一刻的判定先给得分的一方加 1（8球 提前打进 8 号 = 对手得分）；
+//   之后白球也掉袋就改判；服务器的新状态到了就以服务器为准
+// - 对手这一杆的回放：服务器的分数已经含这一盘，回放里决胜球落袋之前先减掉，不剧透
 function plShownScores(g) {
   var V = PV, sc = [g.score_a, g.score_b], k;
   var W = V.winPend;
-  if (W && W.game === g.id && g.turn_no === W.turn) { k = g.player_a === S.me.id ? 0 : 1; sc[k]++; }
-  // 对手赢下这一盘的状态已到，但球台还没演到（等回放 / 回放中 9 号球还没落袋）
-  if (g.status === 'rack_over' && g.winner && g.winner !== S.me.id && V.rack === g.rack_no && V.shownTurn !== g.turn_no && !(V.replay && V.replay.nine)) {
+  if (W && W.game === g.id && g.turn_no === W.turn) { k = g.player_a === W.winner ? 0 : 1; sc[k]++; }
+  // 对手这一杆结束了这一盘（9球 只有对手赢才会这样；8球 对手提前打进 8 号时是我赢），但球台还没演到（等回放 / 回放中决胜球还没落袋）
+  if (g.status === 'rack_over' && g.winner && (plEight(g) || g.winner !== S.me.id) && V.rack === g.rack_no && V.shownTurn !== g.turn_no && !(V.replay && V.replay.dec)) {
     k = g.player_a === g.winner ? 0 : 1; sc[k] = Math.max(0, sc[k] - 1);
   }
   return sc;
@@ -361,9 +476,17 @@ function plChips() {
   var on = {}, i, list = V.sim ? V.sim.b : null;
   if (list) { for (i = 0; i < list.length; i++) if (list[i].on) on[list[i].id] = 1; }
   else for (i = 0; i < V.balls.length; i++) on[V.balls[i][0]] = 1;
-  for (i = 1; i <= 9; i++) {
+  var tg = {};
+  if (V.eight && V.g && V.g.status === 'active' && V.g.next_player) {
+    var gha = plHudGroupA(V.g), gp = gha ? (V.g.next_player === V.g.player_a ? gha : poolOtherGroup(gha)) : null;
+    if (gp && !V.brk) {
+      for (i = 1; i <= 15; i++) if (poolGroupOf(i) === gp && on[i]) tg[i] = 1;
+      if (!Object.keys(tg).length && on[8]) tg[8] = 1;
+    }
+  }
+  for (i = 1; i < V.chip.length; i++) {
     V.chip[i].classList.toggle('out', !on[i]);
-    V.chip[i].classList.toggle('next', V.lowest === i && on[i] && V.g && V.g.status === 'active');
+    V.chip[i].classList.toggle('next', V.eight ? !!tg[i] : V.lowest === i && on[i] && V.g && V.g.status === 'active');
   }
 }
 function plActions() {
@@ -422,13 +545,13 @@ function plSync() {
 }
 function plStartReplay(shot) {
   var V = PV;
-  var arr = shot.pre && shot.pre.b ? shot.pre.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; }) : arrOf(poolRack(shot.seed));
+  var arr = shot.pre && shot.pre.b ? shot.pre.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; }) : arrOf(plRackOf(V.g, shot.seed));
   if (shot.cue_x != null) arr = arr.filter(function (b) { return b[0] !== 0; }).concat([[0, Number(shot.cue_x), Number(shot.cue_y)]]);
-  V.balls = arr; V.rack = shot.rack_no; V.shownTurn = shot.turn_no; V.sinks = []; V.cuePlaced = true;
-  V.lowest = poolLowest(arr);
+  V.balls = arr; V.rack = shot.rack_no; V.shownTurn = shot.turn_no; V.sinks = []; V.cuePlaced = true; V.brk = !shot.pre;
+  V.lowest = V.eight ? null : poolLowest(arr);
   V.sim = new PoolSim(poolFromState(arr));
   V.sim.shoot(Number(shot.dx), Number(shot.dy), Number(shot.power));
-  V.replay = { shot: shot }; V.local = null; V.mode = 'sim'; V.delay = 0.7; V.acc = 0;
+  V.replay = { shot: shot, dec: false }; V.local = null; V.mode = 'sim'; V.delay = 0.7; V.acc = 0;
   V.aim = { x: Number(shot.dx), y: Number(shot.dy) }; V.power = Number(shot.power);
   V.shotStick = { pull: Number(shot.power) * PULL, t: 0 };
   plNoteShow('');
@@ -458,6 +581,7 @@ function plBeginSim() {
   var V = PV, g = V.g, f = V.fire;
   var cue = plCueArr();
   V.local = { turn: g.turn_no, game: g.id, inp: f.inp, cue: g.in_hand && cue ? [cue[1], cue[2]] : null, lowest: poolLowest(V.balls) };
+  if (V.eight) { V.local.brk = V.brk; V.local.group = plGroupFor(g, S.me.id); V.local.pre = V.balls.map(function (b) { return b.slice(); }); }
   V.replay = null; V.fire = null; V.mode = 'sim'; V.delay = 0; V.acc = 0; V.sinks = [];
   V.shotStick = { pull: f.pull, t: 1 };
   V.sim = new PoolSim(poolFromState(V.balls));
@@ -473,41 +597,72 @@ function plEvents(V) {
       var p = POCKETS[e.p];
       V.sinks.push({ id: e.id, x: e.x, y: e.y, tx: p.x, ty: p.y, t: 0 });
       plChips();
-      if (e.id === 9 || e.id === 0) plNineCheck(V);
+      if (e.id === (V.eight ? 8 : 9) || e.id === 0) plDecCheck(V);
       try { if (navigator.vibrate && e.id !== 0) navigator.vibrate(12); } catch (er) { /* 忽略 */ }
     }
   }
 }
-// 9 号球 / 白球落袋时：按到目前为止的结果判一次（和 poolJudge 同一套规则），比分栏立刻跟上
-function plNineCheck(V) {
-  var res = V.sim.result(), nine = res.potted.indexOf(9) >= 0, scratch = res.potted.indexOf(0) >= 0;
+// 决胜球（9球 的 9 号 / 8球 的 8 号）或白球落袋时：按到目前为止的结果判一次（和 poolJudge / poolJudge8 同一套规则），比分栏立刻跟上
+function plDecCheck(V) {
+  var res = V.sim.result(), scratch = res.potted.indexOf(0) >= 0, g = V.g;
+  if (V.eight) {
+    if (V.local) {
+      var j = poolJudge8({ pre: V.local.pre, group: V.local.group, brk: V.local.brk }, res, V.sim.snapshot());
+      V.winPend = j.win || j.lose ? { game: V.local.game, turn: V.local.turn, winner: j.win ? S.me.id : (g.player_a === S.me.id ? g.player_b : g.player_a) } : null;
+    } else if (V.replay) {
+      var rs = V.replay.shot;
+      V.replay.dec = res.potted.indexOf(8) >= 0 && !!(rs.won || rs.lost);
+    }
+    plHud();
+    return;
+  }
+  var nine = res.potted.indexOf(9) >= 0;
   if (V.local) {
     var ok = nine && !scratch && res.first === V.local.lowest;
-    V.winPend = ok ? { game: V.local.game, turn: V.local.turn } : null;
-  } else if (V.replay) V.replay.nine = nine && !scratch;
+    V.winPend = ok ? { game: V.local.game, turn: V.local.turn, winner: S.me.id } : null;
+  } else if (V.replay) V.replay.dec = nine && !scratch;
   plHud();
 }
 function plEndSim() {
   var V = PV, sim = V.sim;
   sim.settle();
   if (V.local) {
-    var L = V.local, res = sim.result(), snap = sim.snapshot(), j = poolJudge(L.lowest, res, snap);
+    var L = V.local, res = sim.result(), snap = sim.snapshot(), g = V.g, j;
+    if (V.eight) j = poolJudge8({ pre: L.pre, group: L.group, brk: L.brk }, res, snap);
+    else j = poolJudge(L.lowest, res, snap);
     V.balls = j.state; V.sim = null; V.mode = 'idle'; V.local = null; V.cuePlaced = true;
-    V.lowest = poolLowest(V.balls);
+    V.lowest = V.eight ? null : poolLowest(V.balls);
     V.shownTurn = L.turn + 1; V.up = true;
-    V.winPend = j.win ? { game: L.game, turn: L.turn } : null;
+    if (V.eight) {
+      var theirs = g.player_a === S.me.id ? g.player_b : g.player_a;
+      V.winPend = j.win || j.lose ? { game: L.game, turn: L.turn, winner: j.win ? S.me.id : theirs } : null;
+      if (j.group) {
+        var ga = g.player_a === S.me.id ? j.group : poolOtherGroup(j.group);
+        V.gpend = { game: L.game, turn: L.turn, a: ga };
+        V.gs = { game: L.game, rack: V.rack, a: ga };
+      } else if (V.gs) V.gs = { game: V.gs.game, rack: V.gs.rack, a: plGroupA(g) };
+      V.brk = false;
+      plNoteForShot8(g, { foul: j.foul, win: j.win, lose: j.lose, keep: j.keep, group: j.group, respot8: j.respot8 }, true);
+    } else {
+      V.winPend = j.win ? { game: L.game, turn: L.turn, winner: S.me.id } : null;
+      plNoteForShot(j.foul, j.win, j.keep, true);
+    }
     V.aim = { x: L.inp.dx, y: L.inp.dy };
-    plNoteForShot(j.foul, j.win, j.keep, true);
     plHud();
-    plUpload({ game: L.game, turn: L.turn, inp: L.inp, cue: L.cue, result: { b: j.state }, potted: res.potted, foul: j.foul, win: j.win, keep: j.keep }, 0);
+    plUpload({ game: L.game, turn: L.turn, inp: L.inp, cue: L.cue, result: { b: j.state }, potted: res.potted, foul: j.foul, win: j.win, keep: j.keep, group: V.eight ? j.group : null, lose: V.eight ? j.lose : false, eight: V.eight }, 0);
   } else if (V.replay) {
     var sh = V.replay.shot;
     V.balls = sh.result.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; });
     V.sim = null; V.mode = 'idle'; V.replay = null; V.cuePlaced = true;
-    V.lowest = poolLowest(V.balls);
+    V.lowest = V.eight ? null : poolLowest(V.balls);
     V.shownTurn = sh.turn_no + 1;
     plSetSeen(sh.game_id, sh.turn_no);
-    plNoteForShot(sh.foul, sh.won, sh.keep, false);
+    if (V.eight) {
+      V.brk = false;
+      V.gs = { game: V.g.id, rack: V.g.rack_no, a: plGroupA(V.g) };
+      var potted = (sh.potted || []).map(Number);
+      plNoteForShot8(V.g, { foul: sh.foul, win: sh.won, lose: sh.lost, keep: sh.keep, group: sh.grp, respot8: !sh.pre && !sh.won && !sh.lost && potted.indexOf(8) >= 0 }, false);
+    } else plNoteForShot(sh.foul, sh.won, sh.keep, false);
     plHud();
     plSync();
     plEnded();
@@ -519,6 +674,19 @@ function plNoteForShot(foul, win, keep, mine) {
   if (foul) { plSetNoted(PV.id, PV.shownTurn); plNoteShow(who + '犯规：' + FOUL_TEXT[foul] + (mine ? '，Ta 有自由球' : '，你有自由球'), NOTE_MS); }
   else if (win) { plNoteShow(who + '打进了 9 号球', NOTE_MS); if (mine) popYaha('进了！'); }
   else if (keep) plNoteShow(who + '进球，继续', 2200);
+}
+function plNoteForShot8(g, r, mine) {
+  var who = mine ? '你' : 'Ta ', other = mine ? 'Ta ' : '你';
+  if (r.lose) plNoteShow(who + (r.foul ? '打 8 号球时犯规了' : '提前打进了 8 号球') + '，' + other + '赢了这一盘', NOTE_MS);
+  else if (r.win) {
+    plNoteShow(who + '打进了 8 号球，' + (mine ? '赢了这一盘' : '这一盘你输了'), NOTE_MS);
+    if (mine) popYaha('进了！');
+  } else if (r.foul) {
+    plSetNoted(PV.id, PV.shownTurn);
+    plNoteShow(who + '犯规：' + plFoulText(g, r.foul) + (mine ? '，Ta 有自由球' : '，你有自由球'), NOTE_MS);
+  } else if (r.respot8) plNoteShow(who + '开球打进了 8 号球，放回了置球点', 2800);
+  else if (r.group) plNoteShow(mine ? '你打进了' + GNAME[r.group] + '，继续' : 'Ta 打进了' + GNAME[r.group] + '，你是' + GNAME[poolOtherGroup(r.group)], NOTE_MS);
+  else if (r.keep) plNoteShow(who + '进球，继续', 2200);
 }
 function plEnded() {
   var V = PV, g = V && V.g;
@@ -537,6 +705,7 @@ function plUpload(a, tries) {
     p_cue_x: a.cue ? a.cue[0] : null, p_cue_y: a.cue ? a.cue[1] : null,
     p_result: a.result, p_potted: a.potted, p_foul: a.foul, p_win: a.win, p_keep: a.keep
   };
+  if (a.eight) { args.p_group = a.group || null; args.p_lose = !!a.lose; } // 9球 的调用和以前完全一样
   var terminal = { not_your_turn: 1, stale_turn: 1, game_over: 1, game_not_found: 1, invalid_shot: 1, invalid_cue: 1, not_authenticated: 1 };
   var retry = function () {
     if (tries >= 6) { toast('网络不好，这一杆没有发出去'); if (PV && PV.id === id) { PV.shownTurn = -1; PV.up = false; PV.winPend = null; plSync(); } return; }
@@ -834,8 +1003,8 @@ function plBall(c, id, x, y, sc, ghost) {
   c.save();
   if (ghost) c.globalAlpha = ghost;
   c.beginPath(); c.arc(x, y, r, 0, 6.2832); c.clip();
-  c.fillStyle = id === 9 || id === 0 ? '#f8f4ea' : COL[id]; c.fillRect(x - r, y - r, r * 2, r * 2);
-  if (id === 9) { c.fillStyle = COL[9]; c.fillRect(x - r, y - r * 0.56, r * 2, r * 1.12); }
+  c.fillStyle = id >= 9 || id === 0 ? '#f8f4ea' : COL[id]; c.fillRect(x - r, y - r, r * 2, r * 2);
+  if (id >= 9) { c.fillStyle = COL[id - 8]; c.fillRect(x - r, y - r * 0.56, r * 2, r * 1.12); } // 花色球：白底一条色带（9 号 = 黄）
   if (id > 0) {
     c.fillStyle = '#fbf8f0'; c.beginPath(); c.arc(x, y, r * 0.5, 0, 6.2832); c.fill();
     if (BR * PV.s * sc >= 5.2) {
@@ -877,9 +1046,11 @@ function plDraw(V) {
   var aiming = plAiming(), placing = plPlacing(), cue = null;
   if (placing && V.cuePos) cue = [0, V.cuePos[0], V.cuePos[1]];
   else for (i = 0; i < list.length; i++) if (list[i][0] === 0) cue = list[i];
-  // 目标球提示圈
-  if (aiming && V.lowest != null) {
-    for (i = 0; i < list.length; i++) if (list[i][0] === V.lowest) {
+  // 目标球提示圈（9球：最小号；8球：已分组时自己的球组，清空后是 8 号；开球和没分组时不圈）
+  var ringIds = [];
+  if (aiming) ringIds = V.eight ? (V.brk || !plGroupFor(V.g, S.me.id) ? [] : plTargetIds(V)) : (V.lowest != null ? [V.lowest] : []);
+  if (ringIds.length) {
+    for (i = 0; i < list.length; i++) if (ringIds.indexOf(list[i][0]) >= 0) {
       var pr = BR + 3.5 + Math.sin(V.pulse * 3.2) * 1.2;
       c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 1.6; c.beginPath(); c.arc(list[i][1], list[i][2], pr, 0, 6.2832); c.stroke();
     }

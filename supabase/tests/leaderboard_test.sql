@@ -74,14 +74,20 @@ insert into public.pool_games (player_a, player_b, status, winner, score_a, scor
   ('f0000000-0000-0000-0000-0000000000e1', 'f0000000-0000-0000-0000-0000000000a1', 'resigned', 'f0000000-0000-0000-0000-0000000000a1', 0, 1, 1, null),
   ('f0000000-0000-0000-0000-0000000000b1', 'f0000000-0000-0000-0000-0000000000c1', 'active', null, 5, 2, 1, 'f0000000-0000-0000-0000-0000000000b1');
 
+-- 8球：单独一张榜（pool8），盘数同样按 score_a / score_b 算；9球 的榜不能混进这些
+insert into public.pool_games (player_a, player_b, status, winner, score_a, score_b, seed, next_player, mode) values
+  ('f0000000-0000-0000-0000-0000000000a1', 'f0000000-0000-0000-0000-0000000000b1', 'rack_over', 'f0000000-0000-0000-0000-0000000000a1', 2, 1, 1, null, 'eight'),
+  ('f0000000-0000-0000-0000-0000000000b1', 'f0000000-0000-0000-0000-0000000000c1', 'active', null, 0, 3, 1, 'f0000000-0000-0000-0000-0000000000b1', 'eight');
+
 -- 匿名不能调用
 call pg_temp.as_anon();
 call pg_temp.expect($$select * from public.game_leaderboard('ttt')$$, 'permission denied for function game_leaderboard');
 
--- 登录后：只接受三种游戏
+-- 登录后：只接受这几种榜（ttt / sling / pool / pool8）
 call pg_temp.as_user('f0000000-0000-0000-0000-0000000000a1');
 call pg_temp.expect($$select * from public.game_leaderboard('chess')$$, 'invalid_argument');
 call pg_temp.expect($$select * from public.game_leaderboard(null)$$, 'invalid_argument');
+call pg_temp.expect($$select * from public.game_leaderboard('pool9')$$, 'invalid_argument');
 
 -- 不带身份（没有 auth.uid()）被拒绝
 reset role;
@@ -124,6 +130,9 @@ begin
   -- 9球：me 赢 4 盘（3 + 认输的 1）输 1；bob 赢 1 输 3 加上对 carol 的 5 赢 2 输 = 6 胜 5 负；erin 输 1
   got := pg_temp.line('pool');
   if got <> 'bob:6-5,me:4-1,dan:0-0,erin:0-1' then raise exception 'pool board wrong: %', got; end if;
+  -- 8球：me 赢 2 输 1；bob 赢 1（对 me）输 2 + 对 carol 输 3 = 1 胜 5 负；9球 的盘数不算在内
+  got := pg_temp.line('pool8');
+  if got <> 'me:2-1,bob:1-5,dan:0-0,erin:0-0' then raise exception 'pool8 board wrong: %', got; end if;
 end $$;
 
 -- 换成 carol 看：只有她自己和 bob；alice 不在她的榜上

@@ -42,7 +42,7 @@ function stripStickerId(s: string): string {
 function pushText(s: string): string {
   if (/^\[井字棋\]#\d+$/.test(s)) return "邀请你下一局井字棋";
   if (/^\[弹弓大战\]#\d+$/.test(s)) return "邀请你玩弹弓大战";
-  if (/^\[9球台球\]#\d+$/.test(s)) return "邀请你打一局9球台球";
+  if (/^\[[89]球台球\]#\d+$/.test(s)) return "邀请你打一局" + s.slice(1, 5);
   return stripStickerId(s);
 }
 
@@ -139,21 +139,28 @@ Deno.serve(async (req) => {
       peer: me,
     };
   } else if (ev.type === "pool_turn") {
-    // 9球台球：出杆后，轮到对方时通知（继续出杆的那一杆不通知）；出杆记录必须是调用者刚刚打的
-    const { data: sh } = await admin.from("pool_shots").select("id,game_id,shooter,foul,keep,won,created_at").eq("id", ev.id).maybeSingle();
+    // 9球/8球台球：出杆后，轮到对方时通知（继续出杆的那一杆不通知）；出杆记录必须是调用者刚刚打的
+    const { data: sh } = await admin.from("pool_shots").select("id,game_id,shooter,foul,keep,won,lost,created_at").eq("id", ev.id).maybeSingle();
     if (!sh || sh.shooter !== me) return reply(req, 403, { error: "forbidden" });
     if (!isFresh(sh.created_at)) return reply(req, 400, { error: "too_old" });
     if (sh.keep) return reply(req, 200, { skipped: true });
-    const { data: g } = await admin.from("pool_games").select("player_a,player_b,score_a,score_b").eq("id", sh.game_id).maybeSingle();
+    const { data: g } = await admin.from("pool_games").select("player_a,player_b,score_a,score_b,mode").eq("id", sh.game_id).maybeSingle();
     if (!g) return reply(req, 403, { error: "forbidden" });
     const { data: p } = await admin.from("profiles").select("nickname").eq("id", me).maybeSingle();
     recipient = g.player_a === me ? g.player_b : g.player_a;
     const mine = recipient === g.player_a ? g.score_a : g.score_b;
     const theirs = recipient === g.player_a ? g.score_b : g.score_a;
     refId = sh.id;
+    const eight = g.mode === "eight";
+    const name = eight ? "8球台球" : "9球台球";
+    const score = "（" + mine + ":" + theirs + "）";
     payload = {
-      title: p?.nickname ?? "9球台球",
-      body: sh.won ? "Ta 打进了9号球，这一盘你输了（" + mine + ":" + theirs + "）" : sh.foul ? "Ta 犯规了，你有自由球（9球台球）" : "轮到你了（9球台球）",
+      title: p?.nickname ?? name,
+      body: eight
+        ? (sh.won ? "Ta 打进了8号球，这一盘你输了" + score
+          : sh.lost ? (sh.foul ? "Ta 打8号球时犯规了，这一盘你赢了" : "Ta 提前打进了8号球，这一盘你赢了") + score
+          : sh.foul ? "Ta 犯规了，你有自由球（" + name + "）" : "轮到你了（" + name + "）")
+        : (sh.won ? "Ta 打进了9号球，这一盘你输了" + score : sh.foul ? "Ta 犯规了，你有自由球（9球台球）" : "轮到你了（9球台球）"),
       tag: "pool-" + me,
       peer: me,
     };
