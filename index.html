@@ -88,23 +88,9 @@
 
   <footer>made with ♡</footer>
 </main>
+<script src="pepero/access.js"></script>
 <script>
-// 빼빼로 入口只给这几个账号看（读 chat 登录后 supabase-js 存在 localStorage 的会话）
-(function(){
-  const ALLOW=['rick0527','rickzhou'];
-  let user='';
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(!/^sb-.+-auth-token$/.test(k)) continue;
-      const v=JSON.parse(localStorage.getItem(k)||'null');
-      const email=(v&&(v.user||(v.currentSession&&v.currentSession.user))||{}).email||'';
-      user=email.split('@')[0].toLowerCase();
-      if(user) break;
-    }
-  }catch(e){ /* 读不到就当没登录 */ }
-  if(ALLOW.indexOf(user)>=0) document.getElementById('peperoApp').hidden=false;
-})();
+if(window.PEPERO_OK) document.getElementById('peperoApp').hidden=false;
 (function(){
   const bg=document.getElementById('bg'), items=['💗','🍫','✨','🎀','💕'];
   for(let i=0;i<14;i++){
