@@ -83,11 +83,20 @@ jobs:
         run: |
           missing=0
           for f in $(grep -rohE '[A-Za-z0-9_-][A-Za-z0-9_./-]*\.(png|jpg|jpeg|webp|gif|svg)' chat --include='*.html' --include='*.js' --include='*.css' --include='manifest.webmanifest' | sort -u); do
-            case "$f" in http*|//*) continue;; esac
+            case "$f" in http*|//*|agent/*) continue;; esac # agent/ 头像在仓库根目录，由下一步单独检查
             if [ ! -f "chat/$f" ]; then echo "::error::chat references $f but chat/$f does not exist"; missing=1; fi
           done
           [ "$missing" = 0 ] && echo "chat images ok"
           exit $missing
+
+      - name: Agent avatar exists
+        run: |
+          shopt -s nullglob
+          files=(agent/avatar.png agent/avatar.jpg agent/avatar.jpeg agent/avatar.webp)
+          found=""
+          for f in "${files[@]}"; do [ -f "$f" ] && found="$f" && break; done
+          if [ -z "$found" ]; then echo "::error::agent/ 里没有头像文件（avatar.png / .jpg / .webp）"; exit 1; fi
+          echo "agent avatar: $found"
 
       - name: No secret keys committed
         run: |
@@ -108,6 +117,15 @@ jobs:
 
       - name: Type check send-push
         run: deno check supabase/functions/send-push/index.ts
+
+      - name: Type check agent-chat
+        run: deno check supabase/functions/agent-chat/index.ts
+
+      - name: Persona module is in sync with agent/persona.md
+        run: python3 agent/gen-persona.py --check
+
+      - name: Test agent-chat (mocked OpenAI and database)
+        run: deno test supabase/functions/agent-chat/agent_test.ts
 
   backend:
     name: Backend checks

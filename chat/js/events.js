@@ -2,6 +2,7 @@
 
 import { setAuthMode, submitAuth } from './auth.js';
 import { closeChat, loadOlder, openChat, scrollToBottom } from './chat/view.js';
+import { bindAtPicker } from './agent/picker.js';
 import { autosize } from './composer.js';
 import { bindLongPress } from './menu.js';
 import { closeApp, layoutApp } from './miniapps/host.js';
@@ -36,6 +37,7 @@ export function bind() {
   send.addEventListener('click', sendCurrent);
   var input = $('input');
   input.addEventListener('input', autosize);
+  bindAtPicker();
   input.addEventListener('focus', function () { closePanels(); setTimeout(function () { window.scrollTo(0, 0); if (S.chat) scrollToBottom(); }, 250); });
   input.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || ev.keyCode === 229) return;

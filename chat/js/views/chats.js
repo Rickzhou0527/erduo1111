@@ -32,7 +32,7 @@ export function renderChats() {
     return;
   }
   list.forEach(function (c) {
-    var own = S.me && c.last_sender_id === S.me.id;
+    var own = S.me && c.last_sender_id === S.me.id && !c.last_author;
     var unread = Number(c.unread_count) || 0;
     var side = h('div', { class: 'side' }, h('span', { class: 'time', text: fmtTime(c.last_at) }));
     if (unread > 0) side.appendChild(h('span', { class: 'badge', text: unread > 99 ? '99+' : String(unread) }));
@@ -40,7 +40,7 @@ export function renderChats() {
       makeAvatar(peerFromConv(c)),
       h('div', { class: 'info' },
         h('div', { class: 'name', text: c.peer_nickname }),
-        h('div', { class: 'line2', text: (own ? '你: ' : '') + previewOf(c.last_body) })),
+        h('div', { class: 'line2', text: c.last_author ? '榴莲：' + String(c.last_body).replace(/\s+/g, ' ') : (own ? '你: ' : '') + previewOf(c.last_body) })),
       side));
   });
 }

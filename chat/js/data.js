@@ -17,6 +17,18 @@ export async function loadProfile() {
   S.me = r.data;
   S.profiles.set(S.me.id, S.me);
 }
+// 最后一条消息是不是榴莲写的：list_conversations 不返回 author（改它的返回列会让迁移二次运行失败），这里按 id 另查一次
+async function markLastAuthors(convs) {
+  var ids = convs.map(function (c) { return c.last_id; }).filter(function (x) { return x != null; });
+  var got = {};
+  if (ids.length) {
+    try {
+      var r = await sb.from('messages').select('id,author').in('id', ids).not('author', 'is', null);
+      (r.data || []).forEach(function (x) { got[x.id] = x.author; });
+    } catch (e) { /* 取不到就当没有：只影响列表预览的前缀 */ }
+  }
+  convs.forEach(function (c) { c.last_author = c.last_id != null && got[c.last_id] ? got[c.last_id] : null; });
+}
 var loadingAll = null, loadAgain = false;
 export function loadAll() {
   // 合并并发调用：正在加载时只记一个“再来一次”
@@ -33,6 +45,7 @@ export function loadAll() {
         var bad = rs.find(function (r) { return r.error; });
         if (bad) { if (isVisible()) toast(errText(bad.error)); return false; }
         S.convs = rs[0].data || [];
+        await markLastAuthors(S.convs);
         S.friendships = rs[1].data || [];
         var map = new Map();
         (rs[2].data || []).forEach(function (p) { map.set(p.id, p); });

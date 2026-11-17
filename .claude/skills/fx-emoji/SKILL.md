@@ -37,6 +37,12 @@ description: 聊天里「特效表情」（[水枪]、[雪球]、[送花] 这类
 | `chat/css/effects.css` | 舞台 `#fxStage` / `.fx-*`、气泡状态 `.row.st-*`、变化动画 `.ev-*`、状态颜色变量 `--wet-bg` 等 |
 | `supabase/functions/send-push/index.ts` | 推送正文：定向的 `[雪球]#123` 去掉 `#123` 再推 |
 
+## 榴莲（agent）的消息不参与特效
+
+`messages.author = 'durian'` 的行是 AI 助手榴莲的回复，正文可能恰好是 `[水枪]` 这样的文字，但它**不是**特效：
+`renderMsgs` 和 `tickDecay` 喂给 `bubbleFold` 之前过滤掉有 `author` 的消息，`row.js` 对它不解析 fx / 小游戏，
+`realtime.js` 不对它 `playFx`，长按菜单不给「用表情打」。新增和 fx 有关的入口时，记得同样跳过 `m.author`。
+
 ## 消息格式
 
 - 普通特效：`[水枪]`。打中对方这个人的**所有**气泡。

@@ -7,6 +7,7 @@ import { APP, closeApp } from './miniapps/host.js';
 import { poolName, poolOf } from './miniapps/pool.js';
 import { slOf } from './miniapps/sling.js';
 import { tttOf } from './miniapps/ttt.js';
+import { agentName } from './agent/info.js';
 import { S, profileOf, sb } from './state.js';
 import { $, cut, h, sleep, toast } from './utils.js';
 import { convOf, peerFromConv } from './views/chats.js';
@@ -20,7 +21,8 @@ function quoteText(body) {
   var fx = fxOf(body);
   return fx ? fx.name : String(body || '');
 }
-function quoteName(sid) {
+function quoteName(sid, author) {
+  if (author) return agentName(author);
   if (S.me && sid === S.me.id) return S.me.nickname || '我';
   var p = profileOf(sid) || (convOf(sid) ? peerFromConv(convOf(sid)) : null);
   return p ? p.nickname : '好友';
@@ -39,8 +41,8 @@ function quoteInfo(m) {
     if (!hit) { queueQuote(id); return { state: 'pend' }; }
     src = hit;
   }
-  var full = quoteText(src.body);
-  return { state: 'ok', name: quoteName(src.sender_id), full: full, text: full.replace(/\s+/g, ' ') };
+  var full = src.author ? String(src.body) : quoteText(src.body);
+  return { state: 'ok', name: quoteName(src.sender_id, src.author), full: full, text: full.replace(/\s+/g, ' ') };
 }
 export function updateQuote(el, m) {
   var qi = quoteInfo(m);
@@ -78,7 +80,7 @@ function fetchQuotes() {
   var peer = c.peer;
   var run = (async function () {
     var r;
-    try { r = await sb.from('messages').select('id,sender_id,receiver_id,body').in('id', ids); }
+    try { r = await sb.from('messages').select('id,sender_id,receiver_id,body,author').in('id', ids); }
     catch (e) { r = { error: e }; }
     if (S.chat !== c || c.peer !== peer) return;
     if (r.error) { ids.forEach(function (id) { delete c.qpend[id]; }); return; }
@@ -94,13 +96,13 @@ function renderQuoteBar() {
   var c = S.chat, bar = $('qbar');
   var nb = c ? nearBottom() : false;
   bar.hidden = !(c && c.quote);
-  if (c && c.quote) $('qbarText').textContent = quoteName(c.quote.sender_id) + '：' + c.quote.text;
+  if (c && c.quote) $('qbarText').textContent = quoteName(c.quote.sender_id, c.quote.author) + '：' + c.quote.text;
   if (nb) scrollToBottom();
 }
 export function startQuote(m) {
   var c = S.chat;
   if (!c || !m || m.id == null || m.sender_id !== c.peer && m.sender_id !== S.me.id) return false;
-  c.quote = { id: m.id, sender_id: m.sender_id, text: quoteText(m.body).replace(/\s+/g, ' ').slice(0, 200) };
+  c.quote = { id: m.id, sender_id: m.sender_id, author: m.author || null, text: (m.author ? String(m.body) : quoteText(m.body)).replace(/\s+/g, ' ').slice(0, 200) };
   renderQuoteBar();
   $('input').focus();
   return true;
