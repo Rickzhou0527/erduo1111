@@ -10,6 +10,9 @@ import * as make from './steps/make.js';
 import * as game from './steps/catch-game.js';
 import * as letter from './steps/letter.js';
 
+// 没通过 access.js 的账号检查：<head> 里已经在跳回首页，这里不再初始化任何东西（也不记访问）
+if (!window.PEPERO_OK) throw new Error('pepero: not allowed');
+
 // 步骤顺序：加一步 / 调换顺序，改这一行就行（每个步骤导出 id、init、可选的 enter）
 const STEPS = [gift, make, game, letter];
 
