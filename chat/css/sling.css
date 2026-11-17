@@ -5,7 +5,7 @@
 .gc-score{position:absolute;right:-6px;bottom:-6px;min-width:26px;padding:1px 5px;border-radius:10px;background:var(--g-solid);border:1px solid var(--rim);box-shadow:var(--sh-1);font-size:var(--fs-xs);font-weight:600;line-height:1.4;color:var(--t1);text-align:center}
 .sl{flex:1;min-height:0;width:calc(100% + 32px);margin:0 -16px;display:flex;flex-direction:column;gap:8px}
 .sl-msg{margin:auto;padding:0 24px;text-align:center;color:var(--t2)}
-.sl-hud{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:0 68px 0 16px;min-height:44px}
+.sl-hud{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:0 68px 0 58px;min-height:44px}
 .sl-pl{display:flex;align-items:center;gap:8px;min-width:0}
 .sl-pl.r{justify-content:flex-end}
 .sl-av{position:relative;width:40px;height:40px;padding:2px;border-radius:50%;border:2px solid transparent;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}

@@ -11,6 +11,7 @@ import { playFx, stopFx } from '../fx/engine.js';
 import { fxOf } from '../fx/table.js';
 import { closeActMenu } from '../menu.js';
 import { closeApp, openApp } from '../miniapps/host.js';
+import { closeLeaderboard } from '../miniapps/leaderboard.js';
 import { closeNotifications } from '../notify.js';
 import { closePanels } from '../plus.js';
 import { jumpToQuote, markReplyGone, resetQuoteUi } from '../quote.js';
@@ -59,6 +60,7 @@ export async function openChat(peerId, fromHistory) {
 }
 export function closeChat() {
   if (!S.chat) return;
+  closeLeaderboard();
   closeApp();
   S.chat = null;
   stopFx(); stopDecay(); closeActMenu();
