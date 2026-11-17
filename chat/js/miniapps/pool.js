@@ -238,7 +238,7 @@ function plAiming() { return plMyBase() && (!PV.g.in_hand || PV.cuePlaced); }
 function plBuildScene(g) {
   var V = PV;
   V.balls = g.state && g.state.b ? g.state.b.map(function (b) { return [Number(b[0]), Number(b[1]), Number(b[2])]; }) : arrOf(poolRack(g.seed));
-  V.rack = g.rack_no; V.shownTurn = g.turn_no; V.sim = null; V.sinks = []; V.fire = null;
+  V.rack = g.rack_no; V.shownTurn = g.turn_no; V.sim = null; V.sinks = []; V.fire = null; V.winPend = null;
   V.lowest = poolLowest(V.balls);
   V.cuePlaced = !g.in_hand;
   V.cuePos = null;
@@ -257,7 +257,7 @@ function plDefaultAim() {
   if (!c) return;
   for (i = 0; i < V.balls.length; i++) {
     if (V.balls[i][0] === V.lowest) {
-      var dx = V.balls[i][1] - c[0], dy = V.balls[i][2] - c[2];
+      var dx = V.balls[i][1] - c[0], dy = V.balls[i][2] - c[1];
       var inp = poolInput(dx, dy, 0.5);
       if (inp) { V.aim = { x: inp.dx, y: inp.dy }; return; }
     }
@@ -297,7 +297,7 @@ function plHud() {
   if (!V.hud || !g) return;
   var me = S.me.id;
   if (!V.hudBuilt) {
-    V.hudBuilt = true;
+    V.hudBuilt = true; V.hudScored = false;
     clear(V.hud);
     V.hAv = []; V.hSc = [];
     var cols = [];
@@ -317,7 +317,15 @@ function plHud() {
     }
     V.hud.appendChild(cols[0]); V.hud.appendChild(h('div', { class: 'pl-mid' }, V.hStat, V.hChips)); V.hud.appendChild(cols[1]);
   }
-  V.hSc[0].textContent = g.score_a; V.hSc[1].textContent = g.score_b;
+  var shown = plShownScores(g);
+  [0, 1].forEach(function (k) {
+    var t = String(shown[k]), el = V.hSc[k];
+    if (el.textContent === t) return;
+    var up = V.hudScored && Number(t) > Number(el.textContent);
+    el.textContent = t;
+    if (up) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  });
+  V.hudScored = true;
   var active = g.status === 'active';
   if (active) V.wasActive = true;
   var turnId = !active ? null : (V.up ? (g.player_a === me ? g.player_b : g.player_a) : g.next_player);
@@ -333,6 +341,19 @@ function plHud() {
   plChips();
   plActions();
   V.dirty = true;
+}
+// 比分栏显示的分数：跟着球台走，不等服务器
+// - 自己这一杆：9 号球一落袋（而且到这一刻还算合法）就先加 1；之后白球也掉袋就收回；服务器的新状态到了就以服务器为准
+// - 对手这一杆的回放：服务器的分数已经含这一盘，回放里 9 号球落袋之前先减掉，不剧透
+function plShownScores(g) {
+  var V = PV, sc = [g.score_a, g.score_b], k;
+  var W = V.winPend;
+  if (W && W.game === g.id && g.turn_no === W.turn) { k = g.player_a === S.me.id ? 0 : 1; sc[k]++; }
+  // 对手赢下这一盘的状态已到，但球台还没演到（等回放 / 回放中 9 号球还没落袋）
+  if (g.status === 'rack_over' && g.winner && g.winner !== S.me.id && V.rack === g.rack_no && V.shownTurn !== g.turn_no && !(V.replay && V.replay.nine)) {
+    k = g.player_a === g.winner ? 0 : 1; sc[k] = Math.max(0, sc[k] - 1);
+  }
+  return sc;
 }
 function plChips() {
   var V = PV;
@@ -452,9 +473,19 @@ function plEvents(V) {
       var p = POCKETS[e.p];
       V.sinks.push({ id: e.id, x: e.x, y: e.y, tx: p.x, ty: p.y, t: 0 });
       plChips();
+      if (e.id === 9 || e.id === 0) plNineCheck(V);
       try { if (navigator.vibrate && e.id !== 0) navigator.vibrate(12); } catch (er) { /* 忽略 */ }
     }
   }
+}
+// 9 号球 / 白球落袋时：按到目前为止的结果判一次（和 poolJudge 同一套规则），比分栏立刻跟上
+function plNineCheck(V) {
+  var res = V.sim.result(), nine = res.potted.indexOf(9) >= 0, scratch = res.potted.indexOf(0) >= 0;
+  if (V.local) {
+    var ok = nine && !scratch && res.first === V.local.lowest;
+    V.winPend = ok ? { game: V.local.game, turn: V.local.turn } : null;
+  } else if (V.replay) V.replay.nine = nine && !scratch;
+  plHud();
 }
 function plEndSim() {
   var V = PV, sim = V.sim;
@@ -464,6 +495,7 @@ function plEndSim() {
     V.balls = j.state; V.sim = null; V.mode = 'idle'; V.local = null; V.cuePlaced = true;
     V.lowest = poolLowest(V.balls);
     V.shownTurn = L.turn + 1; V.up = true;
+    V.winPend = j.win ? { game: L.game, turn: L.turn } : null;
     V.aim = { x: L.inp.dx, y: L.inp.dy };
     plNoteForShot(j.foul, j.win, j.keep, true);
     plHud();
@@ -507,7 +539,7 @@ function plUpload(a, tries) {
   };
   var terminal = { not_your_turn: 1, stale_turn: 1, game_over: 1, game_not_found: 1, invalid_shot: 1, invalid_cue: 1, not_authenticated: 1 };
   var retry = function () {
-    if (tries >= 6) { toast('网络不好，这一杆没有发出去'); if (PV && PV.id === id) { PV.shownTurn = -1; PV.up = false; plSync(); } return; }
+    if (tries >= 6) { toast('网络不好，这一杆没有发出去'); if (PV && PV.id === id) { PV.shownTurn = -1; PV.up = false; PV.winPend = null; plSync(); } return; }
     setTimeout(function () { plUpload(a, tries + 1); }, Math.min(8000, 1000 * Math.pow(2, tries)));
   };
   sb.rpc('pool_shoot', args).then(function (r) {
@@ -525,7 +557,7 @@ function plUpload(a, tries) {
       if (q.data && q.data.shooter === S.me.id) { if (!a.keep) firePush('pool_turn', q.data.id); }
       else if (msg !== 'game_over') toast(errText(r.error));
       sb.from('pool_games').select('*').eq('id', id).maybeSingle().then(function (gq) {
-        if (PV && PV.id === id && !(q.data && q.data.shooter === S.me.id)) PV.shownTurn = -1;
+        if (PV && PV.id === id && !(q.data && q.data.shooter === S.me.id)) { PV.shownTurn = -1; PV.winPend = null; }
         if (gq.data) plPut(gq.data);
         done();
       }, done);

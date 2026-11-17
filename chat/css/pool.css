@@ -9,6 +9,9 @@
 .pl-av .avatar{width:32px!important;height:32px!important}
 .pl-av.turn{border-color:var(--pink);box-shadow:0 0 0 3px color-mix(in srgb,var(--pink) 28%,transparent)}
 .pl-score{font-size:var(--fs-xl);font-weight:700;color:var(--t1);min-width:16px;text-align:center;font-variant-numeric:tabular-nums}
+.pl-score.bump{animation:pl-bump .5s ease-out}
+@keyframes pl-bump{0%{transform:scale(1)}35%{transform:scale(1.55);color:var(--pink,#ff8fab)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pl-score.bump{animation:none}}
 .pl-mid{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:96px}
 .pl-stat{font-size:var(--fs-sm);font-weight:600;color:var(--t2);white-space:nowrap}
 .pl-stat.you{color:var(--pink-text)}
