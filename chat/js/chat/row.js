@@ -1,6 +1,7 @@
 // 聊天页：单条消息行的装饰与更新（花环、爱心等气泡状态装饰）
 
 import { refreshCls } from './view.js';
+import { agentName, isAgentMsg, makeAgentAvatar, renderRich } from '../agent/info.js';
 import { fxParse } from '../fx/table.js';
 import { jumpTo, targetQuoteText } from '../menu.js';
 import { poolFillCard } from '../miniapps/pool.js';
@@ -57,22 +58,26 @@ export function buildDeco(box, st, on) {
   }
 }
 export function updateRow(el, m, prev) {
-  var own = m.sender_id === S.me.id;
+  var agent = isAgentMsg(m);
+  var own = m.sender_id === S.me.id && !agent;
   var gap = !prev || (new Date(m.created_at) - new Date(prev.created_at) > 5 * 60000);
   el._stamp.hidden = !gap;
   if (gap) el._stamp.textContent = fmtStamp(m.created_at);
   // 头像：资料重新加载后头像路径变了就重建
-  var ap = own ? S.me : (profileOf(m.sender_id) || (convOf(m.sender_id) ? peerFromConv(convOf(m.sender_id)) : null));
-  var akey = (own ? 'o|' : 'p|') + (ap && ap.avatar_path || '');
-  if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(makeAvatar(ap, 40)); }
+  var ap = agent ? null : own ? S.me : (profileOf(m.sender_id) || (convOf(m.sender_id) ? peerFromConv(convOf(m.sender_id)) : null));
+  var akey = agent ? 'a|' + m.author : (own ? 'o|' : 'p|') + (ap && ap.avatar_path || '');
+  if (el._akey !== akey) { el._akey = akey; clear(el._av).appendChild(agent ? makeAgentAvatar(40) : makeAvatar(ap, 40)); }
+  // 榴莲：头像右边、气泡上面的名字（两边的人看到的都一样）
+  el._name.hidden = !agent;
+  if (agent && el._name.textContent !== agentName(m.author)) el._name.textContent = agentName(m.author);
   el._m = m;
-  var pf = fxParse(m.body);
+  var pf = agent ? null : fxParse(m.body); // 榴莲的回复永远是普通文字：不当特效 / 小游戏解析
   var q = pf && pf.tid != null ? targetQuoteText(pf.tid) : '';
-  var bsig = m.body + '|' + q;
+  var bsig = (agent ? 'A|' : '') + m.body + '|' + q;
   if (el._body !== bsig) {
     el._body = bsig;
     var fx = pf && pf.fx;
-    var gk = gameKind(m.body), gid = gk ? gk.id : null;
+    var gk = agent ? null : gameKind(m.body), gid = gk ? gk.id : null;
     el._gcid = gid; el._gkind = gk ? gk.k : null; el._gsig = null; // 井字棋卡片：不是文字气泡，不套状态装饰
     el._fxb = !!fx || gid != null;
     el._bubble.classList.toggle('fx', !!fx);
@@ -89,6 +94,9 @@ export function updateRow(el, m, prev) {
       el._bubble.appendChild(tx);
       el._bubble.title = '点一下再看一次';
     } else if (gid != null) {
+      el._bubble.removeAttribute('title');
+    } else if (agent) {
+      renderRich(el._bubble, m.body); // 文字 + 安全链接
       el._bubble.removeAttribute('title');
     } else {
       el._bubble.textContent = m.body;

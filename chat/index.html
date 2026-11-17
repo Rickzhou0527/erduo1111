@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="css/sling.css">
 <link rel="stylesheet" href="css/pool.css">
 <link rel="stylesheet" href="css/rank.css">
+<link rel="stylesheet" href="css/agent.css">
 <link rel="stylesheet" href="css/fallback.css">
 </head>
 <body>
@@ -127,6 +128,7 @@
     <div id="msgs">
       <div id="olderRow" hidden>加载更早的消息…</div>
       <div id="rows"></div>
+      <div id="agentLive" hidden></div>
       <div id="chatEmpty"></div>
     </div>
     <div id="emojiPanel" hidden>
@@ -140,6 +142,7 @@
     <div id="actMenu" role="menu" hidden></div>
     <div id="fxPick" role="menu" aria-label="选一个表情" hidden></div>
     <div id="composer">
+      <div id="atPop" role="listbox" aria-label="选择要叫的助手" hidden></div>
       <div id="qbar" hidden><span id="qbarText"></span><button type="button" id="qbarX" aria-label="取消引用"><svg class="i" aria-hidden="true"><use href="#i-x-circle"/></svg></button></div>
       <button type="button" class="icon-btn" id="emojiBtn" aria-label="表情"><svg class="i" aria-hidden="true"><use href="#i-smile"/></svg></button>
       <textarea id="input" rows="1" maxlength="2000" placeholder="说点什么…" enterkeyhint="send"></textarea>

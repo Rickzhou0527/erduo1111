@@ -7,6 +7,7 @@ on:
       - "index.html"
       - "pepero/**"
       - "chat/**"
+      - "agent/avatar.*"
       - "*.png"
       - "*.jpg"
       - "*.jpeg"
@@ -45,6 +46,21 @@ jobs:
           # 每个小程序一个目录
           cp -R pepero _site/
           cp -R chat _site/
+          # 榴莲的头像：只发布 agent/ 里的头像文件（人设 persona.md 等不上线）
+          mkdir _site/agent
+          AGENT_AVATAR=""
+          for ext in png jpg jpeg webp; do
+            if [ -f "agent/avatar.$ext" ]; then
+              cp "agent/avatar.$ext" _site/agent/
+              # 内容哈希做版本号：头像一换，地址就变，浏览器和 CDN 不会继续用旧图
+              AGENT_AVATAR="../agent/avatar.$ext?v=$(sha256sum "agent/avatar.$ext" | cut -c1-10)"
+              break
+            fi
+          done
+          if [ -z "$AGENT_AVATAR" ]; then
+            echo "::warning::agent/ 里没有头像文件（avatar.png / .jpg / .webp），榴莲会显示默认头像"
+          fi
+          export AGENT_AVATAR
 
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "::warning::SUPABASE_URL / SUPABASE_ANON_KEY 仓库变量未设置，访问次数统计将不会启用"
@@ -57,6 +73,9 @@ jobs:
               s = p.read_text(encoding="utf-8")
               s = s.replace("__SUPABASE_URL__", os.environ.get("SUPABASE_URL", "").rstrip("/"))
               s = s.replace("__SUPABASE_ANON_KEY__", os.environ.get("SUPABASE_ANON_KEY", ""))
+              # 没有头像时不替换，页面会退回默认路径并在加载失败时显示备用头像
+              if os.environ.get("AGENT_AVATAR"):
+                  s = s.replace("__AGENT_AVATAR__", os.environ["AGENT_AVATAR"])
               p.write_text(s, encoding="utf-8")
           PY
 

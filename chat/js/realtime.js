@@ -1,5 +1,7 @@
 // 实时
 
+import { agentResync, onAgentJob } from './agent/live.js';
+import { agentName } from './agent/info.js';
 import { fetchLatest, msgFromRow, nearBottom, renderMsgs, sortMsgs } from './chat/view.js';
 import { loadAll } from './data.js';
 import { playFx } from './fx/engine.js';
@@ -21,7 +23,7 @@ export function applyOwnToConv(row) {
   var conv = convOf(row.receiver_id);
   if (!conv) return;
   if (conv.last_id != null && Number(conv.last_id) > row.id) return;
-  conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at;
+  conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at; conv.last_author = row.author || null;
   S.convs.sort(function (a, b) { return new Date(b.last_at || b.friends_since) - new Date(a.last_at || a.friends_since); });
   renderChats(); updateBadges();
 }
@@ -37,6 +39,7 @@ async function onMessageInsert(row) {
       S.chat.ids.add(row.id); S.chat.msgs.push(msgFromRow(row)); sortMsgs(); renderMsgs({ stick: nearBottom() });
     }
     applyOwnToConv(row);
+    if (row.author && !(S.chat && S.chat.peer === row.receiver_id) && isVisible()) toast('榴莲回复了你：' + cut(row.body, 24)); // 提问的人不在这个聊天里
     return;
   }
   var open = S.chat && S.chat.peer === row.sender_id;
@@ -47,7 +50,7 @@ async function onMessageInsert(row) {
     if (!conv) return;
   } else {
     if (conv.last_id == null || Number(conv.last_id) < row.id) {
-      conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at;
+      conv.last_id = row.id; conv.last_body = row.body; conv.last_sender_id = row.sender_id; conv.last_at = row.created_at; conv.last_read_at = row.read_at; conv.last_author = row.author || null;
     }
     if (!(open && isVisible())) conv.unread_count = (Number(conv.unread_count) || 0) + 1;
     S.convs.sort(function (a, b) { return new Date(b.last_at || b.friends_since) - new Date(a.last_at || a.friends_since); });
@@ -57,7 +60,7 @@ async function onMessageInsert(row) {
     if (!c.ids.has(row.id)) {
       var nm = msgFromRow(row);
       c.ids.add(row.id); c.msgs.push(nm); sortMsgs(); renderMsgs({ stick: nearBottom() });
-      if (isVisible()) playFx(nm);
+      if (isVisible() && !nm.author) playFx(nm); // 榴莲的回复不触发特效
     }
   }
   renderChats(); updateBadges();
@@ -65,7 +68,7 @@ async function onMessageInsert(row) {
   else {
     var rp = await replyPrefix(row);
     notifyMessage(row, rp);
-    if (isVisible() && !open) toast('新消息：' + nameOf(row.sender_id) + '：' + cut(rp + previewOf(row.body), rp ? 44 : 24));
+    if (isVisible() && !open) toast('新消息：' + (row.author ? agentName(row.author) : nameOf(row.sender_id)) + '：' + cut(rp + (row.author ? row.body : previewOf(row.body)), rp ? 44 : 24));
   }
 }
 function onMessageUpdate(row) {
@@ -128,6 +131,9 @@ export function startRealtime() {
   ['player_a', 'player_b'].forEach(function (col) {
     ch.on('postgres_changes', { event: '*', schema: 'public', table: 'pool_games', filter: col + '=eq.' + me }, onPoolGame);
   });
+  ['asker', 'peer'].forEach(function (col) {
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'agent_jobs', filter: col + '=eq.' + me }, onAgentJob);
+  });
   ch.subscribe(function (status) {
     if (status === 'SUBSCRIBED') {
       // 重新连上之后补一次，避免断线期间漏消息
@@ -144,5 +150,5 @@ export function stopRealtime() {
 export async function refreshAll() {
   if (!S.me) return;
   await loadAll();
-  if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); slResync(); poolResync(); }
+  if (S.chat) { await fetchLatest(false); markReadIfNeeded(); tttResync(); slResync(); poolResync(); agentResync(); }
 }

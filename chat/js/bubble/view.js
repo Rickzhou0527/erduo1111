@@ -51,7 +51,7 @@ function repaintRows(c) {
 var decayTimer = 0;
 function tickDecay() {
   var c = S.chat; if (!c || !c.loaded) return;
-  var f = bubbleFold(c.msgs, Date.now());
+  var f = bubbleFold(c.msgs.filter(function (m) { return !m.author; }), Date.now());
   c.bstate = f.states; c.btstate = f.tstates;
   if (syncShow(c)) repaintRows(c);
 }

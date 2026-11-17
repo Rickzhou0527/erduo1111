@@ -1,5 +1,6 @@
 // 发送（乐观更新）
 
+import { askAgent } from './agent/live.js';
 import { renderMsgs, sortMsgs } from './chat/view.js';
 import { autosize } from './composer.js';
 import { ERR_TEXT } from './errors.js';
@@ -64,6 +65,7 @@ async function doSend(m) {
   }
   applyOwnToConv(row);
   firePush('message', row.id);
+  askAgent(row); // 带 @榴莲 的消息：存好之后叫榴莲（没有 @ 时什么也不做）
   var flag = 'chat.firstSent.' + S.me.id;
   if (!lsGet(flag)) { lsSet(flag, '1'); popYaha('呀哈！'); }
 }

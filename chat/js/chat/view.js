@@ -2,6 +2,8 @@
 
 import { NORMAL, bubbleFold } from '../bubble/state.js';
 import { rowState, settleBev, startDecay, stopDecay, syncShow } from '../bubble/view.js';
+import { agentResync, renderLive, resetLive } from '../agent/live.js';
+import { isAgentMsg } from '../agent/info.js';
 import { buildDeco, updateRow } from './row.js';
 import { autosize } from '../composer.js';
 import { PAGE } from '../config.js';
@@ -41,7 +43,7 @@ export async function openChat(peerId, fromHistory) {
   }
   if (S.chat && S.chat.peer === peerId) return;
   S.chat = { peer: peerId, msgs: [], ids: new Set(), nodes: new Map(), hasMore: false, loadingOlder: false, loaded: false,
-    bstate: {}, bshow: {}, btstate: {}, btshow: {}, finfo: {}, bev: [], fxApplied: new Set() };
+    bstate: {}, bshow: {}, btstate: {}, btshow: {}, finfo: {}, bev: [], fxApplied: new Set(), job: null, doneWait: false };
   if (!fromHistory) { try { history.pushState({ chat: peerId }, ''); } catch (e) { /* 忽略 */ } }
   $('chat').hidden = false;
   closePanels();
@@ -49,6 +51,7 @@ export async function openChat(peerId, fromHistory) {
   autosize();
   resetQuoteUi();
   clear($('rows'));
+  resetLive();
   clear($('chatEmpty'));
   $('olderRow').hidden = true;
   renderChatHeader();
@@ -56,14 +59,14 @@ export async function openChat(peerId, fromHistory) {
   applySkin();
   startDecay();
   await fetchLatest(true);
-  if (S.chat && S.chat.peer === peerId) markReadIfNeeded();
+  if (S.chat && S.chat.peer === peerId) { markReadIfNeeded(); agentResync(); }
 }
 export function closeChat() {
   if (!S.chat) return;
   closeLeaderboard();
   closeApp();
   S.chat = null;
-  stopFx(); stopDecay(); closeActMenu();
+  stopFx(); stopDecay(); closeActMenu(); resetLive();
   sandDisable();
   $('chat').hidden = true;
   closePanels();
@@ -73,7 +76,7 @@ export function closeChat() {
 }
 
 export function msgFromRow(r) {
-  return { key: 'm' + r.id, id: r.id, sender_id: r.sender_id, receiver_id: r.receiver_id, body: r.body, created_at: r.created_at, read_at: r.read_at, reply_to: r.reply_to == null ? null : r.reply_to, status: 'sent' };
+  return { key: 'm' + r.id, id: r.id, sender_id: r.sender_id, receiver_id: r.receiver_id, body: r.body, created_at: r.created_at, read_at: r.read_at, reply_to: r.reply_to == null ? null : r.reply_to, author: r.author || null, status: 'sent' };
 }
 function peerFilter(peer) {
   var me = S.me.id;
@@ -155,7 +158,7 @@ export function renderMsgs(opts) {
   var quiet = !!(opts && opts.quiet) || !c.loaded;
   var fresh = [], evQueued = false;
   // 气泡状态完全由聊天记录推出；只有“刚到的”特效消息才排队播变化动画
-  var fold = bubbleFold(c.msgs, Date.now());
+  var fold = bubbleFold(c.msgs.filter(notAgent), Date.now()); // 榴莲的消息不参与特效 / 气泡状态
   c.bstate = fold.states; c.btstate = fold.tstates; c.finfo = fold.info;
   fold.evs.forEach(function (e) {
     if (c.fxApplied.has(e.m.key)) return;
@@ -185,23 +188,27 @@ export function renderMsgs(opts) {
   });
   var empty = clear($('chatEmpty'));
   if (c.loaded && !c.msgs.length) empty.appendChild(emptyState('打个招呼吧', true));
+  renderLive();
   if (opts && opts.stick) scrollToBottom();
   if (sand.on && fresh.length && isVisible()) sandNew(fresh);
   if (evQueued) setTimeout(settleBev, 0);
 }
+function notAgent(m) { return !isAgentMsg(m); }
 function buildRow(m) {
   var el = h('div', { class: 'row' });
   el._stamp = h('div', { class: 'stamp', hidden: true });
   el._bubble = h('div', { class: 'bubble' });
-  el._bubble.addEventListener('click', function () { if (el._m && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp(el._gkind, { id: el._gcid }); }); // 点特效气泡再看一次
+  el._bubble.addEventListener('click', function () { if (el._m && !el._m.author && fxOf(el._m.body)) playFx(el._m, true); else if (el._gcid != null) openApp(el._gkind, { id: el._gcid }); }); // 点特效气泡再看一次
   el._meta = h('div', { class: 'meta', hidden: true });
   el._av = h('div', { class: 'av-slot' });
   var col = h('div', { class: 'col' });
+  el._name = h('div', { class: 'agent-name', hidden: true });
   el._deco = h('div', { class: 'deco', 'aria-hidden': 'true' });
   el._bw = h('div', { class: 'bw' }, el._bubble, el._deco);
   el._qt = h('button', { type: 'button', class: 'qt', hidden: true });
   el._qt.addEventListener('click', function () { if (el._m) jumpToQuote(el._m); });
   el.style.setProperty('--sd', (Math.random() * 7).toFixed(1) + 's');
+  col.appendChild(el._name);
   col.appendChild(el._bw);
   col.appendChild(el._qt);
   col.appendChild(el._meta);
@@ -228,10 +235,11 @@ function stClasses(st) {
 }
 export function refreshCls(el) {
   var m = el._m, c = S.chat; if (!m || !S.me) return;
-  var own = m.sender_id === S.me.id;
-  var st = c ? rowState(c, m) : NORMAL;
+  var agent = isAgentMsg(m);
+  var own = m.sender_id === S.me.id && !agent;
+  var st = c && !agent ? rowState(c, m) : NORMAL;
   var sc = el._fxb ? '' : stClasses(st); // 特效气泡本身不加装饰
-  el.className = 'row ' + (own ? 'own' : 'peer') + (m.status === 'sending' ? ' sending' : '') + (m.status === 'failed' ? ' failed' : '') + (el._gcid != null ? ' row-game' : '') + sc +
+  el.className = 'row ' + (own ? 'own' : 'peer') + (agent ? ' agent' : '') + (m.status === 'sending' ? ' sending' : '') + (m.status === 'failed' ? ' failed' : '') + (el._gcid != null ? ' row-game' : '') + sc +
     (el._sd === 'gone' ? ' sand-gone' : el._sd === 'build' ? ' sand-build' : '');
   if (el._dk !== sc) { el._dk = sc; buildDeco(el._deco, st, !!sc); }
 }

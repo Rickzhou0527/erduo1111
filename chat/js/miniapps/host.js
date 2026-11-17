@@ -33,7 +33,7 @@ function stripBadge() {
   var b = $('appStrip');
   if (!b || b.hidden || !S.chat) return;
   var n = 0, ms = S.chat.msgs;
-  if (!APP.stripOpen) for (var i = APP.base; i < ms.length; i++) if (S.me && ms[i].sender_id !== S.me.id) n++;
+  if (!APP.stripOpen) for (var i = APP.base; i < ms.length; i++) if (S.me && (ms[i].sender_id !== S.me.id || ms[i].author)) n++;
   b.setAttribute('data-n', n ? String(n > 9 ? '9+' : n) : '');
 }
 export function layoutApp() {
