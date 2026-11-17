@@ -92,7 +92,7 @@ jobs:
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "::warning::缺少仓库 secret OPENAI_API_KEY，榴莲暂时无法回复（聊天里会显示「榴莲还没接通」）"
           else
-            supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "OPENAI_API_KEY=$OPENAI_API_KEY" "OPENAI_MODEL=${OPENAI_MODEL:-gpt-6-luna}" > /dev/null
+            supabase secrets set --remote="$SUPABASE_PROJECT_REF" --yes "OPENAI_API_KEY=$OPENAI_API_KEY" "OPENAI_MODEL=${OPENAI_MODEL:-gpt-6-luna}" > /dev/null
             echo "agent secrets updated"
           fi
 
