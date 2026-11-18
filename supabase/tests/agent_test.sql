@@ -278,34 +278,83 @@ do $$ begin
     raise exception 'last message should be found as an agent message'; end if;
 end $$;
 
--- ===== 记忆：一对好友共用，第三个人看不到，客户端不能写，上限 200 =====
+-- ===== 记忆：带标题的条目。一对好友共用，第三个人看不到，客户端不能写，上限 200，pinned 上限 10 =====
 reset role;
-insert into public.agent_memories (user_lo, user_hi, content)
-values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '她不吃香菜');
-call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000b', 'a9000000-0000-0000-0000-00000000000a', 'x')$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_ordered"');
-call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', repeat('x', 301))$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_content_len"');
+insert into public.agent_memories (user_lo, user_hi, title, content)
+values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '小明·口味', '她不吃香菜');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000b', 'a9000000-0000-0000-0000-00000000000a', 't', 'x')$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_ordered"');
+-- 标题必填、1 到 20 字、不能有首尾空白；内容 1 到 500 字
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', 'x')$$, 'null value in column "title" of relation "agent_memories" violates not-null constraint');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', repeat('题', 21), 'x')$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_title_valid"');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', ' 空白', 'x')$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_title_valid"');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '', 'x')$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_title_valid"');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '长内容', repeat('x', 501))$$, 'new row for relation "agent_memories" violates check constraint "agent_memories_content_len"');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '二十字', repeat('x', 500))$$, 'ok');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', repeat('题', 20), 'x')$$, 'ok');
+-- 同一对好友里标题唯一；另一对好友可以用同样的标题
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '小明·口味', 'y')$$, 'duplicate key value violates unique constraint "agent_memories_pair_title_uq"');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000d', '小明·口味', '另一对同标题')$$, 'ok');
+-- 按标题 upsert：更新内容并刷新 updated_at，pinned 不指定时保持原值
+update public.agent_memories set updated_at = now() - interval '1 day' where title = '小明·口味';
+insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '小明·口味', '她不吃香菜，也不吃葱')
+  on conflict (user_lo, user_hi, title) do update set content = excluded.content;
+do $$ begin
+  if (select count(*) from public.agent_memories where user_lo = 'a9000000-0000-0000-0000-00000000000a' and user_hi = 'a9000000-0000-0000-0000-00000000000b' and title = '小明·口味') <> 1 then raise exception 'upsert must not duplicate'; end if;
+  if (select content from public.agent_memories where title = '小明·口味' and user_hi = 'a9000000-0000-0000-0000-00000000000b') <> '她不吃香菜，也不吃葱' then raise exception 'upsert must replace content'; end if;
+  if (select updated_at from public.agent_memories where title = '小明·口味' and user_hi = 'a9000000-0000-0000-0000-00000000000b') < now() - interval '1 minute' then raise exception 'updated_at must refresh'; end if;
+end $$;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000a');
-do $$ begin if (select count(*) from public.agent_memories) <> 1 then raise exception 'alice should see the memory'; end if; end $$;
+do $$ begin if (select count(*) from public.agent_memories) <> 4 then raise exception 'alice should see her 4 entries, got %', (select count(*) from public.agent_memories); end if; end $$;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000b');
-do $$ begin if (select count(*) from public.agent_memories) <> 1 then raise exception 'bob should see the shared memory'; end if; end $$;
+do $$ begin if (select count(*) from public.agent_memories) <> 3 then raise exception 'bob should see the 3 shared entries'; end if; end $$;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000c');
 do $$ begin if (select count(*) from public.agent_memories) <> 0 then raise exception 'carol must not see memories'; end if; end $$;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000d');
-do $$ begin if (select count(*) from public.agent_memories) <> 0 then raise exception 'dave must not see the alice-bob memory'; end if; end $$;
+do $$ begin if (select count(*) from public.agent_memories) <> 1 then raise exception 'dave sees only his own pair entry'; end if; end $$;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000a');
-call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', 'x')$$, 'permission denied for table agent_memories');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', 'x', 'x')$$, 'permission denied for table agent_memories');
+call pg_temp.expect($$update public.agent_memories set content = 'x'$$, 'permission denied for table agent_memories');
 call pg_temp.expect($$delete from public.agent_memories$$, 'permission denied for table agent_memories');
 reset role;
+-- pinned 最多 10 条（同标题更新不算新增）
 do $$
 declare i int;
 begin
-  for i in 2..200 loop
-    insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '记忆 ' || i);
+  for i in 1..10 loop
+    insert into public.agent_memories (user_lo, user_hi, title, content, pinned) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '常驻' || i, '内容', true);
   end loop;
 end $$;
-call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '第 201 条')$$, 'memory_full');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content, pinned) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '常驻11', 'x', true)$$, 'pinned_full');
+call pg_temp.expect($$update public.agent_memories set pinned = true where title = '小明·口味' and user_hi = 'a9000000-0000-0000-0000-00000000000b'$$, 'pinned_full');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content, pinned) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '常驻1', '改过', true) on conflict (user_lo, user_hi, title) do update set content = excluded.content, pinned = excluded.pinned$$, 'ok');
+call pg_temp.expect($$update public.agent_memories set pinned = false where title = '常驻1'$$, 'ok');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content, pinned) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000d', '另一对常驻', 'x', true)$$, 'ok');
+-- 总条数上限 200（用同标题更新已有条目在满额时仍然可以）
+do $$
+declare i int;
+begin
+  for i in 1..(200 - (select count(*) from public.agent_memories where user_lo = 'a9000000-0000-0000-0000-00000000000a' and user_hi = 'a9000000-0000-0000-0000-00000000000b')) loop
+    insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '记忆' || i, '内容');
+  end loop;
+end $$;
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '第201条', 'x')$$, 'memory_full');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '记忆1', '满额时更新') on conflict (user_lo, user_hi, title) do update set content = excluded.content$$, 'ok');
 -- 另一对好友不受影响
-call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000d', '另一对')$$, 'ok');
+call pg_temp.expect($$insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000d', '又一条', '另一对')$$, 'ok');
+
+-- ===== 旧数据迁移：没有标题的老行补成「未分类·编号」，内容保留，再次执行迁移是空操作 =====
+do $$
+declare v_id bigint; v_title text; v_sql text;
+begin
+  -- 模拟迁移前的状态：去掉 not null，塞一条没标题的旧行，把迁移文件里的补标题语句再跑一遍
+  alter table public.agent_memories alter column title drop not null;
+  insert into public.agent_memories (user_lo, user_hi, title, content) values ('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000d', null, '旧记忆原文') returning id into v_id;
+  update public.agent_memories set title = '未分类·' || id where title is null;
+  alter table public.agent_memories alter column title set not null;
+  select title into v_title from public.agent_memories where id = v_id;
+  if v_title <> '未分类·' || v_id then raise exception 'old row title wrong: %', v_title; end if;
+  if (select content from public.agent_memories where id = v_id) <> '旧记忆原文' then raise exception 'old content lost'; end if;
+end $$;
 
 -- ===== 搜聊天记录：只搜这一对，通配符被转义 =====
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000a');
@@ -313,6 +362,7 @@ select public.send_message('a9000000-0000-0000-0000-00000000000b', '周末去爬
 select public.send_message('a9000000-0000-0000-0000-00000000000d', '周末去爬山，只和 dave 说') is not null;
 call pg_temp.as_user('a9000000-0000-0000-0000-00000000000b');
 select public.send_message('a9000000-0000-0000-0000-00000000000a', '爬山要带水') is not null;
+select public.send_message('a9000000-0000-0000-0000-00000000000a', repeat('长', 400)) is not null;
 reset role;
 do $$
 declare n int;
@@ -331,8 +381,12 @@ begin
   if n <> 0 then raise exception 'blank query returns nothing, got %', n; end if;
   select count(*) into n from public.agent_search_messages('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '爬山', 1);
   if n <> 1 then raise exception 'limit not applied, got %', n; end if;
-  if (select max(length(body)) from public.agent_search_messages('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '长', 5)) > 300 then
-    raise exception 'snippets must be cut to 300 chars'; end if;
+  if (select max(length(body)) from public.agent_search_messages('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '长', 5)) > 160 then
+    raise exception 'snippets must be cut to 160 chars'; end if;
+  if (select max(length(body)) from public.agent_search_messages('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '长', 5)) is distinct from 160 then
+    raise exception 'long snippet should be exactly 160 chars'; end if;
+  select count(*) into n from public.agent_search_messages('a9000000-0000-0000-0000-00000000000a', 'a9000000-0000-0000-0000-00000000000b', '爬山', 99);
+  if n > 10 then raise exception 'limit must cap at 10'; end if;
 end $$;
 
 -- ===== 清理 =====
