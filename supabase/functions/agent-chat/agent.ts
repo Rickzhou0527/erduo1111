@@ -24,7 +24,7 @@ import { PERSONA } from "./persona.gen.ts";
 export const MAX_REPLY = 4000; // 回复字数的最后保险
 export const MAX_ROUNDS = 4; // 工具循环最多几轮，最后一轮强制直接回答
 export const TOTAL_TIMEOUT_MS = 120_000;
-export const MAX_OUTPUT_TOKENS = 800; // 单次请求的输出上限（含推理 token）
+export const MAX_OUTPUT_TOKENS = 1500; // 单次请求的输出上限（含推理 token；太小会把推理吃光、回复变空）
 export const REASONING_EFFORT = "low";
 export const SEARCH_CONTEXT_SIZE = "low"; // web_search 工具
 export const HISTORY_LIMIT = 20; // 取最近几条消息
