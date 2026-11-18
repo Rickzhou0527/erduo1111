@@ -26,6 +26,8 @@ description: 聊天页里「小程序」（井字棋、弹弓大战、9球/8球�
 | `chat/js/notify.js` `firePush(type, id)` | 让对方收到推送 |
 | `supabase/functions/send-push/index.ts` | 推送正文：邀请消息 `pushText`、每种 `xxx_turn` 事件 |
 | `chat/js/miniapps/leaderboard.js` + `supabase/migrations/*_leaderboard.sql` | 胜场排行榜（我 + 好友），每个游戏一个 tab |
+| `supabase/functions/agent-chat/games.ts` | 榴莲（聊天里的 AI）看小游戏：`game_status` 工具、`game_leaderboard` 工具、user input 里「进行中的小游戏」一行。只读，按「这一对好友」过滤 |
+| `supabase/migrations/*_agent_game_record.sql` | `game_win_events`（胜负计数规则的唯一来源，排行榜和榴莲共用）、`agent_game_record`（只给 service role：这两个人的总胜负 + 交手） |
 | `chat/css/plus-miniapps.css` | 宿主层、带子、卡片 `.gcard` / `.gc-*` 的通用样式 |
 | `chat/css/<名字>.css`、`chat/<名字>/` | 小程序自己的样式和素材 |
 | `supabase/migrations/<日期>_<名字>.sql`、`supabase/tests/<名字>_test.sql` | 表、RLS、RPC、实时发布；SQL 测试 |
@@ -87,10 +89,17 @@ putGame：updated_at 更旧的不覆盖新的 → 刷新所有卡片 → 如果�
    - `session.js` 退出时 `xxxReset()`；
    - `fx/table.js` 的 `previewOf`、`quote.js` 的 `quoteText`、`menu.js` 的「复制」和「定向特效」两处排除；
    - `send-push` 的 `pushText` 加邀请文案；需要回合推送就加新的事件类型（`PushEvent` 类型、白名单数组、处理分支：校验记录是调用者刚创建的 `isFresh`，只推给对手），前端在对应时机 `firePush('xxx_turn', id)`。
-4. **排行榜**（游戏要算胜场时）：`game_leaderboard` 的参数白名单和 `ev` CTE 加这个游戏，`leaderboard_test.sql` 加断言；`leaderboard.js` 的 `GAMES` 加一项（`note` 写清楚怎么算一胜）；小程序里 `box.appendChild(rankButton('xxx', 'rk-fab'))`。
-5. **样式** `chat/css/<名字>.css`，在 `chat/index.html` 里 `plus-miniapps.css` 后面引入（井字棋的样式在 `plus-miniapps.css` 里，是早期写法，新游戏用单独文件）。颜色用 `tokens.css` 的变量，浅色 / 深色都要好看。触控目标至少 44×44。
-6. **素材**：一律用 GPT 生成，按 `gpt-assets` skill 交给 Codex。界面里**不用 emoji**（按钮、标签、提示、推送文字都不用）。每张图都要有加载失败的兜底。
-7. **文案**：中文、简短、口语，和现有的「轮到你了」「等 Ta 下」一个语气。UI 文字里不用破折号。
+4. **排行榜**（游戏要算胜场时）：`game_leaderboard` 的参数白名单和 `game_win_events`（计数规则的唯一来源，新迁移里 `create or replace`）加这个游戏，`leaderboard_test.sql` 加断言；`leaderboard.js` 的 `GAMES` 加一项（`note` 写清楚怎么算一胜）；小程序里 `box.appendChild(rankButton('xxx', 'rk-fab'))`。
+5. **榴莲看得到它**（聊天里的 AI 助手，`supabase/functions/agent-chat/games.ts`）：新游戏必须接进去，否则榴莲对它一无所知。
+   - `TABLE` / `KINDS` / `KIND_NAME` 加一项（玩家列、要取的列），`gameHint` 会自动给出「进行中的小游戏」一行；
+   - 写一个 `xxxDetail(g, asker, names)`，在 `gameStatus` 里分派：返回紧凑的 JSON（昵称而不是 uuid，提问人标 `(提问人)`），给出规则相关的预计算（合法着法、必胜 / 必堵、粗略建议），整体不超过 `STATUS_MAX_CHARS`；规则和尺寸是客户端代码的精简移植，改规则时两边一起改；
+   - `game_status` 工具的 `game` enum 和描述（`agent.ts` 的 `TOOLS`）加上新游戏；工具列表必须对所有人完全一致（提示词缓存）；
+   - 要算胜场：把计数规则加进 `game_win_events`（新迁移里 `create or replace`），`BOARD_GAMES` 加游戏名，`agent_game_record_test.sql` 补断言；
+   - `games_test.ts` 补测试：详情形状、跨好友对的 id 被拒、提示行。
+   榴莲只读：工具里绝不能出现落子、出杆、认输、开局。
+6. **样式** `chat/css/<名字>.css`，在 `chat/index.html` 里 `plus-miniapps.css` 后面引入（井字棋的样式在 `plus-miniapps.css` 里，是早期写法，新游戏用单独文件）。颜色用 `tokens.css` 的变量，浅色 / 深色都要好看。触控目标至少 44×44。
+7. **素材**：一律用 GPT 生成，按 `gpt-assets` skill 交给 Codex。界面里**不用 emoji**（按钮、标签、提示、推送文字都不用）。每张图都要有加载失败的兜底。
+8. **文案**：中文、简短、口语，和现有的「轮到你了」「等 Ta 下」一个语气。UI 文字里不用破折号。
 
 ## 已有的约定，别破坏
 

@@ -19,6 +19,7 @@
 //   提示词缓存 https://developers.openai.com/api/docs/guides/prompt-caching ：缓存按相同的前缀命中，所以 instructions 和 tools 必须
 //     每次都完全一样；prompt_cache_key 只影响路由 / 计费归类，不保证命中；GPT-5.6 及以后最短可缓存 1024 token
 import { PERSONA } from "./persona.gen.ts";
+import { BOARD_GAMES, gameHint, gameRecord, gameStatus } from "./games.ts";
 
 // ---- 调参：全部数字集中在这里 ----
 export const MAX_REPLY = 4000; // 回复字数的最后保险
@@ -86,6 +87,9 @@ export function systemInstructions(): string {
 - 记忆由你自己做主，没有人会叫你记，也没人能手动加。你觉得以后用得上的事就主动用 remember 记下：喜好、计划、日期、正在发生的事、对方希望的称呼、他们在意的东西。情况变了就更新那一条，过时或记错的用 forget 删掉。闲聊和一次性的小事不要记。
 - 哪些记忆常驻（pinned）也由你定：称呼、过敏、禁忌这类每次都该知道的才常驻，最多 10 条，满了先取消或删掉一条再加。
 - 记忆标题用「人名·类别」或简短主题，20 字内，例如「小明·口味」「纪念日」「周末计划」。新建标题前先看记忆里有没有相近的，有就沿用，并把合并后的完整最新内容一起写进去（同标题会整条替换）。
+- 用户消息里如果写了「进行中的小游戏」，说明这两个人正在玩小游戏。聊到小游戏、或有人想要建议时，你可以用 game_status 看他们的井字棋、弹弓大战、台球（9球和8球）的当前局面，用 game_leaderboard 看这两个人的胜负战绩（含彼此的交手）。这两个工具只是看，你不能替任何人落子、出杆、认输或开局。
+- 给游戏建议要具体、正确：基于返回的局面说话。井字棋直接用返回的必胜点和必堵点；台球说清打哪个球、进哪个袋、大概多大力，也可以建议防守，但你看不到精确物理，台球的建议要说成「建议」「大概」。
+- 聊天的两个人都能看到你的回复。有人在对局中向你要建议时，公开、公平地说，不偏袒；可以善意地调侃一句。
 - 如果记忆只列了标题目录，需要细节时先用 recall 取全文再回答。`;
 }
 
@@ -139,6 +143,30 @@ const TOOLS = [
       type: "object",
       properties: { titles: { type: "array", items: { type: "string" }, maxItems: RECALL_MAX, description: "要取的记忆标题" } },
       required: ["titles"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "game_status",
+    description: "只读：看这两个人的小游戏。不带参数 = 列出每种游戏最近的几局（进行中的在前）。带 game（ttt 井字棋 / sling 弹弓大战 / pool 台球，含9球和8球）= 看那一局的详细局面（不给 id 就是进行中的最新一局），井字棋会给出必胜点和必堵点，台球会给出球的坐标、合法目标球和粗略的进袋建议。你不能用它做任何操作。",
+    parameters: {
+      type: "object",
+      properties: {
+        game: { type: "string", enum: ["ttt", "sling", "pool"], description: "要看哪种游戏" },
+        id: { type: "integer", description: "对局编号（列表里有）；不给就是最新进行中的一局" },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "game_leaderboard",
+    description: "只读：这两个人在某个小游戏里各自的总胜负，以及两人之间的交手战绩。只含这两个人，没有别的好友。",
+    parameters: {
+      type: "object",
+      properties: { game: { type: "string", enum: BOARD_GAMES, description: "ttt 井字棋 / sling 弹弓大战 / pool 9球 / pool8 8球" } },
+      required: ["game"],
       additionalProperties: false,
     },
   },
@@ -219,9 +247,10 @@ export function buildHistoryBlock(rows: HistoryRow[], names: Names): string {
 }
 
 // 每次请求的 user input：本次的名字、时间、记忆、聊天记录、问题。所有会变的东西都在这里，instructions 保持静态
-export function buildUserInput(p: { askerName: string; peerName: string; now: Date; mems: Memory[]; history: HistoryRow[]; names: Names; question: string }): string {
+export function buildUserInput(p: { askerName: string; peerName: string; now: Date; mems: Memory[]; history: HistoryRow[]; names: Names; question: string; gameHint?: string }): string {
   return [
     `聊天的两个人是「${p.askerName}」和「${p.peerName}」。现在是 ${stamp(p.now.toISOString())}（北京时间），「${p.askerName}」在叫你。`,
+    ...(p.gameHint ? [p.gameHint] : []),
     "",
     buildMemoryBlock(p.mems),
     "",
@@ -258,6 +287,8 @@ async function runTool(deps: Deps, job: Job, names: Names, name: string, rawArgs
       // deno-lint-ignore no-explicit-any
       return JSON.stringify({ results: (data ?? []).map((r: any) => ({ at: stamp(r.created_at), from: r.author ? "榴莲" : names[r.sender_id] ?? "?", text: r.body })) });
     }
+    if (name === "game_status") return await gameStatus(deps.admin, job.asker, job.peer, names, args);
+    if (name === "game_leaderboard") return await gameRecord(deps.admin, job.asker, job.peer, names, args);
     if (name === "remember") {
       const title = typeof args.title === "string" ? args.title.trim() : "";
       const content = typeof args.content === "string" ? args.content.trim() : "";
@@ -364,7 +395,8 @@ export async function runJob(deps: Deps, jobId: number): Promise<void> {
 
     // 当前这条问题单独放在末尾，聊天记录里不再重复
     const history = ((hist ?? []) as HistoryRow[]).filter((m) => m.id !== j.message_id).reverse();
-    const userText = buildUserInput({ askerName, peerName, now: new Date(), mems: (mems ?? []) as Memory[], history, names, question: q.body });
+    const hint = await gameHint(deps.admin, j.asker, j.peer, names).catch(() => "");
+    const userText = buildUserInput({ askerName, peerName, now: new Date(), mems: (mems ?? []) as Memory[], history, names, question: q.body, gameHint: hint });
     const instructions = systemInstructions();
     const promptCacheKey = await cacheKey(pair.lo, pair.hi);
 
