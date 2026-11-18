@@ -282,7 +282,7 @@ Deno.test("request body carries the token-saving fields", async () => {
     fetchFn: ((_u: string, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Promise.resolve(json({ id: "r", output: [{ type: "message", content: [{ type: "output_text", text: "好" }] }] })); }) as unknown as typeof fetch,
   }, 7);
   const b = bodies[0] as { max_output_tokens: number; reasoning: { effort: string }; prompt_cache_key: string; tools: { type: string; search_context_size?: string }[] };
-  if (b.max_output_tokens !== 800 || MAX_OUTPUT_TOKENS !== 800) throw new Error("max_output_tokens");
+  if (b.max_output_tokens !== 1500 || MAX_OUTPUT_TOKENS !== 1500) throw new Error("max_output_tokens");
   if (b.reasoning?.effort !== "low") throw new Error("reasoning");
   if (!b.prompt_cache_key) throw new Error("prompt_cache_key");
   if (b.tools.find((t) => t.type === "web_search")?.search_context_size !== "low" || SEARCH_CONTEXT_SIZE !== "low") throw new Error("search_context_size");
